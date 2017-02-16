@@ -71,7 +71,8 @@ INSTALL
       
       (1.6) Now the SVEngine executables will be available from "$PWD/zoomx_vpy/bin". Because you installed SVEngine via virtualenv, remember to activate the virtualenv first every time you use SVEngine. Also export the environmental variable $ZOOMX_BIN=$PWD/zoomx_vpy/bin
        
-      
+
+EXECUTABLES      
 ===========
 
     parse10x      --  parsing 10X genomics (Chromium) bam
