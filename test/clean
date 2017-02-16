@@ -5,4 +5,5 @@ rm -f *z
 rm -f *ed
 rm -f *.bedpe
 rm -rf zoomx_*
+rm -f *.log
 echo "done"

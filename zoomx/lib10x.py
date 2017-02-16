@@ -59,7 +59,6 @@ __docformat__ = 'epytext en'
 import operator
 import random
 
-
 def empirical_density(v):
   #values, base = np.histogram(nearest, bins=20, density=1)
   d, b = numpy.histogram(v, bins=range(0,int(numpy.ceil(v.max()))+1), density=1)
