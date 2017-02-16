@@ -28,9 +28,6 @@ INSTALL
           (there is samtools api comes with Pysam, however it has to be able to compile on your system with dafault setting. otherwise expect the "csamtools.c" not found error. e.g. libcurse is required for build samtools but often missing in some Linux.)
       
       Bedtools http://bedtools.org 
-       
-      BWA http://samtools.org/
-        (executables have to be in $PATH and within the sve_py virtual env)
       
 
     *Installation*
