@@ -83,7 +83,7 @@ EXECUTABLES
 
     getMolecule   --  output molecules supporting a junction 
 
-    plotMolecule  --  plot molecules supporting a junction 
+    plotMolecule  --  plot molecules supporting a junction (requires R and BioConductor)
 
 
 USAGE
