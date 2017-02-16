@@ -1,0 +1,12 @@
+[submodule "wiki"]
+	path = wiki
+	url = https://charade@bitbucket.org/charade/zoomx.git/wiki
+[submodule "bedtools2"]
+	path = bedtools2
+	url = https://github.com/arq5x/bedtools2.git
+[submodule "samtools"]
+	path = samtools
+	url = https://github.com/dnanexus/samtools
+[submodule "htslib"]
+	path = htslib
+	url = git://github.com/samtools/htslib.git

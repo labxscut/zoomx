@@ -20,10 +20,14 @@ os.system("cp samtools/samtools %s/bin" % sys.prefix)
 
 """bedtools"""
 
-print "cd bedtools && make"
-os.system("cd bedtools && make")
-print "cp bedtools/bin/* %s/bin" % sys.prefix
-os.system("cp bedtools/bin/* %s/bin" % sys.prefix)
+print "cd bedtools2 && make"
+os.system("cd bedtools2 && make")
+print "cp bedtools2/bin/* %s/bin" % sys.prefix
+os.system("cp bedtools2/bin/* %s/bin" % sys.prefix)
+
+"""scripts"""
+print "cp scripts/* %s/bin" % sys.prefix
+os.system("cp scripts/* %s/bin" % sys.prefix)
 
 dist=setup(name="zoomx",
     version="1.0.0",
