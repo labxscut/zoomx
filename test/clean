@@ -1,0 +1,8 @@
+#!/bin/bash
+echo -e "cleaning test files ..."
+rm -f *.tagidx *.json *.a0
+rm -f *z
+rm -f *ed
+rm -f *.bedpe
+rm -rf zoomx_*
+echo "done"
