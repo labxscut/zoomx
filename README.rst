@@ -20,8 +20,6 @@ INSTALL
 
       Python2(>=2.7)  http://www.python.org/
 
-      Biopython http://www.biopython.org
-
       Pysam  http://pysam.readthedocs.org/en/latest/
       
         Pysam prerequisites:
@@ -29,15 +27,7 @@ INSTALL
           (executables have to be in $PATH and within the sve_py virtual env)
           (there is samtools api comes with Pysam, however it has to be able to compile on your system with dafault setting. otherwise expect the "csamtools.c" not found error. e.g. libcurse is required for build samtools but often missing in some Linux.)
       
-      Pybedtools(>=3.0) http://pythonhosted.org/pybedtools/
-      
-        Pybedtools prerequisites:
-        Bedtools http://bedtools.org 
-          (executables have to be in $PATH and within the sve_py virtual env)
-        Pandas http://pandas.pydata.org
-        Cython (>=2.2) http://cython.org/
-        Numpy http://numpy.org
-        Sqlite3 http://sqlite.org
+      Bedtools http://bedtools.org 
        
       BWA http://samtools.org/
         (executables have to be in $PATH and within the sve_py virtual env)
