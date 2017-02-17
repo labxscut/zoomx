@@ -245,7 +245,7 @@ def main(args):
   sys.stderr.write("merging IM done:{}s\n".format(end_time-start_time))
   
   sys.stderr.write("merging FF rdp\n")
-  ffSupport = lib10x.ParallelIdentifySupportRDP(mergeBedpe, ffBedpeFile, callLabels, callTypes, numprocs)
+  ffSupport = lib10x.ParallelIdentifySupportRDP(mergeBedpe, ffBedpeFile, callLabels, callTypes, numprocs, debug=True)
   end_time=time.time()
   sys.stderr.write("merging FF done:{}s\n".format(end_time-start_time))
   

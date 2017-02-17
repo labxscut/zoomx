@@ -91,7 +91,7 @@ def ParallelIdentifySupportRDP(callDF, rdpBedpeFile, callLabels, callTypes, nump
   info=[ [i, numCall, callDF.loc[i:i,:], tmpBedpeFile] for i in range(0,numCall) ] #0-based merged call index
   support=[ [] for i in range(0,numCall) ] #1-based merged call index
   pool=Pool(processes=int(numprocs))
-  support = pool.map( ThreadIdentifySupportRDP, info )
+  support = pool.map( ThreadIdentifySupportRDP, info, debug )
   return support
 
 def empirical_density(v):

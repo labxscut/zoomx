@@ -75,7 +75,7 @@ def main(args):
     fragFile = "LS411N_CR1.wg12.bam.multiFragBar.bed.a0"
     hdf5File = "LS411N_CR1.wg12.bam.multiFragBar.h5.a0"
     outputPrefix = bamfile 
-    genomeSize = 3200000000   #size of genome 3G
+    genomeSize = 1000000   #size of genome region of bam
     numSub = 3
     gridSize = 10000          #size of the region 10K
     expectFalseDiscover = 10  #tolerated false discoveries
@@ -213,7 +213,6 @@ def main(args):
   fragdata = lib10x.bed2df(fragFile,fragLabels)
   fragdataSize = len(fragdata)
   print >>sys.stderr, "fragdataSize:", fragdataSize
-  
   #ASSUME:
   #  hdf5 to contain ALL possible Tb's
   #  fragFile to caontain ALL Fragments
@@ -229,7 +228,7 @@ def main(args):
   print >>sys.stderr, "tagFractionSquareSum:", tagFractionSquareSum
   expectShareFrag=(fragNumber**2)*(regionFraction**2)*tagFractionSquareSum     #FIX, u0, expected shared Fragment by random chance
   print >>sys.stderr, "expectShareFrag:", expectShareFrag
-  expectJunctionFrag=fragNumber*averageFragLength/genomeSize                    #u, expected shared Fragment by junction formation
+  expectJunctionFrag=fragNumber*averageFragLength/float(genomeSize)                    #u, expected shared Fragment by junction formation
   print >>sys.stderr, "expectJunctionFrag:", expectJunctionFrag
   
   if maxTagFraction <0 or maxTagFraction>0.99:
@@ -518,14 +517,14 @@ def main(args):
   cfgFile = "{}.{}".format(outputPrefix,"gridScan.cfg.json")
   scanConfig['G'] = genomeSize
   scanConfig['L'] = gridSize
-  scanConfig['aNF'] = fragNumber
-  scanConfig['mNF'] = fragdataSize
+  scanConfig['aNF'] = fragNumber           #molecule number regardless of barcode
+  scanConfig['mNF'] = fragdataSize         #molecule number barcode > 2 molecules
   scanConfig['mLf'] = averageFragLength
   scanConfig['mNb'] = parsedBarcode
   scanConfig['fNb'] = filteredBarcode
   scanConfig['Tb'] = tagFractionSquareSum 
-  scanConfig['Cem'] = fragdataSize * averageFragLength / genomeSize
-  scanConfig['E0'] = parsedBarcode**2 * (gridSize/genomeSize)**2 * (tagFractionSquareSum)
+  scanConfig['Cem'] = fragNumber * averageFragLength / float(genomeSize)
+  scanConfig['E0'] = parsedBarcode**2 * (gridSize/float(genomeSize))**2 * (tagFractionSquareSum)
   with open(cfgFile, 'w') as f: json.dump(scanConfig, f)
   
   if not debug:
