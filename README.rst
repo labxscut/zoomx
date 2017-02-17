@@ -39,6 +39,8 @@ INSTALL
       
       ::
 
+        git clone git@bitbucket.org:charade/zoomx.git
+        git submodule update --init --recursive
         sudo easy_install pip
         sudo pip install virtualenv
 
