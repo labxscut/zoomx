@@ -281,6 +281,7 @@ def main(args):
     frag2mol = dict(zip(setAlpha,[ [] for x in xrange(numAlpha)]))
     frag2hp = dict(zip(setAlpha,[ [] for x in xrange(numAlpha)]))
     frag2ps = dict(zip(setAlpha,[ [] for x in xrange(numAlpha)]))
+    frag2bar = dict(zip(setAlpha,[ [] for x in xrange(numAlpha)]))
   
     for rd in samfile.fetch():
   
@@ -365,6 +366,7 @@ def main(args):
           frag2mol[alpha].append(mol)
           frag2hp[alpha].append(hp)
           frag2ps[alpha].append(ps)
+          frag2bar[alpha].append(bar)
           fragdata[alpha].append([gip_GoodReadLeft,bar,[gip_GoodReadLeft]]) #add a new molecule
           N_f[alpha] += 1;  #move molecule counter next
         else: #barcode exists,
@@ -374,6 +376,7 @@ def main(args):
             frag2mol[alpha].append(mol)
             frag2hp[alpha].append(hp)
             frag2ps[alpha].append(ps)
+            frag2bar[alpha].append(bar)
             fragdata[alpha].append([gip_GoodReadLeft,bar,[gip_GoodReadLeft]]) #add a new molecule
             barfragdata[alpha][bar].append(N_f[alpha]) #add this molecule to the list of bardcoded molecule
             N_f[alpha] += 1;  #move molecule counter next
@@ -500,7 +503,7 @@ def main(args):
           #DEBUG: testing assertion
           #assert cp1[0] == cp2[0] and cp1[1] <= cp2[1], "incorrect frag gip tip %d (%s,%d) and end %d (%s,%d) of %s" % (fragdata[alpha][frag][-1][0],cp1[0],cp1[1],fragdata[alpha][frag][-1][-1],cp2[0],cp2[1],str(fragdata[alpha][frag]))
           if cp1[0] == cp2[0] and cp1[1] <= cp2[1]:
-            print >>multiFragBarBedfile[alpha], "\t".join([str(cp1[0]), str(cp1[1]), str(cp2[1]), str(multiFragBarMap[alpha][bar]), str(len(fragdata[alpha][frag][-1])), str(cp2[1]-cp1[1]), str(len(barfragdata[alpha][bar])), str(frag2mol[alpha][frag]), str(frag2hp[alpha][frag]), str(frag2ps[alpha][frag]) ]) #, str(len(fragLengthMultiFragBar[alpha])) ])
+            print >>multiFragBarBedfile[alpha], "\t".join([str(cp1[0]), str(cp1[1]), str(cp2[1]), str(multiFragBarMap[alpha][bar]), str(len(fragdata[alpha][frag][-1])), str(cp2[1]-cp1[1]), str(len(barfragdata[alpha][bar])), str(frag2mol[alpha][frag]), str(frag2hp[alpha][frag]), str(frag2ps[alpha][frag]), str(frag2bar[alpha][frag]) ])
             fragLengthMultiFragBar[alpha].append(cp2[1]-cp1[1])
         print >>multiFragBarTagfile[alpha], bar, len(barfragdata[alpha][bar])
         #outputs inferred molecules and its barcode

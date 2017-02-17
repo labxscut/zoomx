@@ -1,15 +1,6 @@
 #!/usr/bin/env Rscript
-version="REPLACE_WITH_COMMIT_OR_VERSION"
-#library("BSgenome.Hsapiens.UCSC.hg19")
-#genome = BSgenome.Hsapiens.UCSC.hg19
-#seqlengths(genome)
-#library("Sushi")
-library("optparse")
-library("rjson")
-library("ggbio")
-library("ggplot2")
-library("GenomicRanges")
-library("RColorBrewer")
+for(p in c("optparse", "rjson", "ggbio", "ggplot2", "RColorBrewer")) myrequire(p)
+for(p in c("GenomicRanges")) myrequire(p,repo="Bioc")
 
 ####Externalities####
 set_colClass <- function(d, colClasses) {
@@ -22,6 +13,23 @@ set_colClass <- function(d, colClasses) {
                                                  factor=as.factor(d[[i]]),
                                                  as(d[[i]], colClasses[i]) ))
   return(d)
+}
+
+myrequire = function(pkg, repo="CRAN", ...){
+  cat("requiring package", pkg, "\n")
+  tryCatch(suppressMessages(library(pkg,character.only=T)), error=function(e) {
+    print(e)
+    if(repo!="CRAN"){
+      source("http://bioconductor.org/biocLite.R")
+      biocLite(pkg,...)
+    } else {
+      install.packages(pkg,repo="http://cran.us.r-project.org",...)
+    }
+  })
+  tryCatch(suppressMessages(library(pkg,character.only=T)), error=function(e) {
+    print(e)
+    stop(pkg," was not installed and cannot install on the fly!\n")
+  })
 }
 
 #genome plot packages: ggbio, Sushi, genoplotR, circlize 
