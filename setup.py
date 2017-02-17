@@ -14,16 +14,22 @@ subprocess.call(generateVersion, shell=True)
 """samtools"""
 
 print "cd samtools && make"
-os.system("cd samtools && make")
+samtools_OK = os.system("cd samtools && make") == 0
 print "cp samtools/samtools %s" % sys.prefix
-os.system("cp samtools/samtools %s/bin" % sys.prefix)
+samtools_OK = samtools_OK and os.system("cp samtools/samtools %s/bin" % sys.prefix) == 0
+if not samtools_OK:
+  sys.stderr.write("failed samtools installation, quit\n")
+  quit()
 
 """bedtools"""
 
 print "cd bedtools2 && make"
-os.system("cd bedtools2 && make")
+bedtools_OK = os.system("cd bedtools2 && make") == 0
 print "cp bedtools2/bin/* %s/bin" % sys.prefix
-os.system("cp bedtools2/bin/* %s/bin" % sys.prefix)
+bedtools_OK = bedtools_OK and os.system("cp bedtools2/bin/* %s/bin" % sys.prefix) == 0
+if not bedtools_OK:
+  sys.stderr.write("failed bedtools installation, quit\n")
+  quit()
 
 #"""scripts"""
 #print "cp scripts/* %s/bin" % sys.prefix
@@ -41,9 +47,9 @@ dist=setup(name="zoomx",
     packages=find_packages(exclude=['ez_setup', 'test', 'doc']),
     include_package_data=True,
     zip_safe=False,
-    install_requires=["python >= 2.7","pandas >= 0.16", "pysam >= 0.7",],
+    install_requires=["python >= 2.7","pandas >= 0.16", "pysam >= 0.7", "scipy >= 0.18"],
     provides=['zoomx'],
-    py_modules = ['zoomx.parse10x', 'zoomx.gridScan', 'zoomx.refindBreak'],
+    py_modules = ['zoomx.parse10x', 'zoomx.gridScan', 'zoomx.refineBreak'],
 		scripts = ['scripts/getMolecule.sh', 'scripts/plotMolecule.R', \
 							 'scripts/bedpe2loupe.sh', 'scripts/getSomatic.sh', \
                'scripts/plot10x.R', 'scripts/plotCircus.R', \
