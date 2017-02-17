@@ -39,8 +39,6 @@ INSTALL
       
       ::
 
-        git clone git@bitbucket.org:charade/zoomx.git
-        git submodule update --init --recursive
         sudo easy_install pip
         sudo pip install virtualenv
 
@@ -66,6 +64,8 @@ INSTALL
       
       ::
         
+        git clone git@bitbucket.org:charade/zoomx.git
+        git submodule update --init --recursive 
         python setup.py install 
 
       (1.5) On some platforms, you might run into error and it prompts you to install Cython, just install Cython and try again:
