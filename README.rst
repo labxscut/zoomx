@@ -48,7 +48,7 @@ INSTALL
       
       ::
         
-        >virtualenv zoomx_vpy --no-site-packages
+        >virtualenv zoomx_vpy
 
       (1.3) Then you can activate this virtual python for installing SVEngine:
       
