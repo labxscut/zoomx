@@ -58,8 +58,9 @@ INSTALL
         # in zoomx_py>
         source zoomx_vpy/bin/activate 
         pip install scipy
-        pip install pysam
+        pip install tables
         pip install pandas
+        pip install pysam
         pip install pybedtools
 
       (1.4) Optionally, under your virtualenv, the dependencies will be automatically setup by ZoomX installation itself:

@@ -694,7 +694,7 @@ def run():
   except SystemExit:
     args = None
   main(args)
+  print >>sys.stderr, "PARSE10XDONE; elapsed time", time.time()-start_time, "seconds"
   
 if __name__ == '__main__':
   run()
-  print >>sys.stderr, "PARSE10XDONE; elapsed time", time.time()-start_time, "seconds"

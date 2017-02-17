@@ -416,7 +416,7 @@ def run():
   except SystemExit:
     args = None
   main(args)
+  print >>sys.stderr, "REFINEBREAKDONE; elapsed time", time.time()-start_time, "seconds"
 
 if __name__ == '__main__':
   run()
-  print >>sys.stderr, "REFINEBREAKDONE; elapsed time", time.time()-start_time, "seconds"
