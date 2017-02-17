@@ -1,6 +1,6 @@
 [submodule "wiki"]
 	path = wiki
-	url = https://charade@bitbucket.org/charade/zoomx.git/wiki
+	url = https://bitbucket.org/charade/zoomx/wiki
 [submodule "bedtools2"]
 	path = bedtools2
 	url = https://github.com/arq5x/bedtools2.git
