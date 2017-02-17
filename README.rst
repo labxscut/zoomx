@@ -55,6 +55,7 @@ INSTALL
       ::
         
         source zoomx_vpy/bin/activate
+        pip install --upgrade pip
         pip install scipy
         pip install pysam
         pip install pandas
