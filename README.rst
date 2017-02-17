@@ -55,6 +55,9 @@ INSTALL
       ::
         
         >source zoomx_vpy/bin/activate
+        >pip install scipy
+        >pip install pysam
+        >pip install pandas
 
       (1.4) Now under your virtualenv, the dependencies will be automatically setup by ZoomX installation itself:
       
