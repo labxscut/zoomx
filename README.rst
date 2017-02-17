@@ -48,6 +48,7 @@ INSTALL
       
       ::
         
+        sudo pip install --upgrade pip
         virtualenv zoomx_vpy
 
       (1.3) Then you can activate this virtual python for installing ZoomX:
@@ -56,26 +57,22 @@ INSTALL
         
         # in zoomx_py>
         source zoomx_vpy/bin/activate 
-        pip install --upgrade pip
         pip install scipy
         pip install pysam
         pip install pandas
+        pip install pybedtools
 
-      (1.4) Now under your virtualenv, the dependencies will be automatically setup by ZoomX installation itself:
+      (1.4) Optionally, under your virtualenv, the dependencies will be automatically setup by ZoomX installation itself:
       
       ::
-        
+
         # in zoomx_py>
-        python setup.py install 
-
-      (1.5) Now the ZoomX executables will be available from "$PWD/zoomx_vpy/bin". Because you installed ZoomX via virtualenv, remember to activate the virtualenv first every time you use ZoomX. Also export the environmental variable $ZOOMX_BIN=$PWD/zoomx_vpy/bin
-
-      ::
-
         git clone git@bitbucket.org:charade/zoomx.git
+        cd zoomx
         git submodule update --init --recursive 
         python setup.py install 
 
+      (1.5) Now the ZoomX executables will be available from "$PWD/zoomx_vpy/bin". Because you installed ZoomX via virtualenv, remember to activate the virtualenv first every time you use ZoomX. Also export the environmental variable $ZOOMX_BIN=$PWD/zoomx_vpy/bin
        
 
 EXECUTABLES      

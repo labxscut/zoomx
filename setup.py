@@ -61,7 +61,7 @@ dist=setup(name="zoomx",
       'console_scripts': [
 				'parse10x = zoomx.parse10x:run',
 				'gridScan = zoomx.gridScan:run',
-				'refindBreak = zoomx.refineBreak:run',
+				'refineBreak = zoomx.refineBreak:run',
 				'zoomxVersion = zoomx.zoomxVersion:run',
       ]
    },
