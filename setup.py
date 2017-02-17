@@ -13,8 +13,10 @@ subprocess.call(generateVersion, shell=True)
 
 """samtools"""
 
-print "cd samtools && make"
-samtools_OK = os.system("cd samtools && make") == 0
+print "cd htslib && autoheader && autoconf && ./configure && make"
+samtools_OK = os.system("cd htslib && autoheader && autoconf && ./configure && make") == 0
+print "cd samtools && autoconf -Wno-syntax && ./configure && make"
+samtools_OK = samtools_OK and os.system("cd samtools && autoconf -Wno-syntax && ./configure && make") == 0
 print "cp samtools/samtools %s" % sys.prefix
 samtools_OK = samtools_OK and os.system("cp samtools/samtools %s/bin" % sys.prefix) == 0
 if not samtools_OK:

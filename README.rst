@@ -48,30 +48,26 @@ INSTALL
       
       ::
         
-        >virtualenv zoomx_vpy
+        virtualenv zoomx_vpy
 
-      (1.3) Then you can activate this virtual python for installing SVEngine:
+      (1.3) Then you can activate this virtual python for installing ZoomX:
       
       ::
         
-        >source zoomx_vpy/bin/activate
-        >pip install scipy
-        >pip install pysam
-        >pip install pandas
+        # in zoomx_py>
+        source zoomx_vpy/bin/activate 
+        pip install scipy
+        pip install pysam
+        pip install pandas
 
       (1.4) Now under your virtualenv, the dependencies will be automatically setup by ZoomX installation itself:
       
       ::
         
-        zoomx_vpy> python setup.py install 
+        # in zoomx_py>
+        python setup.py install 
 
-      (1.5) On some platforms, you might run into error and it prompts you to install Cython, just install Cython and try again:
-      
-      ::
-        
-        zoomx_vpy>pip install -U cython
-      
-      (1.6) Now the SVEngine executables will be available from "$PWD/zoomx_vpy/bin". Because you installed SVEngine via virtualenv, remember to activate the virtualenv first every time you use SVEngine. Also export the environmental variable $ZOOMX_BIN=$PWD/zoomx_vpy/bin
+      (1.5) Now the ZoomX executables will be available from "$PWD/zoomx_vpy/bin". Because you installed ZoomX via virtualenv, remember to activate the virtualenv first every time you use ZoomX. Also export the environmental variable $ZOOMX_BIN=$PWD/zoomx_vpy/bin
        
 
 EXECUTABLES      
