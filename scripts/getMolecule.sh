@@ -4,6 +4,8 @@ if [ -z $4 ]; then
 	echo "usage: getMolecule.sh inMoleFile inPrefix lineNum outDir"
   echo "example:"
   echo "  getMolecule.sh P00526_2721_mt.st.10X_v2.bam.tra.E25.refined P00526_2721_mt.st.10X_v2.bam 1 testPlot"
+  echo "  #this gets singlue molecules supports 1st junction listed in P00526_2721_mt.st.10X_v2.bam.tra.E25.refined"
+  echo "  #from P00526_2721_mt.st.10X_v2.bam and store them in testPlot"
   exit
 fi 
 
