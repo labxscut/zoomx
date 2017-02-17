@@ -56,6 +56,7 @@ INSTALL
         
         # in zoomx_py>
         source zoomx_vpy/bin/activate 
+        pip install --upgrade pip
         pip install scipy
         pip install pysam
         pip install pandas
@@ -68,6 +69,13 @@ INSTALL
         python setup.py install 
 
       (1.5) Now the ZoomX executables will be available from "$PWD/zoomx_vpy/bin". Because you installed ZoomX via virtualenv, remember to activate the virtualenv first every time you use ZoomX. Also export the environmental variable $ZOOMX_BIN=$PWD/zoomx_vpy/bin
+
+      ::
+
+        git clone git@bitbucket.org:charade/zoomx.git
+        git submodule update --init --recursive 
+        python setup.py install 
+
        
 
 EXECUTABLES      
@@ -79,9 +87,9 @@ EXECUTABLES
     
     refineBreak   --  refine and report junction candidates 
 
-    getMolecule   --  output molecules supporting a junction 
+    getMolecule.sh  --  output molecules supporting a junction 
 
-    plotMolecule  --  plot molecules supporting a junction (requires R and BioConductor)
+    plotMolecule.R  --  plot molecules supporting a junction (requires R and ggbio from BioConductor)
 
 
 USAGE
