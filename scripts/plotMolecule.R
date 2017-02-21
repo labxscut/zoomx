@@ -30,8 +30,8 @@ myrequire = function(pkg, repo="CRAN", ...){
   })
 }
 
-for(p in c("optparse", "rjson", "ggbio", "ggplot2", "RColorBrewer")) myrequire(p)
-for(p in c("GenomicRanges")) myrequire(p,repo="Bioc")
+for(p in c("optparse", "rjson", "ggplot2", "RColorBrewer")) myrequire(p)
+for(p in c("GenomicRanges", "ggbio")) myrequire(p,repo="Bioc")
 
 #genome plot packages: ggbio, Sushi, genoplotR, circlize 
 
@@ -197,8 +197,6 @@ if(!is.na(leftBreakReg2)) leftBreakReg2 = flushSDReg2[1] < flushSDReg2[2]
 breakCI=0.95
 breakReg1 = round(if(is.na(leftBreakReg1)) { median(c(convertedAll$start1,convertedAll$end1)) } else if (leftBreakReg1) { quantile(convertedAll$start1,1-breakCI) } else { quantile(convertedAll$end1,breakCI) })
 breakReg2 = round(if(is.na(leftBreakReg2)) { median(c(convertedAll$start2,convertedAll$end2)) } else if (leftBreakReg2) { quantile(convertedAll$start2,1-breakCI) } else { quantile(convertedAll$end2,breakCI) })
-
-quit()
 
 cat("gr...\n")
 #print(convertedAll[convertedAll$end1>convertedAll$start2,c(1,2,3,4,5,6)])

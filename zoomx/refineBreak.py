@@ -241,19 +241,19 @@ def main(args):
   
   sys.stderr.write("merging IM rdp\n")
   imSupport = lib10x.ParallelIdentifySupportRDP(mergeBedpe, imBedpeFile, callLabels, callTypes, numprocs)
-  if imSupport == [ [] ]: imSupport = [ None ]
+  if imSupport == [ None ]: imSupport = [ [] ]
   end_time=time.time()
   sys.stderr.write("merging IM done:{}s\n".format(end_time-start_time))
   
   sys.stderr.write("merging FF rdp\n")
   ffSupport = lib10x.ParallelIdentifySupportRDP(mergeBedpe, ffBedpeFile, callLabels, callTypes, numprocs, debug=True)
-  if ffSupport == [ [] ]: ffSupport = [ None ]
+  if ffSupport == [ None ]: ffSupport = [ [] ]
   end_time=time.time()
   sys.stderr.write("merging FF done:{}s\n".format(end_time-start_time))
   
   sys.stderr.write("merging RR rdp\n")
   rrSupport = lib10x.ParallelIdentifySupportRDP(mergeBedpe, rrBedpeFile, callLabels, callTypes, numprocs)
-  if rrSupport == [ [] ]: rrSupport = [ None ]
+  if rrSupport == [ None ]: rrSupport = [ [] ]
   end_time=time.time()
   sys.stderr.write("merging RR rdp:{}s\n".format(end_time-start_time))
   
