@@ -35,12 +35,12 @@ bedtools intersect -u -a $inPrefix.multiFragBar.bed.a0 -b $outDir/refined.reg1.b
 echo "bedtools intersect -u -a $inPrefix.multiFragBar.bed.a0 -b $outDir/refined.reg2.bed >$outDir/refined.reg2.mol"
 bedtools intersect -u -a $inPrefix.multiFragBar.bed.a0 -b $outDir/refined.reg2.bed >$outDir/refined.reg2.mol
 ###
-echo "head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f8 | grep -o '[0-9]*' | sed -e 's/$/p/g' | tr '\n' ';' | sed -e 's/p;$/p;\n/g' >$outDir/refined.rindex.IM"
-head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f8 | grep -o '[0-9]*' | sed -e 's/$/p/g' | tr '\n' ';' | sed -e 's/p;$/p;\n/g' >$outDir/refined.rindex.IM
-echo "head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f9 | grep -o '[0-9]*' | sed -e 's/$/p/g' | tr '\n' ';' | sed -e 's/p;$/p;\n/g' >$outDir/refined.rindex.FF"
-head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f9 | grep -o '[0-9]*' | sed -e 's/$/p/g' | tr '\n' ';' | sed -e 's/p;$/p;\n/g' >$outDir/refined.rindex.FF
-echo "head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f10 | grep -o '[0-9]*' | sed -e 's/$/p/g' | tr '\n' ';' | sed -e 's/p;$/p;\n/g' >$outDir/refined.rindex.RR"
-head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f10 | grep -o '[0-9]*' | sed -e 's/$/p/g' | tr '\n' ';' | sed -e 's/p;$/p;\n/g' >$outDir/refined.rindex.RR
+echo "head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f8 | grep -o '[0-9]*' | sed '/^$/d' | sed -e 's/$/p/g' | tr '\n' ';' | sed -e 's/p;$/p;\n/g' >$outDir/refined.rindex.IM"
+head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f8 | grep -o '[0-9]*' | sed '/^$/d' |  sed -e 's/$/p/g' | tr '\n' ';' | sed -e 's/p;$/p;\n/g' >$outDir/refined.rindex.IM
+echo "head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f9 | grep -o '[0-9]*' | sed '/^$/d' |  sed -e 's/$/p/g' | tr '\n' ';' | sed -e 's/p;$/p;\n/g' >$outDir/refined.rindex.FF"
+head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f9 | grep -o '[0-9]*' | sed '/^$/d' |  sed -e 's/$/p/g' | tr '\n' ';' | sed -e 's/p;$/p;\n/g' >$outDir/refined.rindex.FF
+echo "head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f10 | grep -o '[0-9]*' | sed '/^$/d' |  sed -e 's/$/p/g' | tr '\n' ';' | sed -e 's/p;$/p;\n/g' >$outDir/refined.rindex.RR"
+head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f10 | grep -o '[0-9]*' |  sed '/^$/d' | sed -e 's/$/p/g' | tr '\n' ';' | sed -e 's/p;$/p;\n/g' >$outDir/refined.rindex.RR
 ###
 echo "sed -n -f $outDir/refined.rindex.IM $inPrefix.geq50K.IM.bedpe >$outDir/refined.IM.bedpe"
 sed -n -f $outDir/refined.rindex.IM $inPrefix.geq50K.IM.bedpe >$outDir/refined.IM.bedpe
