@@ -11,7 +11,7 @@ fi
 #set ZOOMXPATH to your downloaded or cloned package path
  
 echo -e "testing ZoomX's somatic calling ..."
-mydate=$(date +%Y%b%d)
+mydate=$(LC_ALL=en_US.utf8 date +%Y%b%d)
 ref=human_g1k_v37.fasta #prefix to grid file, actual fasta file not needed
 gap=$ref.acen+gap+hc.bed
 grid=$ref.bed.w10Ks5K

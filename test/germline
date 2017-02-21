@@ -11,7 +11,7 @@ fi
 #set ZOOMXPATH to your downloaded or cloned package path
  
 echo -e "testing ZoomX's germline calling ..."
-mydate=$(date +%Y%b%d)
+mydate=$(LC_ALL=en_US.utf8 date +%Y%b%d)
 file=NA12878.wg12.chr22.bam
 log=$file.log
 ref=human_g1k_v37.ucsc.fasta #prefix to grid file, actual fasta file not needed
