@@ -1,6 +1,4 @@
 #!/usr/bin/env Rscript
-for(p in c("optparse", "rjson", "ggbio", "ggplot2", "RColorBrewer")) myrequire(p)
-for(p in c("GenomicRanges")) myrequire(p,repo="Bioc")
 
 ####Externalities####
 set_colClass <- function(d, colClasses) {
@@ -32,6 +30,9 @@ myrequire = function(pkg, repo="CRAN", ...){
   })
 }
 
+for(p in c("optparse", "rjson", "ggbio", "ggplot2", "RColorBrewer")) myrequire(p)
+for(p in c("GenomicRanges")) myrequire(p,repo="Bioc")
+
 #genome plot packages: ggbio, Sushi, genoplotR, circlize 
 
 option_list2 <- list(
@@ -50,7 +51,6 @@ option_list2 <- list(
 )
 
 parser <- OptionParser(usage = "%prog [options] plotDir", option_list=option_list2)
-cat("-Info: zoomx vesion:",version,"\n")
 cat("-Info: invoking command:",commandArgs(),"\n")
 args <- commandArgs(trailingOnly = TRUE)
 cmd = parse_args(parser, args, print_help_and_exit = TRUE, positional_arguments = TRUE)
@@ -83,7 +83,7 @@ setwd(plotDir)
 regCols=c("chr1","start1","end1","chr2","start2","end2","molcnt","IM","FF","RR") # in refined
 bedpeCols=c("chr1","st1","ed1","chr2","st2","ed2","hp")
 bedpeClass=c("character","numeric","numeric","character","numeric","numeric","numeric")
-molCols=c("chr1","st1","ed1","barID","molSize","molLen","barMolNum","molID","molHP","molPS")
+molCols=c("chr1","st1","ed1","barID","molSize","molLen","barMolNum","molID","molHP","molPS","molBX")
 refined=tryCatch(read.table("refined.bedpe",sep="\t",col.names=regCols),error=function(e) {NULL})
 refinedIM=tryCatch(read.table("refined.IM.bedpe",col.names=bedpeCols, colClasses=bedpeClass),error=function(e) {NULL})
 refinedFF=tryCatch(read.table("refined.FF.bedpe",col.names=bedpeCols, colClasses=bedpeClass),error=function(e) {NULL})
@@ -198,6 +198,8 @@ breakCI=0.95
 breakReg1 = round(if(is.na(leftBreakReg1)) { median(c(convertedAll$start1,convertedAll$end1)) } else if (leftBreakReg1) { quantile(convertedAll$start1,1-breakCI) } else { quantile(convertedAll$end1,breakCI) })
 breakReg2 = round(if(is.na(leftBreakReg2)) { median(c(convertedAll$start2,convertedAll$end2)) } else if (leftBreakReg2) { quantile(convertedAll$start2,1-breakCI) } else { quantile(convertedAll$end2,breakCI) })
 
+quit()
+
 cat("gr...\n")
 #print(convertedAll[convertedAll$end1>convertedAll$start2,c(1,2,3,4,5,6)])
 #print(mergedAll[convertedAll$end1>convertedAll$start2,c(1,2,3,4,5,6)])
@@ -211,6 +213,7 @@ gr <- GRanges(seqnames = c(convertedAll$chrom1, convertedAll$chrom2),
               supportType = c(convertedAll$supportType, convertedAll$supportType), 
               pair = c(convertedAll$name, convertedAll$name))
 cat("grComp...\n")
+print(convertedAll)
 grComp <- GRanges(seqnames = convertedAll$chrom1,
                   ranges = IRanges(start = convertedAll$end1, end=convertedAll$start2),
                   strand = rep(NA,nrow(convertedAll)),

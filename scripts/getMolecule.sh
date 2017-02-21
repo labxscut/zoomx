@@ -15,8 +15,8 @@ inMolFile=$1
 echo "inPrefix=$2"
 inPrefix=$2
 echo "lineNum=$3"
-let headLineNum=$3+1
-let tailLineNum=1
+headLineNum=$(expr $3 + 1)
+tailLineNum=1
 echo "outDir=$4-$3"
 outDir=$4-$3
 mkdir $outDir
