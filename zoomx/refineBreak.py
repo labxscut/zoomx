@@ -138,7 +138,7 @@ def main(args):
   sys.stderr.write("overlapping done:{}s\n".format(end_time-start_time))
   
   sys.stderr.write("loading overlapping graph...")
-  overlapCalls=pandas.read_table(tmpOverlapFile, names=["bedpe1","bedpe2"], dtype=numpy.int32)
+  overlapCalls=pandas.read_table(tmpOverlapFile, names=["bedpe1","bedpe2"], dtype={'bedpe1':numpy.int32,'bedpe2':numpy.int32})
   
   #load pairtopair overlapping into a sparse matrix
   if debug:

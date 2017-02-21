@@ -1,0 +1,51 @@
+#!/bin/bash
+if [ -z $1 ]; then
+    ZOOMXPATH=$HOME/setup/zoomx/zoomx/;
+else
+    ZOOMXPATH=$1;
+fi
+#this script demo ZoomX germline sample analysis
+#bam from 10X Chromium data of Chr22 of NA12878
+#tested on BioLinux v8 Virtual Machine on running on AWS
+#hardware configuration: cpu=1,mem=2GB,disk=25GB
+#set ZOOMXPATH to your downloaded or cloned package path
+ 
+echo -e "testing ZoomX's germline calling ..."
+mydate=$(date +%Y%b%d)
+file=NA12878.wg12.chr22.bam
+log=$file.log
+ref=human_g1k_v37.ucsc.fasta #prefix to grid file, actual fasta file not needed
+gap=$ref.acen+gap+hc.bed
+grid=$ref.bed.w10Ks5K
+bed=$file.multiFragBar.bed.a0
+h5=$file.multiFragBar.h5.a0
+trans=$file.M_data.jct.bedpe.tra   #output of inter chromosome junctions
+distal=$file.M_data.jct.bedpe.dis  #output of distal (>200 KB) junctions
+cis=$file.M_data.jct.bedpe.cis     #output of intra  (>50 KB) junctions
+cfg=$file.gridScan.cfg.json        #output of gridScan configuraiton
+PYTHONPATH=$ZOOMXPATH python -m parse10x -l 2 $file >$log.parse10x.$mydate 2>&1        #run parse10x module
+PYTHONPATH=$ZOOMXPATH python -m gridScan -n 3 -g 50000000 -s $gap $grid $bed $h5 $file >$log.gridScan.$mydate 2>&1 #run gridScan module on Chr22 only (50 Mbp)
+awk '{if($1 != $4 && $1 < $4) print}' $file.jct.bedpe >$trans
+awk '{if($1 == $4 && $5 - $2>200000) print}' $file.jct.bedpe >$distal
+awk '{if($1 == $4 && $5 - $2>50000 && $5 - $2<=200000) print}' $file.jct.bedpe >$cis
+awk '{if( $4 != $1 || ($5-$2)>50000 || ($5-$2)<-50000) print}' $file.IM.bedpe >$file.geq50K.IM.bedpe
+awk '{if( $4 != $1 || ($5-$2)>50000 || ($5-$2)<-50000) print}' $file.FF.bedpe >$file.geq50K.FF.bedpe
+awk '{if( $4 != $1 || ($5-$2)>50000 || ($5-$2)<-50000) print}' $file.RR.bedpe >$file.geq50K.RR.bedpe
+PYTHONPATH=$ZOOMXPATH python -m refineBreak -n 8 -e 40 -o $file.tra.E40 -i $file.geq50K.IM.bedpe -j $file.geq50K.FF.bedpe -k $file.geq50K.RR.bedpe $file $trans $cfg >$log.refineBreak.tra.E40.$mydate 2>&1
+PYTHONPATH=$ZOOMXPATH python -m refineBreak -n 8 -e 40 -o $file.dis.E40 -i $file.geq50K.IM.bedpe -j $file.geq50K.FF.bedpe -k $file.geq50K.RR.bedpe $file $distal $cfg >$log.refineBreak.dis.E40.$mydate 2>&1
+PYTHONPATH=$ZOOMXPATH python -m refineBreak -n 8 -e 40 -o $file.cis.E40 -i $file.geq50K.IM.bedpe -j $file.geq50K.FF.bedpe -k $file.geq50K.RR.bedpe $file $cis $cfg >$log.refineBreak.cis.E40.$mydate 2>&1
+#here we iterate through following steps for each junction file, handling max 100 events
+#  to get plotMolecule.R to work will need R>3 and R packages optparse, rjson, ggbio, ggplot2, GenomicRanges, RColorBrewer
+#  the packages should be automatically installed at first run of plotMolecule.R
+#  if not, you can do it mannually
+moleFile=NA12878.wg12.chr22.bam.dis.E40.refined
+maxSize=$(cat $moleFile | wc -l)
+maxSize=$(expr $((100>$maxSize?$maxSize:100)) - 1)
+echo $maxSize
+for i in `seq 1 $maxSize`; do
+  echo "$ZOOMPATH/../scripts/getMolecule.sh $moleFile $file $i $moleFile.Plot"
+  $ZOOMXPATH/../scripts/getMolecule.sh $moleFile $file $i $moleFile.Plot
+  echo "$ZOOMPATH/../scripts/plotMolecule.R --isUCSC $moleFile.Plot-$i" #turn on isUCSC if chrX not X
+  $ZOOMXPATH/../scripts/plotMolecule.R --isUCSC $moleFile.Plot-$i
+done
+echo "done"
