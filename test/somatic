@@ -37,8 +37,6 @@ awk '{if( $4 != $1 || ($5-$2)>50000 || ($5-$2)<-50000) print}' $control.RR.bedpe
 PYTHONPATH=$ZOOMXPATH python -m refineBreak -n 8 -e $controlExp -o $control.tra.E$controlExp -i $control.geq50K.IM.bedpe -j $control.geq50K.FF.bedpe -k $control.geq50K.RR.bedpe $control $trans $cfg >$log.refineBreak.tra.E$controlExp.$mydate 2>&1
 PYTHONPATH=$ZOOMXPATH python -m refineBreak -n 8 -e $controlExp -o $control.dis.E$controlExp -i $control.geq50K.IM.bedpe -j $control.geq50K.FF.bedpe -k $control.geq50K.RR.bedpe $control $distal $cfg >$log.refineBreak.dis.E$controlExp.$mydate 2>&1
 PYTHONPATH=$ZOOMXPATH python -m refineBreak -n 8 -e $controlExp -o $control.cis.E$controlExp -i $control.geq50K.IM.bedpe -j $control.geq50K.FF.bedpe -k $control.geq50K.RR.bedpe $control $cis $cfg >$log.refineBreak.cis.E$controlExp.$mydate 2>&1
-#echo "done with case"
-exit
 
 #process case files
 case=MetL2725.wg12.chr10-90M-130M.bam
@@ -72,7 +70,6 @@ bedtools pairtopair -type neither -a $case.dis.E$caseExp.refined -b $control.dis
 moleFile=$case.dis.E$caseExp-$control.dis.E$controlExp.somatic
 maxSize=$(cat $moleFile | wc -l)
 maxSize=$(expr $((100>$maxSize?$maxSize:100)) - 1)
-echo $maxSize
 for i in `seq 1 $maxSize`; do
   echo "$ZOOMPATH/../scripts/getMolecule.sh $moleFile $file $i $moleFile.Plot"
   $ZOOMXPATH/../scripts/getMolecule.sh $moleFile $file $i $moleFile.Plot
