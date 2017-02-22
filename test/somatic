@@ -58,12 +58,12 @@ awk '{if($1 == $4 && $5 - $2>50000 && $5 - $2<=200000) print}' $case.jct.bedpe >
 awk '{if( $4 != $1 || ($5-$2)>50000 || ($5-$2)<-50000) print}' $case.IM.bedpe >$case.geq50K.IM.bedpe
 awk '{if( $4 != $1 || ($5-$2)>50000 || ($5-$2)<-50000) print}' $case.FF.bedpe >$case.geq50K.FF.bedpe
 awk '{if( $4 != $1 || ($5-$2)>50000 || ($5-$2)<-50000) print}' $case.RR.bedpe >$case.geq50K.RR.bedpe
-#PYTHONPATH=$ZOOMXPATH python -m refineBreak -n 8 -e $caseExp -o $case.tra.E$caseExp -i $case.geq50K.IM.bedpe -j $case.geq50K.FF.bedpe -k $case.geq50K.RR.bedpe $case $trans $cfg >$log.refineBreak.tra.E$caseExp.$mydate 2>&1
-#PYTHONPATH=$ZOOMXPATH python -m refineBreak -n 8 -e $caseExp -o $case.dis.E$caseExp -i $case.geq50K.IM.bedpe -j $case.geq50K.FF.bedpe -k $case.geq50K.RR.bedpe $case $distal $cfg >$log.refineBreak.dis.E$caseExp.$mydate 2>&1
-#PYTHONPATH=$ZOOMXPATH python -m refineBreak -n 8 -e $caseExp -o $case.cis.E$caseExp -i $case.geq50K.IM.bedpe -j $case.geq50K.FF.bedpe -k $case.geq50K.RR.bedpe $case $cis $cfg >$log.refineBreak.cis.E$caseExp.$mydate 2>&1
+PYTHONPATH=$ZOOMXPATH python -m refineBreak -n 8 -e $caseExp -o $case.tra.E$caseExp -i $case.geq50K.IM.bedpe -j $case.geq50K.FF.bedpe -k $case.geq50K.RR.bedpe $case $trans $cfg >$log.refineBreak.tra.E$caseExp.$mydate 2>&1
+PYTHONPATH=$ZOOMXPATH python -m refineBreak -n 8 -e $caseExp -o $case.dis.E$caseExp -i $case.geq50K.IM.bedpe -j $case.geq50K.FF.bedpe -k $case.geq50K.RR.bedpe $case $distal $cfg >$log.refineBreak.dis.E$caseExp.$mydate 2>&1
+PYTHONPATH=$ZOOMXPATH python -m refineBreak -n 8 -e $caseExp -o $case.cis.E$caseExp -i $case.geq50K.IM.bedpe -j $case.geq50K.FF.bedpe -k $case.geq50K.RR.bedpe $case $cis $cfg >$log.refineBreak.cis.E$caseExp.$mydate 2>&1
 
 #do somatic differentiation
-bedtools pairtopair -type neither -a $case.dis.E$caseExp -b $control.dis.E$controlExp >$case.dis.E$caseExp-$control.dis.E$controlExp.somatic
+bedtools pairtopair -type neither -a $case.dis.E$caseExp.refined -b $control.dis.E$controlExp.refined >$case.dis.E$caseExp-$control.dis.E$controlExp.somatic
 
 #here we iterate through following steps for each junction file, handling max 100 events
 #  to get plotMolecule.R to work will need R>3 and R packages optparse, rjson, ggbio, ggplot2, GenomicRanges, RColorBrewer

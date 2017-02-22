@@ -7,8 +7,10 @@ import scipy.sparse
 import scipy.sparse.csgraph
 
 try:
+  print >>sys.stderr, "load downloaded zoomx", 
   import lib10x
 except ImportError:
+  print >>sys.stderr, "failed, load installed zoomx"
   import zoomx.lib10x
 start_time=time.time()
 
@@ -240,19 +242,19 @@ def main(args):
   #  return support
   
   sys.stderr.write("merging IM rdp\n")
-  imSupport = lib10x.ParallelIdentifySupportRDP(mergeBedpe, imBedpeFile, callLabels, callTypes, numprocs)
+  imSupport = lib10x.ParallelIdentifySupportRDP(mergeBedpe, imBedpeFile, callLabels, callTypes, numprocs, debug)
   if imSupport == [ None ]: imSupport = [ [] ]
   end_time=time.time()
   sys.stderr.write("merging IM done:{}s\n".format(end_time-start_time))
   
   sys.stderr.write("merging FF rdp\n")
-  ffSupport = lib10x.ParallelIdentifySupportRDP(mergeBedpe, ffBedpeFile, callLabels, callTypes, numprocs, debug=True)
+  ffSupport = lib10x.ParallelIdentifySupportRDP(mergeBedpe, ffBedpeFile, callLabels, callTypes, numprocs, debug)
   if ffSupport == [ None ]: ffSupport = [ [] ]
   end_time=time.time()
   sys.stderr.write("merging FF done:{}s\n".format(end_time-start_time))
   
   sys.stderr.write("merging RR rdp\n")
-  rrSupport = lib10x.ParallelIdentifySupportRDP(mergeBedpe, rrBedpeFile, callLabels, callTypes, numprocs)
+  rrSupport = lib10x.ParallelIdentifySupportRDP(mergeBedpe, rrBedpeFile, callLabels, callTypes, numprocs, debug)
   if rrSupport == [ None ]: rrSupport = [ [] ]
   end_time=time.time()
   sys.stderr.write("merging RR rdp:{}s\n".format(end_time-start_time))

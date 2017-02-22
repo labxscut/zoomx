@@ -56,11 +56,12 @@ procedure. The FDR is the expected proportion of falsely rejected hypotheses.
 
 __docformat__ = 'epytext en'
 
-
 import operator
 import random
 
-def ThreadIdentifySupportRDP(info, debug=False):
+def ThreadIdentifySupportRDP(info, debug):
+  print >>sys.stderr, "in test"
+  debug=True
   bi=info[0]
   numCall=info[1]
   df=info[2]
@@ -75,17 +76,17 @@ def ThreadIdentifySupportRDP(info, debug=False):
     sys.stderr.write("pair2pair_cmd="+str(pair2pair_cmd)+"\n")
   if run_cmd(pair2pair_cmd) == False:
     sys.stderr.write("Error in running pair2pair overlapping..."); quit()
-  overlapCalls=pandas.read_table(tmpOverlapFile, names=["bedpe2"], dtype=numpy.int32)
+  overlapCalls=pandas.read_table(tmpOverlapFile, names=["bedpe2"], dtype={'bedpe2':numpy.int32})
   sys.stderr.write("END: procssing "+str(bi+1)+" of "+str(numCall)+" events\n")
   return list(set(list(overlapCalls['bedpe2']+1)))
 
-def ParallelIdentifySupportRDP(callDF, rdpBedpeFile, callLabels, callTypes, numprocs, debug=False):
+def ParallelIdentifySupportRDP(callDF, rdpBedpeFile, callLabels, callTypes, numprocs, debug):
   rdpBedpe=pandas.read_table(rdpBedpeFile, names=callLabels, dtype=dict(zip(callLabels,callTypes)))
   sel=rdpBedpe['chr2']=="="
   rdpBedpe.loc[sel,('chr2')]=rdpBedpe.loc[sel,('chr1')]
   rdpBedpe['index']=xrange(0,rdpBedpe.shape[0]) #0-based index
   tmpBedpeFile=getTemporaryFile('bedpe_')
-  if debug: sys.stderr.write("tmpBedpeFile='"+str(tmpBedpeFile)+"'\n")
+  #if debug: sys.stderr.write("tmpBedpeFile='"+str(tmpBedpeFile)+"'\n")
   rdpBedpe.to_csv(tmpBedpeFile,header=False, sep="\t", index=False)
   numCall=len(callDF)
   info=[ [i, numCall, callDF.loc[i:i,:], tmpBedpeFile] for i in range(0,numCall) ] #0-based merged call index
