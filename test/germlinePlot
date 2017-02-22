@@ -1,0 +1,17 @@
+#!/bin/bash
+if [ -z $1 ]; then
+    ZOOMXPATH=$HOME/setup/zoomx/zoomx/;
+else
+    ZOOMXPATH=$1;
+fi
+file=NA12878.wg12.chr22.bam
+moleFile=NA12878.wg12.chr22.bam.dis.E40.refined
+maxSize=$(cat $moleFile | wc -l)
+maxSize=$(expr $((100>$maxSize?$maxSize:100)) - 1)
+echo $maxSize
+for i in `seq 1 $maxSize`; do
+  echo "$ZOOMPATH/../scripts/getMolecule.sh $moleFile $file $i $moleFile.Plot"
+  $ZOOMXPATH/../scripts/getMolecule.sh $moleFile $file $i $moleFile.Plot
+  echo "$ZOOMPATH/../scripts/plotMolecule.R --isUCSC $moleFile.Plot-$i" #turn on isUCSC if chrX not X
+  $ZOOMXPATH/../scripts/plotMolecule.R --isUCSC $moleFile.Plot-$i
+done
