@@ -13,7 +13,7 @@ set_colClass <- function(d, colClasses) {
   return(d)
 }
 
-myrequire = function(pkg, repo="CRAN", ...){
+myrequire = function(pkg, repo="CRAN", lib=Sys.getenv("R_LIBS_USER"), ...){
   cat("requiring package", pkg, "\n")
   tryCatch(suppressMessages(library(pkg,character.only=T)), error=function(e) {
     print(e)
@@ -21,7 +21,7 @@ myrequire = function(pkg, repo="CRAN", ...){
       source("http://bioconductor.org/biocLite.R")
       biocLite(pkg,...)
     } else {
-      install.packages(pkg,repo="http://cran.us.r-project.org",...)
+      install.packages(pkg,repo="http://cran.us.r-project.org",lib=lib,...)
     }
   })
   tryCatch(suppressMessages(library(pkg,character.only=T)), error=function(e) {

@@ -79,9 +79,7 @@ def ThreadIdentifySupportRDP(info):
   overlapCalls=pandas.read_table(tmpOverlapFile, names=["bedpe2"], dtype={'bedpe2':numpy.int32})
   sys.stderr.write("END: procssing "+str(bi+1)+" of "+str(numCall)+" events\n")
   support=list(set(list(overlapCalls['bedpe2']+1)))
-  print "support=", support
-  if support == None: support = []
-  return []
+  return support
 
 def ParallelIdentifySupportRDP(callDF, rdpBedpeFile, callLabels, callTypes, numprocs, debug):
   #sys.stderr.write("in test rdp\n")
