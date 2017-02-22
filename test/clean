@@ -8,4 +8,5 @@ rm -f *log*
 rm -f *.refined
 rm -f *.somatic
 rm -rf *Plot-*/
+rm -f *.merged
 echo "done"
