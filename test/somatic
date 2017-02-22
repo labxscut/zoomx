@@ -71,10 +71,9 @@ moleFile=$case.dis.E$caseExp-$control.dis.E$controlExp.somatic
 maxSize=$(cat $moleFile | wc -l)
 maxSize=$(expr $((100>$maxSize?$maxSize:100)) - 1)
 for i in `seq 1 $maxSize`; do
-  echo "$ZOOMPATH/../scripts/getMolecule.sh $moleFile $file $i $moleFile.Plot"
-  $ZOOMXPATH/../scripts/getMolecule.sh $moleFile $file $i $moleFile.Plot
-  echo "$ZOOMPATH/../scripts/plotMolecule.R --isUCSC $moleFile.Plot-$i" #turn on isUCSC if chrX not X
-  $ZOOMXPATH/../scripts/plotMolecule.R --isUCSC $moleFile.Plot-$i
-  exit
+  echo "$ZOOMPATH/../scripts/getMolecule.sh $moleFile $case $i $moleFile.Plot"
+  $ZOOMXPATH/../scripts/getMolecule.sh $moleFile $case $i $moleFile.Plot
+  echo "$ZOOMPATH/../scripts/plotMolecule.R $moleFile.Plot-$i" #turn on isUCSC if chrX not X
+  $ZOOMXPATH/../scripts/plotMolecule.R $moleFile.Plot-$i
 done
 echo "done"
