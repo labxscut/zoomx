@@ -3,7 +3,9 @@
 if [ -z $4 ]; then
 	echo "usage: getMolecule.sh inMoleFile inPrefix lineNum outDir"
   echo "example:"
-  echo "  getMolecule.sh P00526_2721_mt.st.10X_v2.bam.tra.E25.refined P00526_2721_mt.st.10X_v2.bam 1 testPlot"
+  echo "  getMolecule.sh NA12878.wg12.chr22.bam.dis.E40.refined NA12878.wg12.chr22.bam 1 testPlot"
+  echo "  #this gets singlue molecules supports 1st junction listed in NA12878.wg12.chr22.bam.dis.E40.refined"
+  echo "  #from NA12878.wg12.chr22.bam and store them in testPlot"
   exit
 fi 
 
@@ -13,8 +15,8 @@ inMolFile=$1
 echo "inPrefix=$2"
 inPrefix=$2
 echo "lineNum=$3"
-let headLineNum=$3+1
-let tailLineNum=1
+headLineNum=$(expr $3 + 1)
+tailLineNum=1
 echo "outDir=$4-$3"
 outDir=$4-$3
 mkdir $outDir
@@ -33,12 +35,12 @@ bedtools intersect -u -a $inPrefix.multiFragBar.bed.a0 -b $outDir/refined.reg1.b
 echo "bedtools intersect -u -a $inPrefix.multiFragBar.bed.a0 -b $outDir/refined.reg2.bed >$outDir/refined.reg2.mol"
 bedtools intersect -u -a $inPrefix.multiFragBar.bed.a0 -b $outDir/refined.reg2.bed >$outDir/refined.reg2.mol
 ###
-echo "head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f8 | grep -o '[0-9]*' | sed -e 's/$/p/g' | tr '\n' ';' | sed -e 's/p;$/p;\n/g' >$outDir/refined.rindex.IM"
-head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f8 | grep -o '[0-9]*' | sed -e 's/$/p/g' | tr '\n' ';' | sed -e 's/p;$/p;\n/g' >$outDir/refined.rindex.IM
-echo "head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f9 | grep -o '[0-9]*' | sed -e 's/$/p/g' | tr '\n' ';' | sed -e 's/p;$/p;\n/g' >$outDir/refined.rindex.FF"
-head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f9 | grep -o '[0-9]*' | sed -e 's/$/p/g' | tr '\n' ';' | sed -e 's/p;$/p;\n/g' >$outDir/refined.rindex.FF
-echo "head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f10 | grep -o '[0-9]*' | sed -e 's/$/p/g' | tr '\n' ';' | sed -e 's/p;$/p;\n/g' >$outDir/refined.rindex.RR"
-head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f10 | grep -o '[0-9]*' | sed -e 's/$/p/g' | tr '\n' ';' | sed -e 's/p;$/p;\n/g' >$outDir/refined.rindex.RR
+echo "head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f8 | grep -o '[0-9]*' | sed '/^$/d' | sed -e 's/$/p/g' | tr '\n' ';' | sed -e 's/p;$/p;\n/g' >$outDir/refined.rindex.IM"
+head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f8 | grep -o '[0-9]*' | sed '/^$/d' |  sed -e 's/$/p/g' | tr '\n' ';' | sed -e 's/p;$/p;\n/g' >$outDir/refined.rindex.IM
+echo "head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f9 | grep -o '[0-9]*' | sed '/^$/d' |  sed -e 's/$/p/g' | tr '\n' ';' | sed -e 's/p;$/p;\n/g' >$outDir/refined.rindex.FF"
+head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f9 | grep -o '[0-9]*' | sed '/^$/d' |  sed -e 's/$/p/g' | tr '\n' ';' | sed -e 's/p;$/p;\n/g' >$outDir/refined.rindex.FF
+echo "head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f10 | grep -o '[0-9]*' | sed '/^$/d' |  sed -e 's/$/p/g' | tr '\n' ';' | sed -e 's/p;$/p;\n/g' >$outDir/refined.rindex.RR"
+head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f10 | grep -o '[0-9]*' |  sed '/^$/d' | sed -e 's/$/p/g' | tr '\n' ';' | sed -e 's/p;$/p;\n/g' >$outDir/refined.rindex.RR
 ###
 echo "sed -n -f $outDir/refined.rindex.IM $inPrefix.geq50K.IM.bedpe >$outDir/refined.IM.bedpe"
 sed -n -f $outDir/refined.rindex.IM $inPrefix.geq50K.IM.bedpe >$outDir/refined.IM.bedpe

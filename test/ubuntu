@@ -1,0 +1,10 @@
+#!/bin/bash
+sudo apt-get install r-base python python-setuptools
+sudo easy_install pip
+sudo pip install -U virtualenv
+sudo pip install -U scipy
+sudo pip install -U tables
+sudo pip install -U pandas
+sudo pip install -U pysam
+sudo pip install -U pybedtools
+mkdir -p $(Rscript -e 'cat(Sys.getenv("R_LIBS_USER"))')

@@ -9,6 +9,7 @@ import pandas
 import scipy
 import string
 import tempfile
+from multiprocessing import Pool
 from scipy.stats import poisson
 from scipy.sparse import csr_matrix
 from scipy.sparse import coo_matrix
@@ -55,9 +56,46 @@ procedure. The FDR is the expected proportion of falsely rejected hypotheses.
 
 __docformat__ = 'epytext en'
 
-
 import operator
 import random
+
+def ThreadIdentifySupportRDP(info):
+  #sys.stderr.write("in test thread\n")
+  bi=info[0]
+  numCall=info[1]
+  df=info[2]
+  tmpBedpeFile=info[3]
+  debug=info[4]
+  sys.stderr.write("START: procssing "+str(bi+1)+" of "+str(numCall)+" events\n")
+  singleBedpeFile=getTemporaryFile('bedpe_')
+  tmpOverlapFile=getTemporaryFile('bedpe_')
+  df.to_csv(singleBedpeFile,header=False, sep="\t", index=False)
+  pair2pair_cmd="bedtools pairtopair -a %s -b %s | cut -f15 >%s" % (singleBedpeFile, tmpBedpeFile, tmpOverlapFile)
+  if debug:
+    sys.stderr.write("singleBedpeFile='"+str(singleBedpeFile)+"'\n")
+    sys.stderr.write("pair2pair_cmd="+str(pair2pair_cmd)+"\n")
+  if run_cmd(pair2pair_cmd) == False:
+    sys.stderr.write("Error in running pair2pair overlapping..."); quit()
+  overlapCalls=pandas.read_table(tmpOverlapFile, names=["bedpe2"], dtype={'bedpe2':numpy.int32})
+  sys.stderr.write("END: procssing "+str(bi+1)+" of "+str(numCall)+" events\n")
+  support=list(set(list(overlapCalls['bedpe2']+1)))
+  return support
+
+def ParallelIdentifySupportRDP(callDF, rdpBedpeFile, callLabels, callTypes, numprocs, debug):
+  #sys.stderr.write("in test rdp\n")
+  rdpBedpe=pandas.read_table(rdpBedpeFile, names=callLabels, dtype=dict(zip(callLabels,callTypes)))
+  sel=rdpBedpe['chr2']=="="
+  rdpBedpe.loc[sel,('chr2')]=rdpBedpe.loc[sel,('chr1')]
+  rdpBedpe['index']=xrange(0,rdpBedpe.shape[0]) #0-based index
+  tmpBedpeFile=getTemporaryFile('bedpe_')
+  #if debug: sys.stderr.write("tmpBedpeFile='"+str(tmpBedpeFile)+"'\n")
+  rdpBedpe.to_csv(tmpBedpeFile,header=False, sep="\t", index=False)
+  numCall=len(callDF)
+  info=[ [i, numCall, callDF.loc[i:i,:], tmpBedpeFile, debug] for i in range(0,numCall) ] #0-based call index
+  support=[ [] for i in range(0,numCall) ] #1-based merged call index
+  pool=Pool(processes=int(numprocs))
+  support = pool.map( ThreadIdentifySupportRDP, info)
+  return support
 
 def empirical_density(v):
   #values, base = np.histogram(nearest, bins=20, density=1)

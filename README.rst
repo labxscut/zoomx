@@ -87,7 +87,7 @@ EXECUTABLES
 
     getMolecule.sh  --  output molecules supporting a junction 
 
-    plotMolecule.R  --  plot molecules supporting a junction (requires R and ggbio from BioConductor)
+    plotMolecule.R  --  plot molecules supporting a junction (requires R>3.3 and additional packages from CRAN and BioConductor)
 
 
 USAGE

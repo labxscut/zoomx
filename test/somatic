@@ -1,0 +1,79 @@
+#!/bin/bash
+if [ -z $1 ]; then
+    ZOOMXPATH=$HOME/setup/zoomx/zoomx/;
+else
+    ZOOMXPATH=$1;
+fi
+#this script demo ZoomX somatic call analysis
+#bam from 10X Chromium data of Chr10:90M-130M of Patient526
+#tested on BioLinux v8 Virtual Machine on running on AWS
+#hardware configuration: cpu=1,mem=2GB,disk=25GB
+#set ZOOMXPATH to your downloaded or cloned package path
+ 
+echo -e "testing ZoomX's somatic calling ..."
+mydate=$(LC_ALL=en_US.utf8 date +%Y%b%d)
+ref=human_g1k_v37.fasta #prefix to grid file, actual fasta file not needed
+gap=$ref.acen+gap+hc.bed
+grid=$ref.bed.w10Ks5K
+
+#process control files
+control=Norm2386.wg12.chr10-90M-130M.bam
+controlExp=10
+log=$control.log
+bed=$control.multiFragBar.bed.a0
+h5=$control.multiFragBar.h5.a0
+trans=$control.jct.bedpe.tra   #output of inter chromosome junctions
+distal=$control.jct.bedpe.dis  #output of distal (>200 KB) junctions
+cis=$control.jct.bedpe.cis     #output of intra  (>50 KB) junctions
+cfg=$control.gridScan.cfg.json        #output of gridScan configuraiton
+PYTHONPATH=$ZOOMXPATH python -m parse10x -l 2 $control >$log.parse10x.$mydate 2>&1        #run parse10x module
+PYTHONPATH=$ZOOMXPATH python -m gridScan -n 3 -g 50000000 -s $gap $grid $bed $h5 $control >$log.gridScan.$mydate 2>&1 #run gridScan module on Chr22 only (50 Mbp)
+awk '{if($1 != $4 && $1 < $4) print}' $control.jct.bedpe >$trans
+awk '{if($1 == $4 && $5 - $2>200000) print}' $control.jct.bedpe >$distal
+awk '{if($1 == $4 && $5 - $2>50000 && $5 - $2<=200000) print}' $control.jct.bedpe >$cis
+awk '{if( $4 != $1 || ($5-$2)>50000 || ($5-$2)<-50000) print}' $control.IM.bedpe >$control.geq50K.IM.bedpe
+awk '{if( $4 != $1 || ($5-$2)>50000 || ($5-$2)<-50000) print}' $control.FF.bedpe >$control.geq50K.FF.bedpe
+awk '{if( $4 != $1 || ($5-$2)>50000 || ($5-$2)<-50000) print}' $control.RR.bedpe >$control.geq50K.RR.bedpe
+PYTHONPATH=$ZOOMXPATH python -m refineBreak -n 8 -e $controlExp -o $control.tra.E$controlExp -i $control.geq50K.IM.bedpe -j $control.geq50K.FF.bedpe -k $control.geq50K.RR.bedpe $control $trans $cfg >$log.refineBreak.tra.E$controlExp.$mydate 2>&1
+PYTHONPATH=$ZOOMXPATH python -m refineBreak -n 8 -e $controlExp -o $control.dis.E$controlExp -i $control.geq50K.IM.bedpe -j $control.geq50K.FF.bedpe -k $control.geq50K.RR.bedpe $control $distal $cfg >$log.refineBreak.dis.E$controlExp.$mydate 2>&1
+PYTHONPATH=$ZOOMXPATH python -m refineBreak -n 8 -e $controlExp -o $control.cis.E$controlExp -i $control.geq50K.IM.bedpe -j $control.geq50K.FF.bedpe -k $control.geq50K.RR.bedpe $control $cis $cfg >$log.refineBreak.cis.E$controlExp.$mydate 2>&1
+
+#process case files
+case=MetL2725.wg12.chr10-90M-130M.bam
+caseExp=25
+log=$case.log
+bed=$case.multiFragBar.bed.a0
+h5=$case.multiFragBar.h5.a0
+trans=$case.jct.bedpe.tra   #output of inter chromosome junctions
+distal=$case.jct.bedpe.dis  #output of distal (>200 KB) junctions
+cis=$case.jct.bedpe.cis     #output of intra  (>50 KB) junctions
+cfg=$case.gridScan.cfg.json        #output of gridScan configuraiton
+PYTHONPATH=$ZOOMXPATH python -m parse10x -l 2 $case >$log.parse10x.$mydate 2>&1        #run parse10x module
+PYTHONPATH=$ZOOMXPATH python -m gridScan -n 3 -g 50000000 -s $gap $grid $bed $h5 $case >$log.gridScan.$mydate 2>&1 #run gridScan module on Chr22 only (50 Mbp)
+awk '{if($1 != $4 && $1 < $4) print}' $case.jct.bedpe >$trans
+awk '{if($1 == $4 && $5 - $2>200000) print}' $case.jct.bedpe >$distal
+awk '{if($1 == $4 && $5 - $2>50000 && $5 - $2<=200000) print}' $case.jct.bedpe >$cis
+awk '{if( $4 != $1 || ($5-$2)>50000 || ($5-$2)<-50000) print}' $case.IM.bedpe >$case.geq50K.IM.bedpe
+awk '{if( $4 != $1 || ($5-$2)>50000 || ($5-$2)<-50000) print}' $case.FF.bedpe >$case.geq50K.FF.bedpe
+awk '{if( $4 != $1 || ($5-$2)>50000 || ($5-$2)<-50000) print}' $case.RR.bedpe >$case.geq50K.RR.bedpe
+PYTHONPATH=$ZOOMXPATH python -m refineBreak -n 8 -e $caseExp -o $case.tra.E$caseExp -i $case.geq50K.IM.bedpe -j $case.geq50K.FF.bedpe -k $case.geq50K.RR.bedpe $case $trans $cfg >$log.refineBreak.tra.E$caseExp.$mydate 2>&1
+PYTHONPATH=$ZOOMXPATH python -m refineBreak -n 8 -e $caseExp -o $case.dis.E$caseExp -i $case.geq50K.IM.bedpe -j $case.geq50K.FF.bedpe -k $case.geq50K.RR.bedpe $case $distal $cfg >$log.refineBreak.dis.E$caseExp.$mydate 2>&1
+PYTHONPATH=$ZOOMXPATH python -m refineBreak -n 8 -e $caseExp -o $case.cis.E$caseExp -i $case.geq50K.IM.bedpe -j $case.geq50K.FF.bedpe -k $case.geq50K.RR.bedpe $case $cis $cfg >$log.refineBreak.cis.E$caseExp.$mydate 2>&1
+
+#do somatic differentiation
+bedtools pairtopair -type neither -a $case.dis.E$caseExp.refined -b $control.dis.E$controlExp.refined >$case.dis.E$caseExp-$control.dis.E$controlExp.somatic
+
+#here we iterate through following steps for each junction file, handling max 100 events
+#  to get plotMolecule.R to work will need R>3 and R packages optparse, rjson, ggbio, ggplot2, GenomicRanges, RColorBrewer
+#  the packages should be automatically installed at first run of plotMolecule.R
+#  if not, you can do it mannually
+moleFile=$case.dis.E$caseExp-$control.dis.E$controlExp.somatic
+maxSize=$(cat $moleFile | wc -l)
+maxSize=$(expr $((100>$maxSize?$maxSize:100)) - 1)
+for i in `seq 1 $maxSize`; do
+  echo "$ZOOMPATH/../scripts/getMolecule.sh $moleFile $case $i $moleFile.Plot"
+  $ZOOMXPATH/../scripts/getMolecule.sh $moleFile $case $i $moleFile.Plot
+  echo "$ZOOMPATH/../scripts/plotMolecule.R $moleFile.Plot-$i" #turn on isUCSC if chrX not X
+  $ZOOMXPATH/../scripts/plotMolecule.R $moleFile.Plot-$i
+done
+echo "done"

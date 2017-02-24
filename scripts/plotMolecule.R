@@ -1,15 +1,4 @@
 #!/usr/bin/env Rscript
-version="REPLACE_WITH_COMMIT_OR_VERSION"
-#library("BSgenome.Hsapiens.UCSC.hg19")
-#genome = BSgenome.Hsapiens.UCSC.hg19
-#seqlengths(genome)
-#library("Sushi")
-library("optparse")
-library("rjson")
-library("ggbio")
-library("ggplot2")
-library("GenomicRanges")
-library("RColorBrewer")
 
 ####Externalities####
 set_colClass <- function(d, colClasses) {
@@ -24,6 +13,26 @@ set_colClass <- function(d, colClasses) {
   return(d)
 }
 
+myrequire = function(pkg, repo="CRAN", lib=Sys.getenv("R_LIBS_USER"), ...){
+  cat("requiring package", pkg, "\n")
+  tryCatch(suppressMessages(library(pkg,character.only=T)), error=function(e) {
+    print(e)
+    if(repo!="CRAN"){
+      source("http://bioconductor.org/biocLite.R")
+      biocLite(pkg,...)
+    } else {
+      install.packages(pkg,repo="http://cran.us.r-project.org",lib=lib,...)
+    }
+  })
+  tryCatch(suppressMessages(library(pkg,character.only=T)), error=function(e) {
+    print(e)
+    stop(pkg," was not installed and cannot install on the fly!\n")
+  })
+}
+
+for(p in c("optparse", "rjson", "ggplot2", "RColorBrewer")) myrequire(p)
+for(p in c("GenomicRanges", "ggbio")) myrequire(p,repo="Bioc")
+
 #genome plot packages: ggbio, Sushi, genoplotR, circlize 
 
 option_list2 <- list(
@@ -33,6 +42,8 @@ option_list2 <- list(
               help="2 times the boundary padding bp [default %default]"),
   make_option(c("-s", "--scaleSize"), type="integer", default=10000,
               help="boundary rounded to bp [default %default]"),
+  make_option(c("-b", "--breakCI"), type="numeric", default=0.95,
+              help="limit of CI to estimate break point [default %default]"),
   make_option(c("-u", "--isUCSC"), action="store_true", default=FALSE,
               help="show verbose, [default %default]"),
   make_option(c("-q", "--noQuiet"), action="store_true", default=FALSE,
@@ -42,10 +53,10 @@ option_list2 <- list(
 )
 
 parser <- OptionParser(usage = "%prog [options] plotDir", option_list=option_list2)
-cat("-Info: zoomx vesion:",version,"\n")
 cat("-Info: invoking command:",commandArgs(),"\n")
 args <- commandArgs(trailingOnly = TRUE)
 cmd = parse_args(parser, args, print_help_and_exit = TRUE, positional_arguments = TRUE)
+breakCI=cmd$options$breakCI
 verbose=cmd$options$noQuiet
 debug=cmd$options$debug
 isUCSC=cmd$options$isUCSC
@@ -75,13 +86,14 @@ setwd(plotDir)
 regCols=c("chr1","start1","end1","chr2","start2","end2","molcnt","IM","FF","RR") # in refined
 bedpeCols=c("chr1","st1","ed1","chr2","st2","ed2","hp")
 bedpeClass=c("character","numeric","numeric","character","numeric","numeric","numeric")
-molCols=c("chr1","st1","ed1","barID","molSize","molLen","barMolNum","molID","molHP","molPS")
+molCols=c("chr1","st1","ed1","barID","molSize","molLen","barMolNum","molID","molHP","molPS","molBX")
+molColsOld=c("chr1","st1","ed1","barID","molSize","molLen","barMolNum","molID","molHP","molPS")
 refined=tryCatch(read.table("refined.bedpe",sep="\t",col.names=regCols),error=function(e) {NULL})
 refinedIM=tryCatch(read.table("refined.IM.bedpe",col.names=bedpeCols, colClasses=bedpeClass),error=function(e) {NULL})
 refinedFF=tryCatch(read.table("refined.FF.bedpe",col.names=bedpeCols, colClasses=bedpeClass),error=function(e) {NULL})
 refinedRR=tryCatch(read.table("refined.RR.bedpe",col.names=bedpeCols, colClasses=bedpeClass),error=function(e) {NULL})
-refinedReg1=tryCatch(read.table("refined.reg1.mol",col.names=molCols),error=function(e) {NULL})
-refinedReg2=tryCatch(read.table("refined.reg2.mol",col.names=molCols),error=function(e) {NULL})
+refinedReg1=tryCatch(read.table("refined.reg1.mol",col.names=molCols),error=function(e) {read.table("refined.reg1.mol",col.names=molColsOld)}, finally={NULL})
+refinedReg2=tryCatch(read.table("refined.reg2.mol",col.names=molCols),error=function(e) {read.table("refined.reg2.mol",col.names=molColsOld)}, finally={NULL})
 if(!isUCSC & nrow(refined)>0) {refined$chr1=paste("chr",refined$chr1,sep="")
              refined$chr2=paste("chr",refined$chr2,sep="")}
 if(!isUCSC & nrow(refinedIM)>0) {refinedIM$chr1=paste("chr",refinedIM$chr1,sep="")
@@ -186,7 +198,6 @@ leftBreakReg2 = if(min(flushSDReg2)<flushSD) TRUE else NA
 if(!is.na(leftBreakReg1)) leftBreakReg1 = flushSDReg1[1] < flushSDReg1[2]
 if(!is.na(leftBreakReg2)) leftBreakReg2 = flushSDReg2[1] < flushSDReg2[2]
 # leftBreak: TRUE iff left edge of Reg1 is break, FALSE if right edge, NA if break is middle
-breakCI=0.95
 breakReg1 = round(if(is.na(leftBreakReg1)) { median(c(convertedAll$start1,convertedAll$end1)) } else if (leftBreakReg1) { quantile(convertedAll$start1,1-breakCI) } else { quantile(convertedAll$end1,breakCI) })
 breakReg2 = round(if(is.na(leftBreakReg2)) { median(c(convertedAll$start2,convertedAll$end2)) } else if (leftBreakReg2) { quantile(convertedAll$start2,1-breakCI) } else { quantile(convertedAll$end2,breakCI) })
 
@@ -203,6 +214,7 @@ gr <- GRanges(seqnames = c(convertedAll$chrom1, convertedAll$chrom2),
               supportType = c(convertedAll$supportType, convertedAll$supportType), 
               pair = c(convertedAll$name, convertedAll$name))
 cat("grComp...\n")
+print(convertedAll)
 grComp <- GRanges(seqnames = convertedAll$chrom1,
                   ranges = IRanges(start = convertedAll$end1, end=convertedAll$start2),
                   strand = rep(NA,nrow(convertedAll)),
@@ -214,10 +226,17 @@ tickReg1 = c(shiftReg12[1]+gapSize/2, shiftReg12[2]-gapSize/2, breakReg1)
 tickReg2 = c(shiftReg12[3]+gapSize/2, shiftReg12[4]-gapSize/2, breakReg2)
 tickLab1 = c(boundaryReg12[1]+gapSize/2, boundaryReg12[2]-gapSize/2, boundaryReg12[1]+breakReg1) 
 tickLab2 = c(boundaryReg12[3]+gapSize/2, boundaryReg12[4]-gapSize/2, boundaryReg12[3]+breakReg2-shiftReg12[2])
-tickLab1 = paste(c(chr1,chr1,chr1),tickLab1,sep=":")
-tickLab2 = paste(c(chr2,chr2,chr2),tickLab2,sep=":")
+tickLab1 = paste(c(chr1,"",""),tickLab1,sep=":")
+tickLab2 = paste(c(chr2,"",""),tickLab2,sep=":")
                     
 plotFile=paste(refined[1:6],collapse="-")
+jsonFile=file(paste(plotFile,"json",sep="."))
+writeLines(toJSON(list(chr1=chr1,
+                       break1=boundaryReg12[1]+unname(breakReg1[1]),
+                       chr2=chr2,
+                       break2=boundaryReg12[3]+unname(breakReg2[1])-shiftReg12[2])), con=jsonFile)
+close(jsonFile)
+
 cat("plotFile=",paste(plotDir, paste(plotFile,"pdf",sep="."),sep="/"),"\n")
 pdf(file=paste(plotFile,"pdf",sep="."), width=16, height=12)
 p = ggplot()+geom_arrowrect(gr, aes(color=supportType, fill=strand, group=pair))

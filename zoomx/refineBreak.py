@@ -5,12 +5,13 @@ import pysam
 import numpy, pandas, json, random, shelve, sets
 import scipy.sparse
 import scipy.sparse.csgraph
-from multiprocessing import Pool
 
 try:
   import lib10x
+  print >>sys.stderr, "loaded downloaded zoomx"
 except ImportError:
   import zoomx.lib10x
+  print >>sys.stderr, "load installed zoomx"
 start_time=time.time()
 
 def main(args):
@@ -53,7 +54,7 @@ def main(args):
     debug = args.debug
     mergeOnly = args.mergeOnly
     tempdir = args.tempdir
-    numpyrocs = args.numpyrocs
+    numprocs = args.numprocs
     altExpect = args.altExpect
     maxNum = args.maxNum
   else:
@@ -68,7 +69,7 @@ def main(args):
     ffBedpeFile = "LS411N_CR1.wg12.bam.FF.bedpe"
     rrBedpeFile = "LS411N_CR1.wg12.bam.RR.bedpe"
     tempdir = 'zoomx_'+lib10x.randascii(4)
-    numpyrocs = 2
+    numprocs = 2
     debug = False
     mergeOnly = False
     altExpect = 25
@@ -139,7 +140,7 @@ def main(args):
   sys.stderr.write("overlapping done:{}s\n".format(end_time-start_time))
   
   sys.stderr.write("loading overlapping graph...")
-  overlapCalls=pandas.read_table(tmpOverlapFile, names=["bedpe1","bedpe2"], dtype=numpy.int32)
+  overlapCalls=pandas.read_table(tmpOverlapFile, names=["bedpe1","bedpe2"], dtype={'bedpe1':numpy.int32,'bedpe2':numpy.int32})
   
   #load pairtopair overlapping into a sparse matrix
   if debug:
@@ -217,40 +218,6 @@ def main(args):
   #    support[bi] = support[bi] + list(ri[(ri-numCall+1)>0]-numCall+1)
   #  return support
   
-  def ThreadIdentifySupportRDP(info):
-    bi=info[0]
-    numCall=info[1]
-    df=info[2]
-    tmpBedpeFile=info[3]
-    sys.stderr.write("START: procssing "+str(bi+1)+" of "+str(numCall)+" events\n")
-    singleBedpeFile=lib10x.getTemporaryFile('bedpe_')
-    tmpOverlapFile=lib10x.getTemporaryFile('bedpe_')
-    df.to_csv(singleBedpeFile,header=False, sep="\t", index=False)
-    pair2pair_cmd="bedtools pairtopair -a %s -b %s | cut -f15 >%s" % (singleBedpeFile, tmpBedpeFile, tmpOverlapFile)
-    if debug:
-      sys.stderr.write("singleBedpeFile='"+str(singleBedpeFile)+"'\n")
-      sys.stderr.write("pair2pair_cmd="+str(pair2pair_cmd)+"\n")
-    if lib10x.run_cmd(pair2pair_cmd) == False:
-      sys.stderr.write("Error in running pair2pair overlapping..."); quit()
-    overlapCalls=pandas.read_table(tmpOverlapFile, names=["bedpe2"], dtype=numpy.int32)
-    sys.stderr.write("END: procssing "+str(bi+1)+" of "+str(numCall)+" events\n")
-    return list(set(list(overlapCalls['bedpe2']+1)))
-  
-  def ParallelIdentifySupportRDP(callDF, rdpBedpeFile):
-    rdpBedpe=pandas.read_table(rdpBedpeFile, names=callLabels, dtype=dict(zip(callLabels,callTypes)))
-    sel=rdpBedpe['chr2']=="="
-    rdpBedpe.loc[sel,('chr2')]=rdpBedpe.loc[sel,('chr1')]
-    rdpBedpe['index']=xrange(0,rdpBedpe.shape[0]) #0-based index
-    tmpBedpeFile=lib10x.getTemporaryFile('bedpe_')
-    if debug: sys.stderr.write("tmpBedpeFile='"+str(tmpBedpeFile)+"'\n")
-    rdpBedpe.to_csv(tmpBedpeFile,header=False, sep="\t", index=False)
-    numCall=len(callDF)
-    info=[ [i, numCall, callDF.loc[i:i,:], tmpBedpeFile] for i in range(0,numCall) ] #0-based merged call index
-    support=[ [] for i in range(0,numCall) ] #1-based merged call index
-    pool=Pool(processes=int(numpyrocs))
-    support = pool.map( ThreadIdentifySupportRDP, info )
-    return support
-  
   #def NewIdentifySupportRDP(callDF, rdpBedpeFile):
   #  rdpBedpe=pandas.read_table(rdpBedpeFile, names=callLabels)
   #  sel=rdpBedpe['chr2']=="="
@@ -275,17 +242,21 @@ def main(args):
   #  return support
   
   sys.stderr.write("merging IM rdp\n")
-  imSupport = ParallelIdentifySupportRDP(mergeBedpe, imBedpeFile)
+  imSupport = lib10x.ParallelIdentifySupportRDP(mergeBedpe, imBedpeFile, callLabels, callTypes, numprocs, debug)
+  print "imSupport=", imSupport
+  #if imSupport == [ None ]: imSupport = [ [] ]
   end_time=time.time()
   sys.stderr.write("merging IM done:{}s\n".format(end_time-start_time))
   
   sys.stderr.write("merging FF rdp\n")
-  ffSupport = ParallelIdentifySupportRDP(mergeBedpe, ffBedpeFile)
+  ffSupport = lib10x.ParallelIdentifySupportRDP(mergeBedpe, ffBedpeFile, callLabels, callTypes, numprocs, debug)
+  #if ffSupport == [ None ]: ffSupport = [ [] ]
   end_time=time.time()
   sys.stderr.write("merging FF done:{}s\n".format(end_time-start_time))
   
   sys.stderr.write("merging RR rdp\n")
-  rrSupport = ParallelIdentifySupportRDP(mergeBedpe, rrBedpeFile)
+  rrSupport = lib10x.ParallelIdentifySupportRDP(mergeBedpe, rrBedpeFile, callLabels, callTypes, numprocs, debug)
+  #if rrSupport == [ None ]: rrSupport = [ [] ]
   end_time=time.time()
   sys.stderr.write("merging RR rdp:{}s\n".format(end_time-start_time))
   
@@ -407,7 +378,7 @@ def run():
   parser.add_argument("-o","--outPrefix",help="outputPrefix",default="none")
   parser.add_argument("-a","--debug",default=False,action="store_true",help="in debug mode")
   parser.add_argument("-b","--mergeOnly",default=False,action="store_true",help="in mergeOnly mode")
-  parser.add_argument("-n","--numpyrocs",default=1,help="number of parallele process")
+  parser.add_argument("-n","--numprocs",default=1,help="number of parallele process")
   parser.add_argument('-d', '--tempdir', dest='tempdir',\
     default=os.path.join(os.environ['HOME'],'zoomx_'+lib10x.randascii(4)),\
     help="root dir for keeping temporary files, default (last 4 digits random): %(default)s")

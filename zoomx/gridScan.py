@@ -75,7 +75,7 @@ def main(args):
     fragFile = "LS411N_CR1.wg12.bam.multiFragBar.bed.a0"
     hdf5File = "LS411N_CR1.wg12.bam.multiFragBar.h5.a0"
     outputPrefix = bamfile 
-    genomeSize = 3200000000   #size of genome 3G
+    genomeSize = 1000000   #size of genome region of bam
     numSub = 3
     gridSize = 10000          #size of the region 10K
     expectFalseDiscover = 10  #tolerated false discoveries
@@ -111,8 +111,8 @@ def main(args):
   gridLabels = ["chr","start","end"]
   gridDtypes = dict(zip(gridLabels,["string",numpy.int32,numpy.int32]))
   bedpeLabels = ["chr1","start1","end1","chr2","start2","end2","m12"]
-  fragLabels = ["chr","start","end","moltagidx","tagmolcnt","MI","molsize","mollen","HP","PS"]
-  fragDtypes = {"chr":'object',"start":'object',"end":'object',"moltagidx":numpy.int32,"tagmolcnt":numpy.int32,"MI":numpy.int32,"molsize":numpy.int32,"mollen":numpy.int32,"HP":numpy.int32,"PS":numpy.int32}
+  fragLabels = ["chr","start","end","moltagidx","tagmolcnt","MI","molsize","mollen","HP","PS","BX"]
+  fragDtypes = {"chr":'object',"start":'object',"end":'object',"moltagidx":numpy.int32,"tagmolcnt":numpy.int32,"MI":numpy.int32,"molsize":numpy.int32,"mollen":numpy.int32,"HP":numpy.int32,"PS":numpy.int32,"BX":'object'}
   
   frag = pandas.read_table(fragFile, names=fragLabels, dtype=fragDtypes)
   frag['index'] = xrange(1,frag.shape[0]+1)
@@ -208,12 +208,11 @@ def main(args):
     skipIndex2 = [ i for i in xrange(0,len(skipOverlap2)) if skipOverlap2.iloc[i,3]>0 ]
   print >>sys.stderr, "skipIndex2 elements:", len(skipIndex2)
   
-  fragLabels = ["chr","start","end","fragTagID","fragSize","fragLength","tagFragFreq","MI","HP","PS"]
+  #fragLabels = ["chr","start","end","fragTagID","fragSize","fragLength","tagFragFreq","MI","HP","PS"]
   #fragdata = pybedtools.BedTool(fragFile).to_dataframe(comment='#',names=fragLabels,low_memory=False,sep="\t")
   fragdata = lib10x.bed2df(fragFile,fragLabels)
   fragdataSize = len(fragdata)
   print >>sys.stderr, "fragdataSize:", fragdataSize
-  
   #ASSUME:
   #  hdf5 to contain ALL possible Tb's
   #  fragFile to caontain ALL Fragments
@@ -229,7 +228,7 @@ def main(args):
   print >>sys.stderr, "tagFractionSquareSum:", tagFractionSquareSum
   expectShareFrag=(fragNumber**2)*(regionFraction**2)*tagFractionSquareSum     #FIX, u0, expected shared Fragment by random chance
   print >>sys.stderr, "expectShareFrag:", expectShareFrag
-  expectJunctionFrag=fragNumber*averageFragLength/genomeSize                    #u, expected shared Fragment by junction formation
+  expectJunctionFrag=fragNumber*averageFragLength/float(genomeSize)                    #u, expected shared Fragment by junction formation
   print >>sys.stderr, "expectJunctionFrag:", expectJunctionFrag
   
   if maxTagFraction <0 or maxTagFraction>0.99:
@@ -518,14 +517,14 @@ def main(args):
   cfgFile = "{}.{}".format(outputPrefix,"gridScan.cfg.json")
   scanConfig['G'] = genomeSize
   scanConfig['L'] = gridSize
-  scanConfig['aNF'] = fragNumber
-  scanConfig['mNF'] = fragdataSize
+  scanConfig['aNF'] = fragNumber           #molecule number regardless of barcode
+  scanConfig['mNF'] = fragdataSize         #molecule number barcode > 2 molecules
   scanConfig['mLf'] = averageFragLength
   scanConfig['mNb'] = parsedBarcode
   scanConfig['fNb'] = filteredBarcode
   scanConfig['Tb'] = tagFractionSquareSum 
-  scanConfig['Cem'] = fragdataSize * averageFragLength / genomeSize
-  scanConfig['E0'] = parsedBarcode**2 * (gridSize/genomeSize)**2 * (tagFractionSquareSum)
+  scanConfig['Cem'] = fragNumber * averageFragLength / float(genomeSize)
+  scanConfig['E0'] = parsedBarcode**2 * (gridSize/float(genomeSize))**2 * (tagFractionSquareSum)
   with open(cfgFile, 'w') as f: json.dump(scanConfig, f)
   
   if not debug:

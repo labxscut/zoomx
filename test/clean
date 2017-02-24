@@ -1,9 +1,12 @@
 #!/bin/bash
 echo -e "cleaning test files ..."
 rm -f *.tagidx *.json *.a0
-rm -f *z
-rm -f *ed
-rm -f *.bedpe
+rm -f *.gz
+rm -f *bedpe*
 rm -rf zoomx_*
-rm -f *.log
+rm -f *log*
+rm -f *.refined
+rm -f *.somatic
+rm -rf *Plot-*/
+rm -f *.merged
 echo "done"
