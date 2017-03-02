@@ -101,7 +101,7 @@ USAGE
     ::
 
       cd test
-      ./test_mf.sh
+      ./simple Your/Path/To/ZoomX
     
 WIKI
 ========
