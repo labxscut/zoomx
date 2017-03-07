@@ -73,7 +73,7 @@ def main(args):
     debug = False
     mergeOnly = False
     altExpect = 25
-    maxNum = 1000
+    maxNum = numpy.inf
   
   lib10x.setTemporaryDir(tempdir)
   with open(cfgFile, 'r') as f:
@@ -370,7 +370,7 @@ def run():
   parser.add_argument("call", help="SV call bedpefile, in bedpe format") 
   parser.add_argument("cfg",help="parameter config file, in JSON format")
   parser.add_argument("-c","--covFile", default="none",help="100bp window coverage file")
-  parser.add_argument("-m","--maxNum", default=1000,help="maximum number of events to refine")
+  parser.add_argument("-m","--maxNum", default=numpy.inf,help="maximum number of events to refine")
   parser.add_argument("-e","--altExpect", default=25,type=int, help="minimum alternative expectation 10-100, default 25")
   parser.add_argument("-i","--imBedpeFile", default="none",help="impp FR read file in bedpe, default=bam.IM.bedpe")
   parser.add_argument("-j","--ffBedpeFile", default="none",help="disc FF read file in bedpe, default=bam.FF.bedpe")
