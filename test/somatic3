@@ -171,7 +171,7 @@ fi
 #do somatic differentiation
 if [[ $SomaticRunOp == "cisDiff" ]]; then
   log="$outputPf/$caseBam.cis.E$caseExp-$controlBam.tra.E$controlExp.somatic.log.diff"
-  cisDiffCMD="bedtools pairtopair -type neither -a $outputPf/$caseBam.cis.E$caseExp.refined -b $outputPf/$controlBam.cis.E$controlExp.refined >$outputPf/$caseBam.cis.E$caseExp-$controlBam.cis.E$controlExp.somatic 2>$log"
+  cisDiffCMD="bedtools pairtopair -is -type neither -a $outputPf/$caseBam.cis.E$caseExp.refined -b $outputPf/$controlBam.cis.E$controlExp.refined >$outputPf/$caseBam.cis.E$caseExp-$controlBam.cis.E$controlExp.somatic 2>$log"
   echo $cisDiffCMD | bash
   echo -e "    'cisDiffCMD':'$cisDiffCMD',"
 
@@ -188,7 +188,7 @@ fi
 
 if [[ $SomaticRunOp == "distDiff" ]]; then
   log="$outputPf/$caseBam.dist.E$caseExp-$controlBam.tra.E$controlExp.somatic.log.diff"
-  distDiffCMD="bedtools pairtopair -type neither -a $outputPf/$caseBam.dist.E$caseExp.refined -b $outputPf/$controlBam.dist.E$controlExp.refined >$outputPf/$caseBam.dist.E$caseExp-$controlBam.dist.E$controlExp.somatic 2>$log"
+  distDiffCMD="bedtools pairtopair -is -type neither -a $outputPf/$caseBam.dist.E$caseExp.refined -b $outputPf/$controlBam.dist.E$controlExp.refined >$outputPf/$caseBam.dist.E$caseExp-$controlBam.dist.E$controlExp.somatic 2>$log"
   echo $distDiffCMD | bash
   echo -e "    'distDiffCMD':'$distDiffCMD',"
 
@@ -205,7 +205,7 @@ fi
 
 if [[ $SomaticRunOp == "transDiff" ]]; then
   log="$outputPf/$caseBam.tra.E$caseExp-$controlBam.tra.E$controlExp.somatic.log.diff"
-  transDiffCMD="bedtools pairtopair -type neither -a $outputPf/$caseBam.tra.E$caseExp.refined -b $outputPf/$controlBam.tra.E$controlExp.refined >$outputPf/$caseBam.tra.E$caseExp-$controlBam.tra.E$controlExp.somatic 2>$log"
+  transDiffCMD="bedtools pairtopair -is -type neither -a $outputPf/$caseBam.tra.E$caseExp.refined -b $outputPf/$controlBam.tra.E$controlExp.refined >$outputPf/$caseBam.tra.E$caseExp-$controlBam.tra.E$controlExp.somatic 2>$log"
   echo $transDiffCMD | bash
   echo -e "    'transDiffCMD':'$transDiffCMD',"
 
