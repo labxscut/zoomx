@@ -132,7 +132,7 @@ def main(args):
   sys.stderr.write("merging calls\n")
   tmpOverlapFile=lib10x.getTemporaryFile('bedpe_')
   if debug: sys.stderr.write("tmpBedpeFile='"+str(tmpBedpeFile)+"'\n")
-  pair2pair_cmd="bedtools pairtopair -a %s -b %s | cut -f8,16 >%s" % (tmpBedpeFile, tmpBedpeFile, tmpOverlapFile)
+  pair2pair_cmd="bedtools pairtopair -is -a %s -b %s | cut -f8,16 >%s" % (tmpBedpeFile, tmpBedpeFile, tmpOverlapFile)
   if debug: sys.stderr.write("pair2pair_cmd="+str(pair2pair_cmd)+"\n")
   if lib10x.run_cmd(pair2pair_cmd) == False:
     sys.stderr.write("Error in running pair2pair overlapping..."); quit()
