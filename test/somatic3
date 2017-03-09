@@ -8,11 +8,21 @@
 #change ref, controlPf, controlBam, casePf, caseBam, outputPf, controlExp, caseExp accordingly
 #usage: somatic case|control|diff somatic.cfg.sh [$ZOOMXPATH]
 
+
 if [[ -z $1 ]]; then
   echo -e "usage:       somatic3 stage somatic3.cfg"  
   echo -e "example:     somatic3  case somatic3.cfg"  
   echo -e "           somatic3 control somatic3.cfg"  
-  echo -e "             somatic3  diff somatic3.cfg"  
+  echo -e "           somatic3 controlCisRef somatic3.cfg"  
+  echo -e "           somatic3 controlDistRef somatic3.cfg"  
+  echo -e "           somatic3 controlTransRef somatic3.cfg"  
+  echo -e "           somatic3 case somatic3.cfg"  
+  echo -e "           somatic3 caseCisRef somatic3.cfg"  
+  echo -e "           somatic3 caseDistRef somatic3.cfg"  
+  echo -e "           somatic3 caseTransRef somatic3.cfg"  
+  echo -e "           somatic3 distDiff somatic3.cfg"  
+  echo -e "           somatic3 cisDiff somatic3.cfg"  
+  echo -e "           somatic3 transDiff somatic3.cfg"  
   exit
 fi
 
