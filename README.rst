@@ -37,20 +37,19 @@ INTRODUCTION
 INSTALL
 ------------
     
-    *Dependencies* (and that of):
+  *Dependencies* (and that of):
 
-      Python2(>=2.7)  http://www.python.org/
+    Python2(>=2.7)  http://www.python.org/
 
-      Pysam  http://pysam.readthedocs.org/en/latest/
+    Pysam  http://pysam.readthedocs.org/en/latest/
       
-      Samtools (>0.19) http://samtools.org
-        (executables have to be in $PATH and within the sve_py virtual env)
-        (there is samtools api comes with Pysam, however it has to be able to compile on your system with dafault setting. otherwise expect the "csamtools.c" not found error. e.g. libcurse is required for build samtools but often missing in some Linux.)
+    Samtools (>0.19) http://samtools.org
+      (executables have to be in $PATH and within the sve_py virtual env)
+      (there is samtools api comes with Pysam, however it has to be able to compile on your system with dafault setting. otherwise expect the "csamtools.c" not found error. e.g. libcurse is required for build samtools but often missing in some Linux.)
       
-      Bedtools http://bedtools.org 
-      
+    Bedtools http://bedtools.org       
 
-    *Installation*
+  *Installation*
     
     virtualenv based non-root installation and python site separation. 
     
@@ -100,29 +99,29 @@ INSTALL
 EXECUTABLES      
 -----------
 
-    parse10x      --  parsing 10X genomics (Chromium) bam
+  parse10x      --  parsing 10X genomics (Chromium) bam
     
-    gridScan      --  scalable Poisson grid whole genome scan 
+  gridScan      --  scalable Poisson grid whole genome scan 
     
-    refineBreak   --  refine and report junction candidates 
+  refineBreak   --  refine and report junction candidates 
 
-    getMolecule.sh  --  output molecules supporting a junction 
+  getMolecule.sh  --  output molecules supporting a junction 
 
-    plotMolecule.R  --  plot molecules supporting a junction (requires R>3.3 and additional packages from CRAN and BioConductor)
+  plotMolecule.R  --  plot molecules supporting a junction (requires R>3.3 and additional packages from CRAN and BioConductor)
 
 
 USAGE
 ------------
     
-    (1) By default all above executables will be available from $ZOOMX_bin/ .
+  (1) By default all above executables will be available from $ZOOMX_bin/ .
     Use '-h' to read script-wise usage.
 
-    (2) Do a Sanity check for installation
+  (2) Do a Sanity check for installation
 
-    ..code ::
+  .. code::
 
-      cd test
-      ./simple Your/Path/To/ZoomX
+     cd test
+     ./simple Your/Path/To/ZoomX
     
 WIKI
 -------------
@@ -146,8 +145,3 @@ CITATIONS
 ---------
 
   The ZoomX manuscript is under preparation.
-
-CONTACT
-----------
-
-  lixia at stanford dot edu
