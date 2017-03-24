@@ -1,23 +1,30 @@
 #!/usr/bin/env Rscript
-library(optparse)
-library(rhdf5)
-library(ggplot2)
-library(grid)
-library(gridExtra)
-library(reshape2)
 
-#library(RJSONIO)
-#library(IRanges)
-#library(GenomicRanges)
-#library(ff)
-#library(ffbase)
-#library(vcd)
-#library(MASS)
-#options(bitmapType='cairo')
+myrequire = function(pkg, repo="CRAN", lib=Sys.getenv("R_LIBS_USER"), ...){
+  cat("requiring package", pkg, "\n")
+  tryCatch(suppressMessages(library(pkg,character.only=T)), error=function(e) {
+    print(e)
+    if(repo!="CRAN"){
+      source("http://bioconductor.org/biocLite.R")
+      biocLite(pkg,...)
+    } else {
+      install.packages(pkg,repo="http://cran.us.r-project.org",lib=lib,...)
+    }
+  })
+  tryCatch(suppressMessages(library(pkg,character.only=T)), error=function(e) {
+    print(e)
+    stop(pkg," was not installed and cannot install on the fly!\n")
+  })
+}
+
+#for(p in c("optparse", "ggplot2", "grid", "gridExtra", "reshape2", "Cowplot")) myrequire(p)
+for(p in c("optparse", "ggplot2", "reshape2", "cowplot")) myrequire(p)
+for(p in c("rhdf5")) myrequire(p,repo="Bioc")
 
 option_list <- list(
   make_option(c("-o", "--output"), default="parse10xh5.pdf", help="output file name, [default: %default] \n"),
-  make_option(c("-t", "--title"), default="10X GemCode Statistics", help="output title, [default: %default] \n")
+  make_option(c("-t", "--title"), default="Linked Read Sequencing Statistics", help="output title, [default: %default] \n"),
+  make_option(c("-l", "--labels"), default="none", help="sample labels, [default: %default] \n"),
   )
 
 parser <- OptionParser(
@@ -30,17 +37,21 @@ args <- commandArgs(trailingOnly = TRUE)
 cmd = parse_args(parser, args, print_help_and_exit = TRUE, 
                  positional_arguments = TRUE)
 parse10xh5_text = cmd$args[1]
-master_pdf_text=cmd$options$output; 
-master_title_text=cmd$options$title;
+master_pdf_text = cmd$options$output
+master_title_text = cmd$options$title
+sample_labels_text = cmd$options$labels
+
 if(length(cmd$args)!=1){ 
-	print_help(parser); 
-	#parse10xh5_text="P04979_CR1.wg10.bam.multiFragBar.a30000.h5,P04979_CR1.wg10.bam.multiFragBar.a50000.h5,P04979_CR1.wg10.bam.multiFragBar.a70000.h5"
-  parse10xh5_text="LS411N_CR1.wg12.bam.multiFragBar.h5.a0"
-	master_pdf_text="P04979_CR1.wg10.bam.multiFragBar.h5.a0.pdf"
-	master_title_text="P04979_CR1 10X Sequencing Statistics"
+	print_help(parser)
+	master_pdf_text="zoomx-FigureS2.pdf"
+	master_title_text="Linked Read Sequencing Statistics"
+  parse10xh5_text="NA12878_WGS_phased_possorted_bam.bam.multiFragBar.h5.a0,P00526_2386_nt.10X_v2.bam.multiFragBar.h5.a0,P00526_2721_mt.st.10X_v2.bam.multiFragBar.h5.a0,P00526_2725_mt.10X_v2.bam.multiFragBar.h5.a0"
+	sample_labels_text="NA12878,Norm2386,MetR2721,MetL2725"
+  quit()
 }
 
-parse10xh5=strsplit(parse10xh5_text,',')[[1]] 
+parse10xh5=strsplit(parse10xh5_text,',')[[1]]
+if(sample_labels_text!="none") sample_labels=strsplit(sample_labels_text,',')[[1]]
 master_pdf=master_pdf_text
 master_title=master_title_text
 file.remove(master_pdf) #restart master_pdf
@@ -53,61 +64,75 @@ quadsize=5
 sidesize=1
 fonttype=3
 fontsize=10
+labelsize=5
 colors=rainbow(length(parse10xh5))
 names(colors)=parse10xh5
-pdf(file=master_pdf, title=master_title, height=quadsize, width=halfsize+sidesize)
 
-#DEBUG:
-#  h="P04979_CR1.wg10.bam.a30000.h5"
 fragLenDistr=list()
 rdpSpaceDistr=list()
 barCount=list()
 for(hi in seq_along(parse10xh5)) {
 	h = parse10xh5[hi]
-  #htag = substr(h,1,15)
-  htag = h
+  htag = sample_labels[hi]
   fragLenDistr[[htag]]=as.data.frame(h5read(h,"S",bit64conversion='double'))
   fragLenDistr[[htag]][["sample"]]=htag
+	fragLenDistr[[htag]][["file"]]=h
 	rdpSpaceDistr[[htag]]=as.data.frame(h5read(h,"D",bit64conversion='double'))
 	rdpSpaceDistr[[htag]][["sample"]]=htag
+	fragLenDistr[[htag]][["file"]]=h
 	barCount[[htag]]=as.data.frame(h5read(h,"T",bit64conversion='double'))
 	barCount[[htag]][["sample"]]=htag
+	fragLenDistr[[htag]][["file"]]=h
   cat("adding plot data",htag,"\n")
 }
 fragLenDistr=do.call("rbind",fragLenDistr)
 rdpSpaceDistr=do.call("rbind",rdpSpaceDistr)
 barCount=do.call("rbind",barCount)
 
+pdf(file=master_pdf, title=master_title, height=1.5*quadsize, width=quadsize+sidesize)
+
 fragLenDistrPlot = ggplot()
-fragLenDistrPlot = fragLenDistrPlot + geom_point(data=fragLenDistr, aes(x=index,y=values,group=as.factor(sample), color=as.factor(sample), shape=as.factor(sample)))
-fragLenDistrPlot = fragLenDistrPlot + geom_line(data=fragLenDistr, aes(x=index,y=values,group=as.factor(sample), color=as.factor(sample), linetype=as.factor(sample)))
-fragLenDistrPlot = fragLenDistrPlot + ggtitle("Fragment Length Distribution (Density): S(l)")
-fragLenDistrPlot = fragLenDistrPlot + labs(x="Fragmeng Length: l (Number of co-fragment reads)",y="Density: S") 
+fragLenDistrPlot = fragLenDistrPlot + geom_point(data=fragLenDistr, aes(x=index,y=values,group=sample, color=sample, shape=sample))
+#fragLenDistrPlot = fragLenDistrPlot + geom_point(data=fragLenDistr, aes(x=index,y=values,group=as.factor(sample), color=as.factor(sample), shape=as.factor(sample)))
+fragLenDistrPlot = fragLenDistrPlot + geom_line(data=fragLenDistr, aes(x=index,y=values,group=sample, color=sample, linetype=sample))
+#fragLenDistrPlot = fragLenDistrPlot + geom_line(data=fragLenDistr, aes(x=index,y=values,group=as.factor(sample), color=as.factor(sample), linetype=as.factor(sample)))
+fragLenDistrPlot = fragLenDistrPlot #+ ggtitle("A") + theme(plot.title=element_text(hjust=-1))
+fragLenDistrPlot = fragLenDistrPlot + labs(x="Molecule Size (Number of co-fragment reads)",y="Density") 
 fragLenDistrPlot = fragLenDistrPlot + theme(legend.position="bottom")
 fragLenDistrPlot = fragLenDistrPlot + xlim(c(1,NA))
-grid.arrange(fragLenDistrPlot, ncol=1)
+#grid.arrange(fragLenDistrPlot, ncol=1)
 fragLenDistrPlot = fragLenDistrPlot + xlim(c(1,100))
-grid.arrange(fragLenDistrPlot, ncol=1)
+#fragLenDistrPlot = geom_text(data = NULL, x = 1, y = 30, label = "plot mpg vs. wt")
 
 rdpSpaceDistrPlot = ggplot()
-rdpSpaceDistrPlot = rdpSpaceDistrPlot + geom_point(data=rdpSpaceDistr, aes(x=index,y=values,group=sample, color=as.factor(sample), shape=as.factor(sample)))
-rdpSpaceDistrPlot = rdpSpaceDistrPlot + geom_line(data=rdpSpaceDistr, aes(x=index,y=values,group=sample, color=as.factor(sample), linetype=as.factor(sample)))
-rdpSpaceDistrPlot = rdpSpaceDistrPlot + ggtitle("Fragment Read Pair Spacing Distribution (Density): D(d)")
-rdpSpaceDistrPlot = rdpSpaceDistrPlot + labs(x="Fragmeng Read Pair Spacing: d (Distance between adjacent co-fragment read pairs)",y="Density: D")
+rdpSpaceDistrPlot = rdpSpaceDistrPlot + geom_point(data=rdpSpaceDistr, aes(x=index,y=values,group=sample, color=sample, shape=sample))
+#rdpSpaceDistrPlot = rdpSpaceDistrPlot + geom_point(data=rdpSpaceDistr, aes(x=index,y=values,group=sample, color=as.factor(sample), shape=as.factor(sample)))
+rdpSpaceDistrPlot = rdpSpaceDistrPlot + geom_line(data=rdpSpaceDistr, aes(x=index,y=values,group=sample, color=sample, linetype=sample))
+#rdpSpaceDistrPlot = rdpSpaceDistrPlot + geom_line(data=rdpSpaceDistr, aes(x=index,y=values,group=sample, color=as.factor(sample), linetype=as.factor(sample)))
+rdpSpaceDistrPlot = rdpSpaceDistrPlot #+ ggtitle("B") + theme(plot.title=element_text(hjust=-1))
+rdpSpaceDistrPlot = rdpSpaceDistrPlot + labs(x="Co-Molecule Read Pair Spacing (Distance between adjacent co-fragment read pairs)",y="Density")
 rdpSpaceDistrPlot = rdpSpaceDistrPlot + theme(legend.position="bottom")
-grid.arrange(rdpSpaceDistrPlot, ncol=1)
+#grid.arrange(rdpSpaceDistrPlot, ncol=1)
 rdpSpaceDistrPlot = rdpSpaceDistrPlot + xlim(c(0,1000))
-grid.arrange(rdpSpaceDistrPlot, ncol=1)
+
 
 barCountPlot = ggplot(data=barCount, aes(as.factor(sample), block0_values))
-barCountPlot = barCountPlot + geom_violin()
-barCountPlot = barCountPlot + labs(y="Barcode Cound Density: T", x="Samples")
+barCountPlot = barCountPlot + geom_violin() #+ ggtitle("C") + theme(plot.title=element_text(hjust=-1))
+barCountPlot = barCountPlot + labs(y="Barcode Density", x="Samples")
 barCountPlot = barCountPlot + theme(axis.text.x = element_text(angle=45,family="Helvetica", face="plain", colour="black", size=10))
-grid.arrange(barCountPlot, ncol=1)
+#grid.arrange(barCountPlot, ncol=1)
 barCountPlot = barCountPlot + ylim(c(0,0.00001))
-grid.arrange(barCountPlot, ncol=1)
+
+#grid.arrange(fragLenDistrPlot, ncol=1)
+#grid.arrange(rdpSpaceDistrPlot, ncol=1)
+#grid.arrange(barCountPlot, ncol=1)
+
+theme_set(theme_cowplot(font_size=labelsize)) # reduce default font size
+plot_grid(fragLenDistrPlot, rdpSpaceDistrPlot, barCountPlot, labels = c('A', 'B','C'), align='v', ncol=1)
 
 dev.off()
+
+
 quit()
 
 #chrs=cmd$options$chrs
