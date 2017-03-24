@@ -95,19 +95,19 @@ if [[ $SomaticRunOp == "control" ]]; then
 fi
   
 if [[ $SomaticRunOp == "controlCisRef" ]]; then
-  cisRefCMD="PYTHONPATH=$ZOOMXPATH $runOption python -m refineBreak -n 8 -e $controlExp -f $controlExp -o $outputPf/$controlBam.cis.E$controlExp -i $outputPf/$controlBam.geq$cisSize.IM.bedpe -j $outputPf/$controlBam.geq$cisSize.FF.bedpe -k $outputPf/$controlBam.geq$cisSize.RR.bedpe $controlPf/$controlBam $cis $cfg >$log.refineBreak.cis.E$controlExp.$mydate 2>&1"
+  cisRefCMD="PYTHONPATH=$ZOOMXPATH $runOption python -m refineBreak -n 8 -m $controlMax -e $controlExp -f $controlExp -o $outputPf/$controlBam.cis.E$controlExp -i $outputPf/$controlBam.geq$cisSize.IM.bedpe -j $outputPf/$controlBam.geq$cisSize.FF.bedpe -k $outputPf/$controlBam.geq$cisSize.RR.bedpe $controlPf/$controlBam $cis $cfg >$log.refineBreak.cis.E$controlExp.$mydate 2>&1"
   echo $cisRefCMD | bash
   echo -e "    'cisRefCMD':'$cisRefCMD',"
 fi
   
 if [[ $SomaticRunOp == "controlDistRef" ]]; then
-  distRefCMD="PYTHONPATH=$ZOOMXPATH $runOption python -m refineBreak -n 8 -e $controlExp -f $controlExp -o $outputPf/$controlBam.dist.E$controlExp -i $outputPf/$controlBam.geq$cisSize.IM.bedpe -j $outputPf/$controlBam.geq$cisSize.FF.bedpe -k $outputPf/$controlBam.geq$cisSize.RR.bedpe $controlPf/$controlBam $distal $cfg >$log.refineBreak.dist.E$controlExp.$mydate 2>&1"
+  distRefCMD="PYTHONPATH=$ZOOMXPATH $runOption python -m refineBreak -n 8 -m $controlMax -e $controlExp -f $controlExp -o $outputPf/$controlBam.dist.E$controlExp -i $outputPf/$controlBam.geq$cisSize.IM.bedpe -j $outputPf/$controlBam.geq$cisSize.FF.bedpe -k $outputPf/$controlBam.geq$cisSize.RR.bedpe $controlPf/$controlBam $distal $cfg >$log.refineBreak.dist.E$controlExp.$mydate 2>&1"
   echo $distRefCMD | bash
   echo -e "    'distRefCMD':'$distRefCMD',"
 fi
   
 if [[ $SomaticRunOp == "controlTransRef" ]]; then
-  transRefCMD="PYTHONPATH=$ZOOMXPATH $runOption python -m refineBreak -n 8 -e $controlExp -f $controlExp -o $outputPf/$controlBam.tra.E$controlExp -i $outputPf/$controlBam.geq$cisSize.IM.bedpe -j $outputPf/$controlBam.geq$cisSize.FF.bedpe -k $outputPf/$controlBam.geq$cisSize.RR.bedpe $controlPf/$controlBam $trans $cfg >$log.refineBreak.tra.E$controlExp.$mydate 2>&1"
+  transRefCMD="PYTHONPATH=$ZOOMXPATH $runOption python -m refineBreak -n 8 -m $controlMax -e $controlExp -f $controlExp -o $outputPf/$controlBam.tra.E$controlExp -i $outputPf/$controlBam.geq$cisSize.IM.bedpe -j $outputPf/$controlBam.geq$cisSize.FF.bedpe -k $outputPf/$controlBam.geq$cisSize.RR.bedpe $controlPf/$controlBam $trans $cfg >$log.refineBreak.tra.E$controlExp.$mydate 2>&1"
   echo $transRefCMD | bash
   echo -e "    'transRefCMD':'$transRefCMD',"
 fi
@@ -161,19 +161,19 @@ if [[ $SomaticRunOp == "case" ]]; then
 fi
   
 if [[ $SomaticRunOp == "caseCisRef" ]]; then
-  cisRefCMD="PYTHONPATH=$ZOOMXPATH $runOption python -m refineBreak -n 8 -e $caseExp -f $caseExp -o $outputPf/$caseBam.cis.E$caseExp -i $outputPf/$caseBam.geq$cisSize.IM.bedpe -j $outputPf/$caseBam.geq$cisSize.FF.bedpe -k $outputPf/$caseBam.geq$cisSize.RR.bedpe $casePf/$caseBam $cis $cfg >$log.refineBreak.cis.E$caseExp.$mydate 2>&1"
+  cisRefCMD="PYTHONPATH=$ZOOMXPATH $runOption python -m refineBreak -n 8 -m $caseMax -e $caseExp -f $caseExp -o $outputPf/$caseBam.cis.E$caseExp -i $outputPf/$caseBam.geq$cisSize.IM.bedpe -j $outputPf/$caseBam.geq$cisSize.FF.bedpe -k $outputPf/$caseBam.geq$cisSize.RR.bedpe $casePf/$caseBam $cis $cfg >$log.refineBreak.cis.E$caseExp.$mydate 2>&1"
   echo $cisRefCMD | bash
   echo -e "    'cisRefCMD':'$cisRefCMD',"
 fi
   
 if [[ $SomaticRunOp == "caseDistRef" ]]; then
-  distRefCMD="PYTHONPATH=$ZOOMXPATH $runOption python -m refineBreak -n 8 -e $caseExp -f $caseExp -o $outputPf/$caseBam.dist.E$caseExp -i $outputPf/$caseBam.geq$cisSize.IM.bedpe -j $outputPf/$caseBam.geq$cisSize.FF.bedpe -k $outputPf/$caseBam.geq$cisSize.RR.bedpe $casePf/$caseBam $distal $cfg >$log.refineBreak.dist.E$caseExp.$mydate 2>&1"
+  distRefCMD="PYTHONPATH=$ZOOMXPATH $runOption python -m refineBreak -n 8 -m $caseMax -e $caseExp -f $caseExp -o $outputPf/$caseBam.dist.E$caseExp -i $outputPf/$caseBam.geq$cisSize.IM.bedpe -j $outputPf/$caseBam.geq$cisSize.FF.bedpe -k $outputPf/$caseBam.geq$cisSize.RR.bedpe $casePf/$caseBam $distal $cfg >$log.refineBreak.dist.E$caseExp.$mydate 2>&1"
   echo $distRefCMD | bash
   echo -e "    'distRefCMD':'$distRefCMD',"
 fi
   
 if [[ $SomaticRunOp == "caseTransRef" ]]; then
-  transRefCMD="PYTHONPATH=$ZOOMXPATH $runOption python -m refineBreak -n 8 -e $caseExp -f $caseExp -o $outputPf/$caseBam.tra.E$caseExp -i $outputPf/$caseBam.geq$cisSize.IM.bedpe -j $outputPf/$caseBam.geq$cisSize.FF.bedpe -k $outputPf/$caseBam.geq$cisSize.RR.bedpe $casePf/$caseBam $trans $cfg >$log.refineBreak.tra.E$caseExp.$mydate 2>&1"
+  transRefCMD="PYTHONPATH=$ZOOMXPATH $runOption python -m refineBreak -n 8 -m $caseMax -e $caseExp -f $caseExp -o $outputPf/$caseBam.tra.E$caseExp -i $outputPf/$caseBam.geq$cisSize.IM.bedpe -j $outputPf/$caseBam.geq$cisSize.FF.bedpe -k $outputPf/$caseBam.geq$cisSize.RR.bedpe $casePf/$caseBam $trans $cfg >$log.refineBreak.tra.E$caseExp.$mydate 2>&1"
   echo $transRefCMD | bash
   echo -e "    'transRefCMD':'$transRefCMD',"
 fi
