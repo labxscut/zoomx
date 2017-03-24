@@ -1,0 +1,15 @@
+#!/bin/bash
+cfgfile="somatic4.cfg"
+somatic4 stage $cfgfile
+somatic4 case $cfgfile
+somatic4 control $cfgfile
+somatic4 controlCisRef $cfgfile
+somatic4 controlDistRef $cfgfile
+somatic4 controlTransRef $cfgfile
+somatic4 case $cfgfile
+somatic4 caseCisRef $cfgfile
+somatic4 caseDistRef $cfgfile
+somatic4 caseTransRef $cfgfile
+somatic4 distDiff $cfgfile
+somatic4 cisDiff $cfgfile
+somatic4 transDiff $cfgfile
