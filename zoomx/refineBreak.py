@@ -56,6 +56,7 @@ def main(args):
     tempdir = args.tempdir
     numprocs = args.numprocs
     altExpect = args.altExpect
+    forcedExpect = args.forcedExpect
     maxNum = args.maxNum
   else:
     bamFile = "LS411N_CR1.wg12.bam"
@@ -73,13 +74,16 @@ def main(args):
     debug = False
     mergeOnly = False
     altExpect = 25
+    forcedExpect = 10
     maxNum = numpy.inf
   
   lib10x.setTemporaryDir(tempdir)
   with open(cfgFile, 'r') as f:
     scanConfig = json.load(f)
   minMolCnt = numpy.ceil((1-altExpect/100.)*scanConfig['E0'] + altExpect/100.*scanConfig['Cem'])
-  minMolCnt = max(minMolCnt, 25)  #minimum 25 molecules required for any events
+  if forcedExpect != 0:
+    minMolCnt = max(minMolCnt, forcedExpect)  
+    #force minimum molecules required for any somatic events
   sys.stderr.write("minMolCnt="+str(minMolCnt)+"\n")
   
   if debug:
@@ -371,7 +375,8 @@ def run():
   parser.add_argument("cfg",help="parameter config file, in JSON format")
   parser.add_argument("-c","--covFile", default="none",help="100bp window coverage file")
   parser.add_argument("-m","--maxNum", default=numpy.inf,help="maximum number of events to refine")
-  parser.add_argument("-e","--altExpect", default=25,type=int, help="minimum alternative expectation 10-100, default 25")
+  parser.add_argument("-e","--altExpect", default=25,type=int, help="minimum mixture fraction for alternative, specify a percentage between 10-100, default 25")
+  parser.add_argument("-f","--forcedExpect",default=0,type=int, help="forced minimum molecule for events")
   parser.add_argument("-i","--imBedpeFile", default="none",help="impp FR read file in bedpe, default=bam.IM.bedpe")
   parser.add_argument("-j","--ffBedpeFile", default="none",help="disc FF read file in bedpe, default=bam.FF.bedpe")
   parser.add_argument("-k","--rrBedpeFile", default="none",help="splt RR read file in bedpe, default=bam.RR.bedpe")
