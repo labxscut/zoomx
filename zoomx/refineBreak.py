@@ -128,12 +128,15 @@ def main(args):
   rawCalls=rawCalls[rawCalls['molcnt']>minMolCnt]
   #add index to bedpe file
   rawCalls['index']=xrange(0,rawCalls.shape[0])
+  #reduce rawCalls to maxNum allowed
+  if (len(rawCalls) > maxNum):
+    rawCalls=rawCalls[0:maxNum]
   #save bedpe file for pairtopair overlapping
   tmpBedpeFile=lib10x.getTemporaryFile('bedpe_')
   rawCalls.to_csv(tmpBedpeFile,header=False, sep="\t", index=False)
   
   #pairtopair overlapping
-  sys.stderr.write("merging calls\n")
+  sys.stderr.write("merging calls...\n")
   tmpOverlapFile=lib10x.getTemporaryFile('bedpe_')
   if debug: sys.stderr.write("tmpBedpeFile='"+str(tmpBedpeFile)+"'\n")
   pair2pair_cmd="bedtools pairtopair -is -a %s -b %s | cut -f8,16 >%s" % (tmpBedpeFile, tmpBedpeFile, tmpOverlapFile)
@@ -159,7 +162,7 @@ def main(args):
   #find connected entries of rawCalls
   #c -> (c/23, c%23)
   #reduce connected components to a new bedpe format
-  
+
   mergeChr1=numpy.array([None] * numComponents, dtype="object")
   mergeStart1=numpy.array([None] * numComponents, dtype="object")
   mergeEnd1=numpy.array([None] * numComponents, dtype="object")
@@ -178,10 +181,9 @@ def main(args):
     mergeMolCnt[ci]=max(rawCalls.iloc[ri]['molcnt']) #
   
   mergeBedpe=pandas.DataFrame(dict(zip(callLabels,[mergeChr1,mergeStart1,mergeEnd1,mergeChr2,mergeStart2,mergeEnd2,mergeMolCnt])),\
-    columns=callLabels) #
+    columns=callLabels) # natually sorted, good!
   
-  if(len(mergeBedpe)>maxNum):
-    mergeBedpe = mergeBedpe[0:maxNum]
+
   sys.stderr.write("output merged calls\n")
   mergeBedpeFile=".".join([outPrefix,"merged"])
   refineBedpe=mergeBedpe.sort_values(by=['molcnt'],ascending=False)
@@ -374,7 +376,7 @@ def run():
   parser.add_argument("call", help="SV call bedpefile, in bedpe format") 
   parser.add_argument("cfg",help="parameter config file, in JSON format")
   parser.add_argument("-c","--covFile", default="none",help="100bp window coverage file")
-  parser.add_argument("-m","--maxNum", default=numpy.inf,help="maximum number of events to refine")
+  parser.add_argument("-m","--maxNum", default=numpy.inf,help="max number of events to process (reduce this if time constrained)")
   parser.add_argument("-e","--altExpect", default=25,type=int, help="minimum mixture fraction for alternative, specify a percentage between 10-100, default 25")
   parser.add_argument("-f","--forcedExpect",default=0,type=int, help="forced minimum molecule for events")
   parser.add_argument("-i","--imBedpeFile", default="none",help="impp FR read file in bedpe, default=bam.IM.bedpe")
