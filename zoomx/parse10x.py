@@ -80,7 +80,9 @@ def main(args):
     debug = False
     #maxRead=200000
 
-  print >>sys.stderr, "maxRead=", maxRead
+  sys.stderr.write("parse10x.py -b {} {}\n".format(maxRead,bamfile))
+  sys.stderr.write("args="+str(args)+"\n")
+  #print >>sys.stderr, "maxRead=", maxRead
   if outPrefix == "none":
     outPrefix = bamfile
   
@@ -687,10 +689,12 @@ def run():
   parser = argparse.ArgumentParser()
   parser.add_argument("bam",help="sorted 10x bamfile")
   parser.add_argument("-c","--covFile", default="none",help="100bp window coverage file")
-  parser.add_argument("-l","--longRangerVersion", default=1.2,type=float,help="v>1.2 will use 10X's MI tag to infer molecules if specified and available")
-  parser.add_argument("-f","--setAlpha",help="alpha i.e. max molecule extension basepair, override by 0 in case of using MI tag",default="30000,50000,70000")
-  parser.add_argument("-b","--maxRead",help="max number of read to process",type=int,default=numpy.inf)
-  parser.add_argument("-o","--outPrefix",help="outputPrefix",default="none")
+  parser.add_argument("-l","--longRangerVersion", type=float, default=1.2,
+    help="v>1.2 will use 10X's MI tag to infer molecules if specified and available")
+  parser.add_argument("-f","--setAlpha",default="30000,50000,70000",
+    help="alpha i.e. max molecule extension basepair, override by 0 in case of using MI tag")
+  parser.add_argument("-b","--maxRead",type=int,default=numpy.iinfo(numpy.int16).max,help="max number of read to process")
+  parser.add_argument("-o","--outPrefix",default="none",help="outputPrefix")
   parser.add_argument("-a","--debug",default=False,action="store_true",help="in debug mode")
   try:
     args = parser.parse_args()

@@ -75,7 +75,7 @@ def main(args):
     mergeOnly = False
     altExpect = 25
     forcedExpect = 10
-    maxNum = numpy.inf
+    maxNum = 10
   
   lib10x.setTemporaryDir(tempdir)
   with open(cfgFile, 'r') as f:
@@ -100,6 +100,7 @@ def main(args):
   if rrBedpeFile == "none":
     rrBedpeFile = ".".join([bamFile,'RR','bedpe'])
   
+  sys.stderr.write("refineBreak.py -m {} -f {} -e {} -n {} {} {} {}\n".format(maxNum,forcedExpect,altExpect,numprocs,bamFile,callFile,cfgFile)) 
   sys.stderr.write("args="+str(args)+"\n")
   if debug:
     sys.stderr.write("outPrefix="+str(outPrefix)+"\n")
@@ -128,7 +129,9 @@ def main(args):
   rawCalls=rawCalls[rawCalls['molcnt']>minMolCnt]
   #add index to bedpe file
   rawCalls['index']=xrange(0,rawCalls.shape[0])
+  sys.stderr.write("maxNum={}\n".format(maxNum))
   #reduce rawCalls to maxNum allowed
+  sys.stderr.write("len(rawCalls))={}\n".format(len(rawCalls)))
   if (len(rawCalls) > maxNum):
     rawCalls=rawCalls[0:maxNum]
   #save bedpe file for pairtopair overlapping
@@ -376,7 +379,8 @@ def run():
   parser.add_argument("call", help="SV call bedpefile, in bedpe format") 
   parser.add_argument("cfg",help="parameter config file, in JSON format")
   parser.add_argument("-c","--covFile", default="none",help="100bp window coverage file")
-  parser.add_argument("-m","--maxNum", default=numpy.inf,help="max number of events to process (reduce this if time constrained)")
+  parser.add_argument("-m","--maxNum", default=numpy.iinfo(numpy.int16).max,type=int,
+    help="max number of events to process (reduce this if time constrained)")
   parser.add_argument("-e","--altExpect", default=25,type=int, help="minimum mixture fraction for alternative, specify a percentage between 10-100, default 25")
   parser.add_argument("-f","--forcedExpect",default=0,type=int, help="forced minimum molecule for events")
   parser.add_argument("-i","--imBedpeFile", default="none",help="impp FR read file in bedpe, default=bam.IM.bedpe")
@@ -385,8 +389,8 @@ def run():
   parser.add_argument("-o","--outPrefix",help="outputPrefix",default="none")
   parser.add_argument("-a","--debug",default=False,action="store_true",help="in debug mode")
   parser.add_argument("-b","--mergeOnly",default=False,action="store_true",help="in mergeOnly mode")
-  parser.add_argument("-n","--numprocs",default=1,help="number of parallele process")
-  parser.add_argument('-d', '--tempdir', dest='tempdir',\
+  parser.add_argument("-n","--numprocs",default=1,type=int,help="number of parallele process")
+  parser.add_argument("-d","--tempdir", dest="tempdir",\
     default=os.path.join(os.environ['HOME'],'zoomx_'+lib10x.randascii(4)),\
     help="root dir for keeping temporary files, default (last 4 digits random): %(default)s")
   try:
