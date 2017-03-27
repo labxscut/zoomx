@@ -89,7 +89,7 @@ def main(args):
   scanConfig = dict()
   
   #print >>sys.stderr, "-Info: invoking arguments:", args
-  sys.stderr.write("gridScan.py {} {} {} {}\n".format(gridFile1,fragFile,hdf5file,outputPrefix))
+  sys.stderr.write("gridScan.py {} {} {} {}\n".format(gridFile1,fragFile,hdf5File,outputPrefix))
   sys.stderr.write("args="+str(args)+"\n")
   if debug:
     print >>sys.stderr, "-Info: gridFile1:", gridFile1
