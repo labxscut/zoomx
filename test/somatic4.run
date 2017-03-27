@@ -1,15 +1,19 @@
 #!/bin/bash
-cfgfile="somatic4.cfg"
-somatic4 stage $cfgfile
-somatic4 case $cfgfile
-somatic4 control $cfgfile
-somatic4 controlCisRef $cfgfile
-somatic4 controlDistRef $cfgfile
-somatic4 controlTransRef $cfgfile
-somatic4 case $cfgfile
-somatic4 caseCisRef $cfgfile
-somatic4 caseDistRef $cfgfile
-somatic4 caseTransRef $cfgfile
-somatic4 distDiff $cfgfile
-somatic4 cisDiff $cfgfile
-somatic4 transDiff $cfgfile
+if [[ -z $1 ]]; then
+  cfgfile="somatic4.cfg"
+else
+  cfgfile=$1
+fi
+
+source $cfgfile
+somatic4 control $cfgfile >$cfgfile.control.out.$mydate
+somatic4 case $cfgfile >$cfgfile.case.out.$mydate
+somatic4 controlCisRef $cfgfile >$cfgfile.controlCisRef.out.$mydate
+somatic4 controlDistRef $cfgfile >$cfgfile.controlDistRef.out.$mydate
+somatic4 controlTransRef $cfgfile >$cfgfile.controlTransRef.out.$mydate
+somatic4 caseCisRef $cfgfile >$cfgfile.caseCisRef.out.$mydate
+somatic4 caseDistRef $cfgfile >$cfgfile.caseDistRef.out.$mydate
+somatic4 caseTransRef $cfgfile >$cfgfile.caseTransRef.out.$mydate
+somatic4 distDiff $cfgfile >$cfgfile.distDiff.out.$mydate
+somatic4 cisDiff $cfgfile >$cfgfile.cisDiff.out.$mydate
+somatic4 transDiff $cfgfile >$cfgfile.transDiff.out.$mydate
