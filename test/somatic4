@@ -11,18 +11,20 @@
 
 if [[ -z $1 ]]; then
   echo -e "usage:       somatic stage \$cfgfile"  
-  echo -e "example:     somatic  case \$cfgfile"  
-  echo -e "           somatic control \$cfgfile"  
-  echo -e "           somatic controlCisRef \$cfgfile"  
-  echo -e "           somatic controlDistRef \$cfgfile"  
-  echo -e "           somatic controlTransRef \$cfgfile"  
-  echo -e "           somatic case \$cfgfile"  
-  echo -e "           somatic caseCisRef \$cfgfile"  
-  echo -e "           somatic caseDistRef \$cfgfile"  
-  echo -e "           somatic caseTransRef \$cfgfile"  
-  echo -e "           somatic distDiff \$cfgfile"  
-  echo -e "           somatic cisDiff \$cfgfile"  
-  echo -e "           somatic transDiff \$cfgfile"  
+  echo -e "e.g.:        somatic controlCov \$cfgfile"
+  echo -e "             somatic control \$cfgfile"  
+  echo -e "             somatic caseCov \$cfgfile"  
+  echo -e "             somatic case \$cfgfile"
+  echo -e "             somatic controlCisRef \$cfgfile"  
+  echo -e "             somatic controlDistRef \$cfgfile"  
+  echo -e "             somatic controlTransRef \$cfgfile"  
+  echo -e "             somatic case \$cfgfile"  
+  echo -e "             somatic caseCisRef \$cfgfile"  
+  echo -e "             somatic caseDistRef \$cfgfile"  
+  echo -e "             somatic caseTransRef \$cfgfile"  
+  echo -e "             somatic distDiff \$cfgfile"  
+  echo -e "             somatic cisDiff \$cfgfile"  
+  echo -e "             somatic transDiff \$cfgfile"  
   exit
 fi
 
@@ -32,12 +34,13 @@ SomaticCfgFile=$2
 echo -e "{"
 echo -e "  'ZOOMXPATH': '$ZOOMXPATH',"
 echo -e "  'Task': 'ZoomX Somatic Calling'," 
-echo -e "  'Note': 'torun: change ref, controlPf, controlBam, casePf, caseBam, outputPf, controlExp, caseExp accordingly',"
+echo -e "  'Note': 'to run: change following options in the $SomaticCfgFile accordingly',"
 echo -e "  'mydate': '$mydate',"
 source $SomaticCfgFile
 echo -e "  'ref': '$ref',"
 echo -e "  'gap': '$gap',"
 echo -e "  'grid': '$grid',"
+echo -e "  'covGrid': '$covGrid',"
 echo -e "  'outputPf': '$outputPf',"
 echo -e "  'distSize': '$distSize',"
 echo -e "  'distSize': '$cisSize',"
@@ -45,13 +48,15 @@ echo -e "  'runOption': '$runOption',"
 echo -e "  'controlPf': '$controlPf',"
 echo -e "  'controlBam': '$controlBam',"
 echo -e "  'controlExp': $controlExp,"
+echo -e "  'controlMax': $controlMax,"
 echo -e "  'casePf': '$casePf',"
 echo -e "  'caseBam': '$caseBam',"
 echo -e "  'caseExp': $caseExp,"
+echo -e "  'caseMax': $caseMax,"
 echo -e "  'maxPlot': $maxPlot,"
 
 #process control files
-if [[ $SomaticRunOp == "control" || $SomaticRunOp == "controlCisRef" || $SomaticRunOp == "controlDistRef" || $SomaticRunOp == "controlTransRef" ]]; then
+if [[ $SomaticRunOp == "control" || $SomaticRunOp == "controlCov" || $SomaticRunOp == "controlCisRef" || $SomaticRunOp == "controlDistRef" || $SomaticRunOp == "controlTransRef" ]]; then
   log=$outputPf/$controlBam.log
   bed=$outputPf/$controlBam.multiFragBar.bed.a0
   h5=$outputPf/$controlBam.multiFragBar.h5.a0
@@ -64,8 +69,14 @@ if [[ $SomaticRunOp == "control" || $SomaticRunOp == "controlCisRef" || $Somatic
   echo -e "  'controlCmd': {"
 fi
 
+if [[ $SomaticRunOp == "controlCov" ]]; then
+  controlCovCMD="(time samtools bedcov $ref.bed.w100s100 $controlPf/$controlBam >$outputPf/$controlBam.cov100) 2>$log.controlCov.$mydate"
+  echo $controlCovCMD | bash
+  echo -e "    controlCovCMD': '$controlCovCMD',"
+fi
+
 if [[ $SomaticRunOp == "control" ]]; then
-  parse10xCMD="PYTHONPATH=$ZOOMXPATH $runOption python -m parse10x -o $outputPf/$controlBam -l 2 $controlPf/$controlBam >$log.parse10x.$mydate 2>&1"        #run parse10x module
+  parse10xCMD="PYTHONPATH=$ZOOMXPATH $runOption python -m parse10x -c $controlCovFile -o $outputPf/$controlBam -l 2 $controlPf/$controlBam >$log.parse10x.$mydate 2>&1"        #run parse10x module
   echo $parse10xCMD | bash
   echo -e "    parse10xCMD': '$parse10xCMD',"
   gridScanCMD="PYTHONPATH=$ZOOMXPATH $runOption python -m gridScan -n 3 $grid $bed $h5 $outputPf/$controlBam >$log.gridScan.$mydate 2>&1" #run gridScan module on Chr22 only (50 Mbp)
@@ -113,7 +124,7 @@ if [[ $SomaticRunOp == "controlTransRef" ]]; then
 fi
 
 #process case files
-if [[ $SomaticRunOp == "case" || $SomaticRunOp == "caseCisRef" || $SomaticRunOp == "caseDistRef" || $SomaticRunOp == "caseTransRef" ]]; then
+if [[ $SomaticRunOp == "case" || $SomaticRunOp == "caseCov" || $SomaticRunOp == "caseCisRef" || $SomaticRunOp == "caseDistRef" || $SomaticRunOp == "caseTransRef" ]]; then
   log=$outputPf/$caseBam.log
   bed=$outputPf/$caseBam.multiFragBar.bed.a0
   h5=$outputPf/$caseBam.multiFragBar.h5.a0
@@ -126,8 +137,14 @@ if [[ $SomaticRunOp == "case" || $SomaticRunOp == "caseCisRef" || $SomaticRunOp 
   echo -e "  'caseCmd': {"
 fi
 
+if [[ $SomaticRunOp == "caseCov" ]]; then
+  controlCovCMD="(time samtools bedcov $ref.bed.w100s100 $casePf/$caseBam >$outputPf/$caseBam.cov100) 2>$log.caseCov.$mydate"
+  echo $caseCovCMD | bash
+  echo -e "    caseCovCMD': '$caseCovCMD',"
+fi
+
 if [[ $SomaticRunOp == "case" ]]; then
-  parse10xCMD="PYTHONPATH=$ZOOMXPATH $runOption python -m parse10x -o $outputPf/$caseBam -l 2 $casePf/$caseBam >$log.parse10x.$mydate 2>&1"        #run parse10x module
+  parse10xCMD="PYTHONPATH=$ZOOMXPATH $runOption python -m parse10x -c $caseCovFile -o $outputPf/$caseBam -l 2 $casePf/$caseBam >$log.parse10x.$mydate 2>&1"        #run parse10x module
   echo $parse10xCMD | bash
   echo -e "    parse10xCMD': '$parse10xCMD',"
 
@@ -180,52 +197,52 @@ fi
 
 #do somatic differentiation
 if [[ $SomaticRunOp == "cisDiff" ]]; then
-  log="$outputPf/$caseBam.cis.E$caseExp-$controlBam.tra.E$controlExp.somatic.log.diff"
-  cisDiffCMD="bedtools pairtopair -is -type notboth -a $outputPf/$caseBam.cis.E$caseExp.refined -b $outputPf/$controlBam.cis.E$controlExp.refined >$outputPf/$caseBam.cis.E$caseExp-$controlBam.cis.E$controlExp.somatic 2>$log"
+  log="$outputPf/$caseBam.cis.E$caseExp_$controlBam.cis.E$controlExp.somatic.log.diff"
+  cisDiffCMD="bedtools pairtopair -is -type notboth -a $outputPf/$caseBam.cis.E$caseExp.refined -b $outputPf/$controlBam.cis.E$controlExp.refined >$outputPf/$caseBam.cis.E$caseExp_$controlBam.cis.E$controlExp.somatic 2>$log"
   echo $cisDiffCMD | bash
   echo -e "    'cisDiffCMD':'$cisDiffCMD',"
 
-  moleFile=$outputPf/$caseBam.cis.E$caseExp-$controlBam.cis.E$controlExp.somatic
+  moleFile=$outputPf/$caseBam.cis.E$caseExp_$controlBam.cis.E$controlExp.somatic
   maxSize=$(cat $moleFile | wc -l)
   maxSize=$(expr $(($maxPlot>$maxSize?$maxSize:$maxPlot)) - 1)
   for i in `seq 1 $maxSize`; do
     getMolCMD="$ZOOMXPATH/../scripts/getMolecule.sh $moleFile $outputPf/$caseBam $i $moleFile.Plot >>$log 2>&1"
     echo $getMolCMD | bash
-    plotMolCMD="$ZOOMXPATH/../scripts/plotMolecule.R $isUCSC $moleFile.Plot-$i >>$log 2>&1" 
+    plotMolCMD="$ZOOMXPATH/../scripts/plotMolecule.R $isUCSC $moleFile.Plot_$i >>$log 2>&1" 
     echo $plotMolCMD | bash
   done
 fi
 
 if [[ $SomaticRunOp == "distDiff" ]]; then
-  log="$outputPf/$caseBam.dist.E$caseExp-$controlBam.tra.E$controlExp.somatic.log.diff"
-  distDiffCMD="bedtools pairtopair -is -type notboth -a $outputPf/$caseBam.dist.E$caseExp.refined -b $outputPf/$controlBam.dist.E$controlExp.refined >$outputPf/$caseBam.dist.E$caseExp-$controlBam.dist.E$controlExp.somatic 2>$log"
+  log="$outputPf/$caseBam.dist.E$caseExp_$controlBam.dist.E$controlExp.somatic.log.diff"
+  distDiffCMD="bedtools pairtopair -is -type notboth -a $outputPf/$caseBam.dist.E$caseExp.refined -b $outputPf/$controlBam.dist.E$controlExp.refined >$outputPf/$caseBam.dist.E$caseExp_$controlBam.dist.E$controlExp.somatic 2>$log"
   echo $distDiffCMD | bash
   echo -e "    'distDiffCMD':'$distDiffCMD',"
 
-  moleFile=$outputPf/$caseBam.dist.E$caseExp-$controlBam.dist.E$controlExp.somatic
+  moleFile=$outputPf/$caseBam.dist.E$caseExp_$controlBam.dist.E$controlExp.somatic
   maxSize=$(cat $moleFile | wc -l)
   maxSize=$(expr $(($maxPlot>$maxSize?$maxSize:$maxPlot)) - 1)
   for i in `seq 1 $maxSize`; do
     getMolCMD="$ZOOMXPATH/../scripts/getMolecule.sh $moleFile $outputPf/$caseBam $i $moleFile.Plot >>$log 2>&1"
     echo $getMolCMD | bash
-    plotMolCMD="$ZOOMXPATH/../scripts/plotMolecule.R $isUCSC $moleFile.Plot-$i >>$log 2>&1" 
+    plotMolCMD="$ZOOMXPATH/../scripts/plotMolecule.R $isUCSC $moleFile.Plot_$i >>$log 2>&1" 
     echo $plotMolCMD | bash
   done
 fi
 
 if [[ $SomaticRunOp == "transDiff" ]]; then
-  log="$outputPf/$caseBam.tra.E$caseExp-$controlBam.tra.E$controlExp.somatic.log.diff"
-  transDiffCMD="bedtools pairtopair -is -type notboth -a $outputPf/$caseBam.tra.E$caseExp.refined -b $outputPf/$controlBam.tra.E$controlExp.refined >$outputPf/$caseBam.tra.E$caseExp-$controlBam.tra.E$controlExp.somatic 2>$log"
+  log="$outputPf/$caseBam.tra.E$caseExp_$controlBam.tra.E$controlExp.somatic.log.diff"
+  transDiffCMD="bedtools pairtopair -is -type notboth -a $outputPf/$caseBam.tra.E$caseExp.refined -b $outputPf/$controlBam.tra.E$controlExp.refined >$outputPf/$caseBam.tra.E$caseExp_$controlBam.tra.E$controlExp.somatic 2>$log"
   echo $transDiffCMD | bash
   echo -e "    'transDiffCMD':'$transDiffCMD',"
 
-  moleFile=$outputPf/$caseBam.tra.E$caseExp-$controlBam.tra.E$controlExp.somatic
+  moleFile=$outputPf/$caseBam.tra.E$caseExp_$controlBam.tra.E$controlExp.somatic
   maxSize=$(cat $moleFile | wc -l)
   maxSize=$(expr $(($maxPlot>$maxSize?$maxSize:$maxPlot)) - 1)
   for i in `seq 1 $maxSize`; do
     getMolCMD="$ZOOMXPATH/../scripts/getMolecule.sh $moleFile $outputPf/$caseBam $i $moleFile.Plot >>$log 2>&1"
     echo $getMolCMD | bash
-    plotMolCMD="$ZOOMXPATH/../scripts/plotMolecule.R $isUCSC $moleFile.Plot-$i >>$log 2>&1" 
+    plotMolCMD="$ZOOMXPATH/../scripts/plotMolecule.R $isUCSC $moleFile.Plot_$i >>$log 2>&1" 
     echo $plotMolCMD | bash
   done
 fi

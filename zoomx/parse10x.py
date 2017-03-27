@@ -133,10 +133,10 @@ def main(args):
     
     cov_mean=numpy.mean(covVec[covVec!=0])
     cov_sd=numpy.std(covVec[covVec!=0])
-    cov_cut2=cov_mean + 3*cov_sd
-    cov_median=numpy.median(covVec[covVec!=0])
+    cov_cut2=cov_mean + 2*cov_sd                      #5 sd from mean, potentially type-1 error 2.3% 
+    cov_median=numpy.median(covVec[covVec!=0])        
     cov_mad=lib10x.mad(covVec[covVec!=0])
-    cov_cut=cov_median + 3*1.48*cov_mad
+    cov_cut=cov_median + 2*1.48*cov_mad
     print >>sys.stderr, "cov_median=", cov_median
     print >>sys.stderr, "cov_mad=", cov_mad
     print >>sys.stderr, "cov_mean=", cov_mean
@@ -161,9 +161,9 @@ def main(args):
   N_b = 0
   N_goodLeftRead = 0
   
-  if longRangerVersion < 1.2:
+  if longRangerVersion < 1.2: #use nearest neighbor clustering
   
-    print >>sys.stderr, "using manual alpha clustering to infer molecule..."
+    print >>sys.stderr, "using manual nearest neighbour clustering (distance<alpha) to infer molecule..."
   
     numAlpha = len(setAlpha)
     barfragdata = dict(zip(setAlpha,[ dict() for x in xrange(numAlpha)])) #NOTE: * doesn't create independent dictionaries 
@@ -693,7 +693,7 @@ def run():
     help="v>1.2 will use 10X's MI tag to infer molecules if specified and available")
   parser.add_argument("-f","--setAlpha",default="30000,50000,70000",
     help="alpha i.e. max molecule extension basepair, override by 0 in case of using MI tag")
-  parser.add_argument("-b","--maxRead",type=int,default=numpy.iinfo(numpy.int16).max,help="max number of read to process")
+  parser.add_argument("-b","--maxRead",type=int,default=numpy.iinfo(numpy.int64).max,help="max number of read to process")
   parser.add_argument("-o","--outPrefix",default="none",help="outputPrefix")
   parser.add_argument("-a","--debug",default=False,action="store_true",help="in debug mode")
   try:

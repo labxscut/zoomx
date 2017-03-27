@@ -379,7 +379,7 @@ def run():
   parser.add_argument("call", help="SV call bedpefile, in bedpe format") 
   parser.add_argument("cfg",help="parameter config file, in JSON format")
   parser.add_argument("-c","--covFile", default="none",help="100bp window coverage file")
-  parser.add_argument("-m","--maxNum", default=numpy.iinfo(numpy.int16).max,type=int,
+  parser.add_argument("-m","--maxNum", default=numpy.iinfo(numpy.int32).max,type=int,
     help="max number of events to process (reduce this if time constrained)")
   parser.add_argument("-e","--altExpect", default=25,type=int, help="minimum mixture fraction for alternative, specify a percentage between 10-100, default 25")
   parser.add_argument("-f","--forcedExpect",default=0,type=int, help="forced minimum molecule for events")
