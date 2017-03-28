@@ -23,7 +23,13 @@ trans=$file.jct.bedpe.tra   #output of inter chromosome junctions
 distal=$file.jct.bedpe.dis  #output of distal (>200 KB) junctions
 cis=$file.jct.bedpe.cis     #output of intra  (>50 KB) junctions
 cfg=$file.gridScan.cfg.json        #output of gridScan configuraiton
-PYTHONPATH=$ZOOMXPATH python -m parse10x -l 2 $file >$log.parse10x.$mydate 2>&1        #run parse10x module
+
+###enable following only if need to do coverage based region filtering
+#covGrid=$ref.bed.w100s100  #sliding window bed file of $ref
+#(time samtools bedcov $covGrid $file chr22 >$file.cov100) 2>$log.cov100.$mydate"
+#covFile=$file.cov100
+covFile="none" #place holder, disable if need coverage based region filtering
+PYTHONPATH=$ZOOMXPATH python -m parse10x -c $covFile -l 2 $file >$log.parse10x.$mydate 2>&1        #run parse10x module
 PYTHONPATH=$ZOOMXPATH python -m gridScan -n 3 -g 50000000 -s $gap $grid $bed $h5 $file >$log.gridScan.$mydate 2>&1 #run gridScan module on Chr22 only (50 Mbp)
 awk '{if($1 != $4 && $1 < $4) print}' $file.jct.bedpe >$trans
 awk '{if($1 == $4 && $5 - $2>200000) print}' $file.jct.bedpe >$distal
@@ -43,9 +49,9 @@ maxSize=$(cat $moleFile | wc -l)
 maxSize=$(expr $((100>$maxSize?$maxSize:100)) - 1)
 echo $maxSize
 for i in `seq 1 $maxSize`; do
-  echo "$ZOOMPATH/../scripts/getMolecule.sh $moleFile $file $i $moleFile.Plot"
+  echo "$ZOOMXPATH/../scripts/getMolecule.sh $moleFile $file $i $moleFile.Plot"
   $ZOOMXPATH/../scripts/getMolecule.sh $moleFile $file $i $moleFile.Plot
-  echo "$ZOOMPATH/../scripts/plotMolecule.R --isUCSC $moleFile.Plot-$i" #turn on isUCSC if chrX not X
+  echo "$ZOOMXPATH/../scripts/plotMolecule.R --isUCSC $moleFile.Plot-$i" #turn on isUCSC if chrX not X
   $ZOOMXPATH/../scripts/plotMolecule.R --isUCSC $moleFile.Plot-$i
 done
 echo "done"
