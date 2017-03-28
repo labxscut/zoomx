@@ -69,15 +69,16 @@ plotDir=cmd$args[1]
 
 if(debug){ 
   #options(warn=2)
-  #isUCSC=FALSE     #input has no chr in chromosome name
-  isUCSC=TRUE
+  isUCSC=FALSE     #input has no chr in chromosome name
+  #isUCSC=TRUE
+  breakCI=0.95
   gapSize = 100000     #boundary padding is 10K/2 
   scaleSize = 10000    #boundary rounded to 10K
   flushSD = 5000
   #plotDir=paste("~/ws/10x6","testPlot-1",sep="/")
   #plotDir=paste("~/ws/10x6","plots/NA12878_WGS_phased_possorted_bam.bam.dis.E25.refined.Plot-2",sep="/")
   #plotDir=paste("~/ws/10x6","P00526_2721_mt.st.10X_v2.bam.dis.E25.refined.somatic.Plot-4",sep="/")
-  plotDir=paste("~/ws/10x6","P00526_2721_mt.st.10X_v2.bam.dis.E25.refined.somatic.Plot-2",sep="/")
+  plotDir=paste("~/ws/10x6","P00526_2725_mt.10X_v2.bam.tra.E25.refined.somatic.Plot-3",sep="/")
 } else { 
   options(warn=-1)
 }
@@ -92,18 +93,8 @@ refined=tryCatch(read.table("refined.bedpe",sep="\t",col.names=regCols),error=fu
 refinedIM=tryCatch(read.table("refined.IM.bedpe",col.names=bedpeCols, colClasses=bedpeClass),error=function(e) {NULL})
 refinedFF=tryCatch(read.table("refined.FF.bedpe",col.names=bedpeCols, colClasses=bedpeClass),error=function(e) {NULL})
 refinedRR=tryCatch(read.table("refined.RR.bedpe",col.names=bedpeCols, colClasses=bedpeClass),error=function(e) {NULL})
-refinedReg1=tryCatch(read.table("refined.reg1.mol",col.names=molCols),error=function(e) {read.table("refined.reg1.mol",col.names=molColsOld)}, finally={NULL})
-refinedReg2=tryCatch(read.table("refined.reg2.mol",col.names=molCols),error=function(e) {read.table("refined.reg2.mol",col.names=molColsOld)}, finally={NULL})
-if(!isUCSC & nrow(refined)>0) {refined$chr1=paste("chr",refined$chr1,sep="")
-             refined$chr2=paste("chr",refined$chr2,sep="")}
-if(!isUCSC & nrow(refinedIM)>0) {refinedIM$chr1=paste("chr",refinedIM$chr1,sep="")
-             refinedIM$chr2=paste("chr",refinedIM$chr2,sep="")}
-if(!isUCSC & nrow(refinedFF)>0) {refinedFF$chr1=paste("chr",refinedFF$chr1,sep="")
-             refinedFF$chr2=paste("chr",refinedFF$chr2,sep="")}
-if(!isUCSC & nrow(refinedRR)>0) {refinedRR$chr1=paste("chr",refinedRR$chr1,sep="")
-             refinedRR$chr2=paste("chr",refinedRR$chr2,sep="")}
-if(!isUCSC & nrow(refinedReg1)>0) {refinedReg1$chr1=paste("chr",refinedReg1$chr1,sep="")}
-if(!isUCSC & nrow(refinedReg2)>0) {refinedReg2$chr1=paste("chr",refinedReg2$chr1,sep="")}
+refinedReg1=tryCatch(read.table("refined.reg1.mol",col.names=molCols),error=function(e) {t=read.table("refined.reg1.mol",col.names=molColsOld);t[["molBx"]]=NA;t}, finally={NULL})
+refinedReg2=tryCatch(read.table("refined.reg2.mol",col.names=molCols),error=function(e) {t=read.table("refined.reg2.mol",col.names=molColsOld);t[["molBx"]]=NA;t}, finally={NULL})
 
 sharedBarID = unique(refinedReg1$barID[refinedReg1$barID %in% refinedReg2$barID])
 mergedMolList = lapply(sharedBarID, function(b) { sel1=which(refinedReg1$barID==b)
@@ -112,37 +103,53 @@ mergedMolList = lapply(sharedBarID, function(b) { sel1=which(refinedReg1$barID==
                                   colnames(mdat)=bedpeCols[1:6]
                                   mdat$id=paste("molID",b,sep=":")
                                   mdat$type="molecule"
+                                  mdat$barcode=refinedReg1[sel1[1],dim(refinedReg1)[2]]
                                   mdat
                                 })
 mergedMol = do.call("rbind", mergedMolList)
+  
 chr1 = unique(mergedMol$chr1)[1]
 chr2 = unique(mergedMol$chr2)[1]
 refinedIMid=fromJSON(refined$IM)
 refinedFFid=fromJSON(refined$FF)
 refinedRRid=fromJSON(refined$RR)
 
+#following assume for mergedMol if (chr1==chr2) => st1 <= st2 
 mergedIM = do.call("rbind", 
                    apply(refinedIM[,1:6], 1, FUN = function(r, chr1) { 
-                                                                        if( r[1]!=chr1 | (r[1]==chr1 & as.numeric(r[2])>as.numeric(r[5])) ) 
+                     if( r[1]!=chr1 | (r[4]==chr1 & as.numeric(r[2])>as.numeric(r[5])) ) 
                                                                             { t=r[1:3]; r[1:3]=r[4:6]; r[4:6]=t; }
                                                                         as.data.frame(t(r)) 
                                                                      }, chr1) )
 if(!is.null(mergedIM)) { #set_colClass(mergedIM, c("character","integer","integer","character","integer","integer"));
-                         mergedIM$id = paste("rdpIM",refinedIMid,sep=":"); mergedIM$type="rdpIM"}
+                         mergedIM$id = paste("rdpIM",refinedIMid,sep=":"); mergedIM$type="rdpIM"; mergedIM$barcode=refinedIM$hp}
 
 mergedFF = do.call("rbind", 
                    apply(refinedFF[,1:6], 1, FUN = function(r, chr1) { 
-                     if(r[1]!=chr1 | (r[1]==chr1 & as.numeric(r[2])>as.numeric(r[5])) ) { t=r[1:3]; r[1:3]=r[4:6]; r[4:6]=t; }
+                     if( r[1]!=chr1 | (r[4]==chr1 & as.numeric(r[2])>as.numeric(r[5])) ) { t=r[1:3]; r[1:3]=r[4:6]; r[4:6]=t; }
                                                                                   as.data.frame(t(r)) }, chr1))
 if(!is.null(mergedFF)) { #set_colClass(mergedFF, c("character","integer","integer","character","integer","integer")); 
-                         mergedFF$id = paste("rdpFF",refinedFFid,sep=":"); mergedFF$type="rdpFF"} 
+                         mergedFF$id = paste("rdpFF",refinedFFid,sep=":"); mergedFF$type="rdpFF"; mergedFF$barcode=refinedFF$hp} 
 
 mergedRR = do.call("rbind", 
                    apply(refinedRR[,1:6], 1, FUN = function(r, chr1) { 
-                     if(r[1]!=chr1 | (r[1]==chr1 & as.numeric(r[2])>as.numeric(r[5])) ) { t=r[1:3]; r[1:3]=r[4:6]; r[4:6]=t; } 
+                     if( r[1]!=chr1 | (r[4]==chr1 & as.numeric(r[2])>as.numeric(r[5])) ) { t=r[1:3]; r[1:3]=r[4:6]; r[4:6]=t; } 
                    as.data.frame(t(r)) }, chr1))
 if(!is.null(mergedRR)) { #set_colClass(mergedRR, c("character","integer","integer","character","integer","integer")); 
-                         mergedRR$id = paste("rdpRR",refinedRRid,sep=":"); mergedRR$type="rdpRR" } 
+                         mergedRR$id = paste("rdpRR",refinedRRid,sep=":"); mergedRR$type="rdpRR"; mergedRR$barcode=refinedRR$hp } 
+
+if(!isUCSC & nrow(refined)>0) {refined$chr1=paste("chr",refined$chr1,sep="")}
+if(!isUCSC & nrow(refined)>0) {refined$chr2=paste("chr",refined$chr2,sep="")}
+if(!isUCSC & nrow(refinedReg1)>0) {refinedReg1$chr1=paste("chr",refinedReg1$chr1,sep="")}
+if(!isUCSC & nrow(refinedReg2)>0) {refinedReg2$chr1=paste("chr",refinedReg2$chr1,sep="")}
+if(!isUCSC & length(mergedMol)>0) {mergedMol$chr1=paste("chr",mergedMol$chr1,sep="")
+                               mergedMol$chr2=paste("chr",mergedMol$chr2,sep="")}
+if(!isUCSC & length(mergedIM)>0) {mergedIM$chr1=paste("chr",mergedIM$chr1,sep="")
+                                 mergedIM$chr2=paste("chr",mergedIM$chr2,sep="")}
+if(!isUCSC & length(mergedFF)>0) {mergedFF$chr1=paste("chr",mergedFF$chr1,sep="")
+                                 mergedFF$chr2=paste("chr",mergedFF$chr2,sep="")}
+if(!isUCSC & length(mergedRR)>0) {mergedRR$chr1=paste("chr",mergedRR$chr1,sep="")
+                                 mergedRR$chr2=paste("chr",mergedRR$chr2,sep="")}
 
 Type=c("molecule","rdpFF","rdpRR","rdpIM")
 strandInfo=c(".","1","-1",".")
@@ -159,7 +166,7 @@ mergedAll=rbind(mergedMol,mergedIM,mergedFF,mergedRR)
 mergedAll$strand1=strandInfo[match(mergedAll$type, Type)]
 mergedAll$strand2=strandInfo[match(mergedAll$type, Type)]
 mergedAll$supportType=mergedAll$type
-colnames(mergedAll)=c("chrom1","start1","end1","chrom2","start2","end2","name","score","strand1","strand2","supportType")
+colnames(mergedAll)=c("chrom1","start1","end1","chrom2","start2","end2","name","score","barcode","strand1","strand2","supportType")
 mergedAll$score=0
 
 rawReg1St = min(refined$start1,refinedReg1$st1)
@@ -178,7 +185,7 @@ shiftReg2Ed = shiftReg1Ed + (scaledReg2Ed - scaledReg2St) #Mark as (chr2: scaled
 shiftReg12 = c(shiftReg1St,shiftReg1Ed,shiftReg2St,shiftReg2Ed)
 
 convertedAll = mergedAll
-convertedAll = set_colClass(convertedAll, c("character","numeric","numeric","character","numeric","numeric","character","numeric","character","character","character"))
+convertedAll = set_colClass(convertedAll, c("character","numeric","numeric","character","numeric","numeric","character","numeric","character","character","character","character"))
 convertedAll$chrom1 = "chrA"
 convertedAll$start1 = convertedAll$start1 - scaledReg1St + 1
 convertedAll$end1 = convertedAll$end1 - scaledReg1St + 150
@@ -199,7 +206,11 @@ if(!is.na(leftBreakReg1)) leftBreakReg1 = flushSDReg1[1] < flushSDReg1[2]
 if(!is.na(leftBreakReg2)) leftBreakReg2 = flushSDReg2[1] < flushSDReg2[2]
 # leftBreak: TRUE iff left edge of Reg1 is break, FALSE if right edge, NA if break is middle
 breakReg1 = round(if(is.na(leftBreakReg1)) { median(c(convertedAll$start1,convertedAll$end1)) } else if (leftBreakReg1) { quantile(convertedAll$start1,1-breakCI) } else { quantile(convertedAll$end1,breakCI) })
+breakReg1CILow = min(convertedAll$start1)
+breakReg1CIHigh = max(convertedAll$end1)
 breakReg2 = round(if(is.na(leftBreakReg2)) { median(c(convertedAll$start2,convertedAll$end2)) } else if (leftBreakReg2) { quantile(convertedAll$start2,1-breakCI) } else { quantile(convertedAll$end2,breakCI) })
+breakReg2CILow = min(convertedAll$start2)
+breakReg2CIHigh = max(convertedAll$end2)
 
 cat("gr...\n")
 #print(convertedAll[convertedAll$end1>convertedAll$start2,c(1,2,3,4,5,6)])
@@ -229,12 +240,20 @@ tickLab2 = c(boundaryReg12[3]+gapSize/2, boundaryReg12[4]-gapSize/2, boundaryReg
 tickLab1 = paste(c(chr1,"",""),tickLab1,sep=":")
 tickLab2 = paste(c(chr2,"",""),tickLab2,sep=":")
                     
-plotFile=paste(refined[1:6],collapse="-")
+plotFile=paste(refined[1:6],collapse="_")
+mergedAllFile = paste(plotFile,"mol",sep=".")
+write.table(mergedAll,file=mergedAllFile,col.names=TRUE,row.names=FALSE,sep="\t",quote=FALSE)
 jsonFile=file(paste(plotFile,"json",sep="."))
-writeLines(toJSON(list(chr1=chr1,
+writeLines(toJSON(list(reg1=chr1,
                        break1=boundaryReg12[1]+unname(breakReg1[1]),
-                       chr2=chr2,
-                       break2=boundaryReg12[3]+unname(breakReg2[1])-shiftReg12[2])), con=jsonFile)
+                       break1CILow=boundaryReg12[1]+unname(breakReg1CILow[1]),
+                       break1CIHigh=boundaryReg12[1]+unname(breakReg1CIHigh[1]),
+                       reg2=chr2,
+                       break2=boundaryReg12[3]+unname(breakReg2[1])-shiftReg12[2], 
+                       break2CILow=boundaryReg12[3]+unname(breakReg2CILow[1])-shiftReg12[2],
+                       break2CIHigh=boundaryReg12[3]+unname(breakReg2CIHigh[1])-shiftReg12[2],
+                       sharedBarcode=mergedMol$barcode)),
+                       con=jsonFile)
 close(jsonFile)
 
 cat("plotFile=",paste(plotDir, paste(plotFile,"pdf",sep="."),sep="/"),"\n")
