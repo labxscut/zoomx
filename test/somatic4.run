@@ -6,7 +6,9 @@ else
 fi
 
 source $cfgfile
+somatic4 controlCov $cfgfile >$cfgfile.control.out.$mydate
 somatic4 control $cfgfile >$cfgfile.control.out.$mydate
+somatic4 caseCov $cfgfile >$cfgfile.case.out.$mydate
 somatic4 case $cfgfile >$cfgfile.case.out.$mydate
 somatic4 controlCisRef $cfgfile >$cfgfile.controlCisRef.out.$mydate
 somatic4 controlDistRef $cfgfile >$cfgfile.controlDistRef.out.$mydate
