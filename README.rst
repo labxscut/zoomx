@@ -1,12 +1,21 @@
 .. |Logo| image:: https://bytebucket.org/charade/zoomx/wiki/images/logo.png
-   :height: 40px
+   :height: 50px
    :width: 50px
+
+.. |Rationale| image:: https://bytebucket.org/charade/zoomx/wiki/images/rationale.png
+   :alt: rationale.png
+   :height: 450px
+   :width: 540px
+
+.. |Pipeline| image:: https://bytebucket.org/charade/zoomx/wiki/images/pipeline.png
+   :alt: pipeline.png
+   :height: 320px
+   :width: 520px
 
 |Logo| ZoomX - Single Molecule Based Rearrangement Analysis with Linked Read Sequencing
 ==========================================================================================
 
 .. contents:: Navigator
-
 
 QUICK LINKS
 -----------
@@ -20,19 +29,20 @@ QUICK LINKS
 INTRODUCTION
 ------------
     
-    ZoomX (Single Molecule Based Rearrangement Analysis with Linked Read Sequencing)
+  ZoomX (Single Molecule Based Rearrangement Analysis with Linked Read Sequencing)
 
-.. image:: https://bytebucket.org/charade/zoomx/wiki/images/pipeline.png
-   :alt: zoomx_figure1.png
-   :height: 320px
-   :width: 400px
+  |Rationale|
+
+  Figure 1. The principle and workflow of ZoomX.
   
-    Figure 1. The principle and workflow of ZoomX.
+  |Pipeline|
+
+  Figure 2. The bioinformatics pipeline of ZoomX.
     
-    Currently the package works for Linux (tested with Ubuntu). 
-    It might also work for Mac with Brew/Ports or Windows with Cygwin (not tested).
-    ZoomX documentation is on wiki and it is available:
-    http://bitbucket.org/charade/zoomx/wiki
+  Currently the package works for Linux (tested with Ubuntu). 
+  It might also work for Mac with Brew/Ports or Windows with Cygwin (not tested).
+  ZoomX documentation is on wiki and it is available:
+  http://bitbucket.org/charade/zoomx/wiki
 
 INSTALL
 ------------
