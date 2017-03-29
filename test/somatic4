@@ -200,12 +200,12 @@ fi
 
 #do somatic differentiation
 if [[ $SomaticRunOp == "cisDiff" ]]; then
-  log="$outputPf/$caseBam.cis.E$caseExp_$controlBam.cis.E$controlExp.somatic.log.diff"
-  cisDiffCMD="bedtools pairtopair -is -type notboth -a $outputPf/$caseBam.cis.E$caseExp.refined -b $outputPf/$controlBam.cis.E$controlExp.refined >$outputPf/$caseBam.cis.E$caseExp_$controlBam.cis.E$controlExp.somatic 2>$log"
+  log="$outputPf/$caseBam.cis.E$caseExp\_$controlBam.cis.E$controlExp.somatic.log.diff"
+  cisDiffCMD="bedtools pairtopair -is -type notboth -a $outputPf/$caseBam.cis.E$caseExp.refined -b $outputPf/$controlBam.cis.E$controlExp.refined >$outputPf/$caseBam.cis.E$caseExp\_$controlBam.cis.E$controlExp.somatic 2>$log"
   echo $cisDiffCMD | bash
   echo -e "    'cisDiffCMD':'$cisDiffCMD',"
 
-  moleFile=$outputPf/$caseBam.cis.E$caseExp_$controlBam.cis.E$controlExp.somatic
+  moleFile=$outputPf/$caseBam.cis.E$caseExp\_$controlBam.cis.E$controlExp.somatic
   maxSize=$(cat $moleFile | wc -l)
   maxSize=$(expr $(($maxPlot>$maxSize?$maxSize:$maxPlot)) - 1)
   for i in `seq 1 $maxSize`; do
@@ -217,12 +217,12 @@ if [[ $SomaticRunOp == "cisDiff" ]]; then
 fi
 
 if [[ $SomaticRunOp == "distDiff" ]]; then
-  log="$outputPf/$caseBam.dist.E$caseExp_$controlBam.dist.E$controlExp.somatic.log.diff"
-  distDiffCMD="bedtools pairtopair -is -type notboth -a $outputPf/$caseBam.dist.E$caseExp.refined -b $outputPf/$controlBam.dist.E$controlExp.refined >$outputPf/$caseBam.dist.E$caseExp_$controlBam.dist.E$controlExp.somatic 2>$log"
+  log="$outputPf/$caseBam.dist.E$caseExp\_$controlBam.dist.E$controlExp.somatic.log.diff"
+  distDiffCMD="bedtools pairtopair -is -type notboth -a $outputPf/$caseBam.dist.E$caseExp.refined -b $outputPf/$controlBam.dist.E$controlExp.refined >$outputPf/$caseBam.dist.E$caseExp\_$controlBam.dist.E$controlExp.somatic 2>$log"
   echo $distDiffCMD | bash
   echo -e "    'distDiffCMD':'$distDiffCMD',"
 
-  moleFile=$outputPf/$caseBam.dist.E$caseExp_$controlBam.dist.E$controlExp.somatic
+  moleFile=$outputPf/$caseBam.dist.E$caseExp\_$controlBam.dist.E$controlExp.somatic
   maxSize=$(cat $moleFile | wc -l)
   maxSize=$(expr $(($maxPlot>$maxSize?$maxSize:$maxPlot)) - 1)
   for i in `seq 1 $maxSize`; do
@@ -234,12 +234,12 @@ if [[ $SomaticRunOp == "distDiff" ]]; then
 fi
 
 if [[ $SomaticRunOp == "transDiff" ]]; then
-  log="$outputPf/$caseBam.tra.E$caseExp_$controlBam.tra.E$controlExp.somatic.log.diff"
-  transDiffCMD="bedtools pairtopair -is -type notboth -a $outputPf/$caseBam.tra.E$caseExp.refined -b $outputPf/$controlBam.tra.E$controlExp.refined >$outputPf/$caseBam.tra.E$caseExp_$controlBam.tra.E$controlExp.somatic 2>$log"
+  log="$outputPf/$caseBam.tra.E$caseExp\_$controlBam.tra.E$controlExp.somatic.log.diff"
+  transDiffCMD="bedtools pairtopair -is -type notboth -a $outputPf/$caseBam.tra.E$caseExp.refined -b $outputPf/$controlBam.tra.E$controlExp.refined >$outputPf/$caseBam.tra.E$caseExp\_$controlBam.tra.E$controlExp.somatic 2>$log"
   echo $transDiffCMD | bash
   echo -e "    'transDiffCMD':'$transDiffCMD',"
 
-  moleFile=$outputPf/$caseBam.tra.E$caseExp_$controlBam.tra.E$controlExp.somatic
+  moleFile=$outputPf/$caseBam.tra.E$caseExp\_$controlBam.tra.E$controlExp.somatic
   maxSize=$(cat $moleFile | wc -l)
   maxSize=$(expr $(($maxPlot>$maxSize?$maxSize:$maxPlot)) - 1)
   for i in `seq 1 $maxSize`; do
