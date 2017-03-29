@@ -10,21 +10,24 @@
 
 
 if [[ -z $1 ]]; then
-  echo -e "usage:       somatic stage \$cfgfile"  
-  echo -e "e.g.:        somatic controlCov \$cfgfile"
-  echo -e "             somatic control \$cfgfile"  
-  echo -e "             somatic caseCov \$cfgfile"  
-  echo -e "             somatic case \$cfgfile"
-  echo -e "             somatic controlCisRef \$cfgfile"  
-  echo -e "             somatic controlDistRef \$cfgfile"  
-  echo -e "             somatic controlTransRef \$cfgfile"  
-  echo -e "             somatic case \$cfgfile"  
-  echo -e "             somatic caseCisRef \$cfgfile"  
-  echo -e "             somatic caseDistRef \$cfgfile"  
-  echo -e "             somatic caseTransRef \$cfgfile"  
-  echo -e "             somatic distDiff \$cfgfile"  
-  echo -e "             somatic cisDiff \$cfgfile"  
-  echo -e "             somatic transDiff \$cfgfile"  
+  echo -e "usage:       somatic stage $cfgfile"  
+  echo -e "to auto generate command lines with this prompt, do following:"
+  echo -e "export cfgfile=some/cfgfile"
+  echo -e "e.g.:"        
+  echo -e "somatic controlCov $cfgfile"
+  echo -e "somatic control $cfgfile"  
+  echo -e "somatic caseCov $cfgfile"  
+  echo -e "somatic case $cfgfile"
+  echo -e "somatic controlCisRef $cfgfile"  
+  echo -e "somatic controlDistRef $cfgfile"  
+  echo -e "somatic controlTransRef $cfgfile"  
+  echo -e "somatic case $cfgfile"  
+  echo -e "somatic caseCisRef $cfgfile"  
+  echo -e "somatic caseDistRef $cfgfile"  
+  echo -e "somatic caseTransRef $cfgfile"  
+  echo -e "somatic distDiff $cfgfile"  
+  echo -e "somatic cisDiff $cfgfile"  
+  echo -e "somatic transDiff $cfgfile"  
   exit
 fi
 
@@ -70,7 +73,7 @@ if [[ $SomaticRunOp == "control" || $SomaticRunOp == "controlCov" || $SomaticRun
 fi
 
 if [[ $SomaticRunOp == "controlCov" ]]; then
-  controlCovCMD="(time samtools bedcov $ref.bed.w100s100 $controlPf/$controlBam >$outputPf/$controlBam.cov100) 2>$log.controlCov.$mydate"
+  controlCovCMD="(time samtools bedcov $ref.bed.w100s100 $controlPf/$controlBam >$controlCovFile) 2>$log.controlCov.$mydate"
   echo $controlCovCMD | bash
   echo -e "    controlCovCMD': '$controlCovCMD',"
 fi
@@ -138,7 +141,7 @@ if [[ $SomaticRunOp == "case" || $SomaticRunOp == "caseCov" || $SomaticRunOp == 
 fi
 
 if [[ $SomaticRunOp == "caseCov" ]]; then
-  controlCovCMD="(time samtools bedcov $ref.bed.w100s100 $casePf/$caseBam >$outputPf/$caseBam.cov100) 2>$log.caseCov.$mydate"
+  caseCovCMD="(time samtools bedcov $ref.bed.w100s100 $casePf/$caseBam >$caseCovFile) 2>$log.caseCov.$mydate"
   echo $caseCovCMD | bash
   echo -e "    caseCovCMD': '$caseCovCMD',"
 fi
