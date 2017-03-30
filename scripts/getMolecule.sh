@@ -42,10 +42,10 @@ head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f9 | grep -o '[0-9
 echo "head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f10 | grep -o '[0-9]*' | sed '/^$/d' |  sed -e 's/$/p/g' | tr '\n' ';' | sed -e 's/p;$/p;\n/g' >$outDir/refined.rindex.RR"
 head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f10 | grep -o '[0-9]*' |  sed '/^$/d' | sed -e 's/$/p/g' | tr '\n' ';' | sed -e 's/p;$/p;\n/g' >$outDir/refined.rindex.RR
 ###
-echo "sed -n -f $outDir/refined.rindex.IM $inPrefix.geq50K.IM.bedpe >$outDir/refined.IM.bedpe"
-sed -n -f $outDir/refined.rindex.IM $inPrefix.geq50K.IM.bedpe >$outDir/refined.IM.bedpe
-echo "sed -n -f $outDir/refined.rindex.FF $inPrefix.geq50K.FF.bedpe >$outDir/refined.FF.bedpe"
-sed -n -f $outDir/refined.rindex.FF $inPrefix.geq50K.FF.bedpe >$outDir/refined.FF.bedpe
-echo "sed -n -f $outDir/refined.rindex.RR $inPrefix.geq50K.RR.bedpe >$outDir/refined.RR.bedpe"
-sed -n -f $outDir/refined.rindex.RR $inPrefix.geq50K.RR.bedpe >$outDir/refined.RR.bedpe
+echo "sed -n -f $outDir/refined.rindex.IM $inPrefix.geq50000.IM.bedpe >$outDir/refined.IM.bedpe"
+sed -n -f $outDir/refined.rindex.IM $inPrefix.geq50000.IM.bedpe >$outDir/refined.IM.bedpe
+echo "sed -n -f $outDir/refined.rindex.FF $inPrefix.geq50000.FF.bedpe >$outDir/refined.FF.bedpe"
+sed -n -f $outDir/refined.rindex.FF $inPrefix.geq50000.FF.bedpe >$outDir/refined.FF.bedpe
+echo "sed -n -f $outDir/refined.rindex.RR $inPrefix.geq50000.RR.bedpe >$outDir/refined.RR.bedpe"
+sed -n -f $outDir/refined.rindex.RR $inPrefix.geq50000.RR.bedpe >$outDir/refined.RR.bedpe
 echo "getMolecule.sh Done"
