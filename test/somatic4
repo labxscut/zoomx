@@ -28,6 +28,9 @@ if [[ -z $1 ]]; then
   echo -e "somatic4 distDiff $cfgfile"  
   echo -e "somatic4 cisDiff $cfgfile"  
   echo -e "somatic4 transDiff $cfgfile"  
+  echo -e "somatic4 distShare $cfgfile"  
+  echo -e "somatic4 cisShare $cfgfile"  
+  echo -e "somatic4 transShare $cfgfile"  
   exit
 fi
 
@@ -250,9 +253,60 @@ if [[ $SomaticRunOp == "transDiff" ]]; then
   done
 fi
 
+#do germline sharing
+if [[ $SomaticRunOp == "cisShare" ]]; then
+  log="$outputPf/$caseBam.cis.E$caseExp\_$controlBam.cis.E$controlExp.germline.log.diff"
+  cisShareCMD="bedtools pairtopair -is -type both -a $outputPf/$caseBam.cis.E$caseExp.refined -b $outputPf/$controlBam.cis.E$controlExp.refined >$outputPf/$caseBam.cis.E$caseExp\_$controlBam.cis.E$controlExp.germline 2>$log"
+  echo $cisShareCMD | bash
+  echo -e "    'cisShareCMD':'$cisShareCMD',"
+
+  moleFile=$outputPf/$caseBam.cis.E$caseExp\_$controlBam.cis.E$controlExp.germline
+  maxSize=$(cat $moleFile | wc -l)
+  maxSize=$(expr $(($maxPlot>$maxSize?$maxSize:$maxPlot)) - 1)
+  for i in `seq 1 $maxSize`; do
+    getMolCMD="$ZOOMXPATH/../scripts/getMolecule.sh $moleFile $outputPf/$caseBam $i $moleFile.Plot >>$log 2>&1"
+    echo $getMolCMD | bash
+    plotMolCMD="$ZOOMXPATH/../scripts/plotMolecule.R $isUCSC $moleFile.Plot_$i >>$log 2>&1" 
+    echo $plotMolCMD | bash
+  done
+fi
+
+if [[ $SomaticRunOp == "distShare" ]]; then
+  log="$outputPf/$caseBam.dist.E$caseExp\_$controlBam.dist.E$controlExp.germline.log.diff"
+  distShareCMD="bedtools pairtopair -is -type both -a $outputPf/$caseBam.dist.E$caseExp.refined -b $outputPf/$controlBam.dist.E$controlExp.refined >$outputPf/$caseBam.dist.E$caseExp\_$controlBam.dist.E$controlExp.germline 2>$log"
+  echo $distShareCMD | bash
+  echo -e "    'distShareCMD':'$distShareCMD',"
+
+  moleFile=$outputPf/$caseBam.dist.E$caseExp\_$controlBam.dist.E$controlExp.germline
+  maxSize=$(cat $moleFile | wc -l)
+  maxSize=$(expr $(($maxPlot>$maxSize?$maxSize:$maxPlot)) - 1)
+  for i in `seq 1 $maxSize`; do
+    getMolCMD="$ZOOMXPATH/../scripts/getMolecule.sh $moleFile $outputPf/$caseBam $i $moleFile.Plot >>$log 2>&1"
+    echo $getMolCMD | bash
+    plotMolCMD="$ZOOMXPATH/../scripts/plotMolecule.R $isUCSC $moleFile.Plot_$i >>$log 2>&1" 
+    echo $plotMolCMD | bash
+  done
+fi
+
+if [[ $SomaticRunOp == "transShare" ]]; then
+  log="$outputPf/$caseBam.tra.E$caseExp\_$controlBam.tra.E$controlExp.germline.log.diff"
+  transShareCMD="bedtools pairtopair -is -type both -a $outputPf/$caseBam.tra.E$caseExp.refined -b $outputPf/$controlBam.tra.E$controlExp.refined >$outputPf/$caseBam.tra.E$caseExp\_$controlBam.tra.E$controlExp.germline 2>$log"
+  echo $transShareCMD | bash
+  echo -e "    'transShareCMD':'$transShareCMD',"
+
+  moleFile=$outputPf/$caseBam.tra.E$caseExp\_$controlBam.tra.E$controlExp.germline
+  maxSize=$(cat $moleFile | wc -l)
+  maxSize=$(expr $(($maxPlot>$maxSize?$maxSize:$maxPlot)) - 1)
+  for i in `seq 1 $maxSize`; do
+    getMolCMD="$ZOOMXPATH/../scripts/getMolecule.sh $moleFile $outputPf/$caseBam $i $moleFile.Plot >>$log 2>&1"
+    echo $getMolCMD | bash
+    plotMolCMD="$ZOOMXPATH/../scripts/plotMolecule.R $isUCSC $moleFile.Plot_$i >>$log 2>&1" 
+    echo $plotMolCMD | bash
+  done
  #here we iterate through following steps for each junction file, handling max maxPlot events
  #  to get plotMolecule.R to work will need R>3 and R packages optparse, rjson, ggbio, ggplot2, GenomicRanges, RColorBrewer
  #  the packages should be automatically installed at first run of plotMolecule.R
  #  if not, you can do it mannually
+fi
 
 echo -e "  }"
