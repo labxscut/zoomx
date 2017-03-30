@@ -35,6 +35,7 @@ for(p in c("GenomicRanges", "ggbio")) myrequire(p,repo="Bioc")
 
 #genome plot packages: ggbio, Sushi, genoplotR, circlize 
 
+####Options####
 option_list2 <- list(
   make_option(c("-f", "--flushSD"), type="integer", default=5000,
               help="maximum of flushing sd [default %default]"),
@@ -52,7 +53,7 @@ option_list2 <- list(
               help="save debug, [default %default]")
 )
 
-parser <- OptionParser(usage = "%prog [options] plotDir", option_list=option_list2)
+parser <- OptionParser(usage = "%prog [options] plotDir statsJSON", option_list=option_list2)
 cat("-Info: invoking command:",commandArgs(),"\n")
 args <- commandArgs(trailingOnly = TRUE)
 cmd = parse_args(parser, args, print_help_and_exit = TRUE, positional_arguments = TRUE)
@@ -64,9 +65,11 @@ gapSize=cmd$options$gapSize
 scaleSize=cmd$options$scaleSize
 flushSD=cmd$options$flushSD
 ptm=proc.time() #time keeper
-if(length(cmd$args)!=1 & !debug){ print_help(parser); quit() }
+if(length(cmd$args)!=2 & !debug){ print_help(parser); quit() }
 plotDir=cmd$args[1]
+statsFile=cmd$args[2]
 
+####Debug####
 if(debug){ 
   #options(warn=2)
   isUCSC=FALSE     #input has no chr in chromosome name
@@ -75,15 +78,18 @@ if(debug){
   gapSize = 100000     #boundary padding is 10K/2 
   scaleSize = 10000    #boundary rounded to 10K
   flushSD = 5000
-  #plotDir=paste("~/ws/10x6","testPlot-1",sep="/")
-  #plotDir=paste("~/ws/10x6","plots/NA12878_WGS_phased_possorted_bam.bam.dis.E25.refined.Plot-2",sep="/")
-  #plotDir=paste("~/ws/10x6","P00526_2721_mt.st.10X_v2.bam.dis.E25.refined.somatic.Plot-4",sep="/")
-  plotDir=paste("~/ws/10x6","P00526_2725_mt.10X_v2.bam.tra.E25.refined.somatic.Plot-3",sep="/")
+  plotDir=paste("/Users/charlie/ws/crcbrain/02_ZoomX","P05378_7175_mt.wg12.LRv2.bam.dist.E25_P05378_7176_nt.wg12.LRv2.bam.dist.E10.somatic.curate.Plot-1",sep="/")
+  statsFile=paste("/Users/charlie/ws/crcbrain/02_ZoomX","P05378_7175_mt.wg12.LRv2.bam.gridScan.cfg.json",sep="/") 
 } else { 
   options(warn=-1)
 }
+
+####Main####
+
+###LoadInput###
 options(stringsAsFactors = FALSE)
 setwd(plotDir)
+statsTab=fromJSON(paste(readLines(statsFile), collapse=""))
 regCols=c("chr1","start1","end1","chr2","start2","end2","molcnt","IM","FF","RR") # in refined
 bedpeCols=c("chr1","st1","ed1","chr2","st2","ed2","hp")
 bedpeClass=c("character","numeric","numeric","character","numeric","numeric","numeric")
@@ -95,6 +101,7 @@ refinedFF=tryCatch(read.table("refined.FF.bedpe",col.names=bedpeCols, colClasses
 refinedRR=tryCatch(read.table("refined.RR.bedpe",col.names=bedpeCols, colClasses=bedpeClass),error=function(e) {NULL})
 refinedReg1=tryCatch(read.table("refined.reg1.mol",col.names=molCols),error=function(e) {t=read.table("refined.reg1.mol",col.names=molColsOld);t[["molBx"]]=NA;t}, finally={NULL})
 refinedReg2=tryCatch(read.table("refined.reg2.mol",col.names=molCols),error=function(e) {t=read.table("refined.reg2.mol",col.names=molColsOld);t[["molBx"]]=NA;t}, finally={NULL})
+infoTab=refined
 
 sharedBarID = unique(refinedReg1$barID[refinedReg1$barID %in% refinedReg2$barID])
 mergedMolList = lapply(sharedBarID, function(b) { sel1=which(refinedReg1$barID==b)
@@ -239,25 +246,36 @@ tickLab1 = c(boundaryReg12[1]+gapSize/2, boundaryReg12[2]-gapSize/2, boundaryReg
 tickLab2 = c(boundaryReg12[3]+gapSize/2, boundaryReg12[4]-gapSize/2, boundaryReg12[3]+breakReg2-shiftReg12[2])
 tickLab1 = paste(c(chr1,"",""),tickLab1,sep=":")
 tickLab2 = paste(c(chr2,"",""),tickLab2,sep=":")
-                    
-plotFile=paste(refined[1:6],collapse="_")
-mergedAllFile = paste(plotFile,"mol",sep=".")
+
+####WriteOutput####
+plotPrefix=paste(refined[1:6],collapse="_")
+mergedAllFile = paste(plotPrefix,"mol",sep=".")
 write.table(mergedAll,file=mergedAllFile,col.names=TRUE,row.names=FALSE,sep="\t",quote=FALSE)
-jsonFile=file(paste(plotFile,"json",sep="."))
+
+infoFile = paste(plotPrefix,"info","txt",sep=".")
+infoTab = cbind(infoTab[,seq(7)], as.data.frame(list(breakpoint1=boundaryReg12[1]+unname(breakReg1[1]),
+                                                      breakpoint2=boundaryReg12[3]+unname(breakReg2[1])-shiftReg12[2],
+                                                      SVType="UNK",
+                                                      AlleleFraction=infoTab$molcnt/statsTab$Cem,
+                                                      ReadPair=length(refinedIMid)+length(refinedFFid)+length(refinedRRid))))
+write.table(infoTab,file=infoFile,col.names=FALSE,row.names=FALSE,sep="\t",quote=FALSE)
+#chr1  start1	end1	chr2	start2	end2	molcnt	breakpoint1	breakpoint2	SVType	AlleleFraction	ReadPair
+
+jsonFile=file(paste(plotPrefix,"json",sep="."))
 writeLines(toJSON(list(reg1=chr1,
-                       break1=boundaryReg12[1]+unname(breakReg1[1]),
+                       break1=infoTab$breakpoint1,
                        break1CILow=boundaryReg12[1]+unname(breakReg1CILow[1]),
                        break1CIHigh=boundaryReg12[1]+unname(breakReg1CIHigh[1]),
                        reg2=chr2,
-                       break2=boundaryReg12[3]+unname(breakReg2[1])-shiftReg12[2], 
+                       break2=infoTab$breakpoint2, 
                        break2CILow=boundaryReg12[3]+unname(breakReg2CILow[1])-shiftReg12[2],
                        break2CIHigh=boundaryReg12[3]+unname(breakReg2CIHigh[1])-shiftReg12[2],
                        sharedBarcode=mergedMol$barcode)),
                        con=jsonFile)
 close(jsonFile)
 
-cat("plotFile=",paste(plotDir, paste(plotFile,"pdf",sep="."),sep="/"),"\n")
-pdf(file=paste(plotFile,"pdf",sep="."), width=16, height=12)
+cat("plotFile=",paste(plotDir, paste(plotPrefix,"pdf",sep="."),sep="/"),"\n")
+pdf(file=paste(plotPrefix,"pdf",sep="."), width=16, height=12)
 p = ggplot()+geom_arrowrect(gr, aes(color=supportType, fill=strand, group=pair))
 p = p + geom_segment(grComp, aes(color=supportType, group=pair))
 p = p + scale_color_manual(values=supportColors, na.value="black")
@@ -268,153 +286,3 @@ p = p + scale_x_continuous("Genomic Region Pair", breaks=tickReg1, labels=tickLa
 p = p + geom_vline(xintercept=breakReg1) + geom_vline(xintercept=breakReg2)
 print(p)
 dev.off()
-
-#p = p + geom_rect(grComp, aes(color=supportType,group=pair))
-#p = p + geom_chevron(grComp, aes(color=supportType,group=pair))
-
-#print(p)
-#
-#print(p)
-#grA=c(gr,grComp)
-#p = ggplot()+geom_arrowrect(grA, aes(color=supportType,fill=supportType,group=pair))
-#print(p)
-#
-#tmp=convertedAll[convertedAll$supportType=="molecule",]
-#plotBedpe(tmp,chrom="chrA",chromstart=shiftReg12[1],chromend=shiftReg12[4],plottype="lines",
-#          color=c("black"), lwd=1)
-#tmp=convertedAll[convertedAll$supportType!="molecule",]
-#plotBedpe(tmp,chrom="chrA",chromstart=shiftReg12[1],chromend=shiftReg12[4],plottype="loops", flip=TRUE, heights=rnorm(nrow(tmp)),
-#          color=c("red","green","blue"), lwd=1)
-#dev.off()
-#
-#tmp1=convertedAll[,c(1,2,3,7,8,9,11)]; names(tmp1)=c("chrom","start","stop","gene","score","strand","supportType")
-#tmp2=convertedAll[,c(4,5,6,7,8,10,11)]; names(tmp2)=c("chrom","start","stop","gene","score","strand","supportType")
-#convertedAll2=rbind(tmp1,tmp2)
-#tmp=convertedAll2; tmp$type="exon"
-#pdf(file="refined.pdf")
-#plotGenes(tmp,chrom="chrA",chromstart=shiftReg12[1],chromend=shiftReg12[4],type=tmp$type,plotgenetype="box",
-#          col=as.factor(tmp$supportType),arrowlength=0)
-#dev.off()
-
-# #swith if region 1 and 2 not in order
-# #switchReg(mergedMol, chr1)
-# #refinedMol1 = refinedReg1[refinedReg1$barID %in% sharedBarID,]  #59 shared barcode in reg1
-# #refinedMol2 = refinedReg2[refinedReg2$barID %in% sharedBarID,]  #59 shared barcode in reg2
-# convertedMol1 = refinedMol1
-# 
-# convertedMol2 = refinedMol2
-#  
-# convertedMol = rbind(convertedMol1[,c(1,2,3,4)],convertedMol2[,c(1,2,3,4)])
-# convertedMol[,5] = 1               #score for types: 1 for mol
-# convertedMol[,6] = 1                #
-# convertedMol[,7] = "exon"
-# colnames(convertedMol) = c("chrom","start","stop","gene","score","strand","type")
-# convertedMol$gene = paste("molID",convertedMol$gene,sep=":")
-# sharedBarID = paste("molID",sharedBarID,sep="-")
-# 
-# pdf(file="refined.pdf")
-# tmp=convertedMol
-# plotGenes(tmp,chrom="chrA",chromstart=1,chromend=shiftReg2Ed, 
-#           colorby=tmp$score, colorbycol= SushiColors(3))
-# #plotGenes(tmp,chrom="chr1",chromstart=1,chromend=shiftReg2Ed,
-# #          types=tmp$type, colorby=tmp$score,
-# #          colorbycol= SushiColors(5),colorbyrange=c(0,1.0),
-# #          labeltext=TRUE,maxrows=50,height=0.4,plotgenetype="box")
-# dev.off()
-# pdf(file="refined.pdf")
-# tmp=Sushi_transcripts.bed
-# plotGenes(tmp,chrom="chr15",chromstart=72798936,chromend=73100889)
-# #plotGenes(tmp,chrom="chr15",chromstart=72798936,chromend=73100889,
-#           #types=tmp$type, colorby=tmp$score,
-#           #colorbycol= SushiColors(5),colorbyrange=c(0,1.0),
-#           #labeltext=TRUE,maxrows=50,height=0.4,plotgenetype="box")
-# dev.off()
-# #labelgenome(chrom=unique(refined$chr1), chromstart=1, chromend=scaledReg1Ed-shiftReg1,n=3,scale="Kb")
-# #labelgenome(chrom=unique(refined$chr2), chromstart=scaledReg2St-shiftReg2, 
-# #            chromend=scaledReg2Ed-shiftReg2, n=3, scale="Kb")
-# 
-# title(main="Junction", #col.main="red", 
-#       #sub="Molecule", col.sub="blue", 
-#       xlab="Genomic Region Pair", ylab="Read/Molecule Support",
-#       #col.lab="green", 
-#       cex.lab=0.75)
-# axis(1, c(1, scaledReg1Ed-shiftReg1), 
-#      paste(unique(refined$chr1), c(scaledReg1St, scaledReg1Ed), sep=":") )
-# axis(1, c(scaledReg2St-shiftReg2, scaledReg2Ed-shiftReg2), 
-#      paste(unique(refined$chr2), c(scaledReg2St, scaledReg2Ed), sep=":") )
-# 
-# 
-# 
-# ###
-# 
-# # add in IM, FF, RR
-# 
-# 
-# refinedRegLen1 = refined$end1 - refined$start1
-# refinedRegLen2 = refined$end2 - refined$start2
-# refinedMolLen1 = max(refinedMol1Bound)-min(refinedMol1Bound)
-# refinedMolLen2 = max(refinedMol2Bound)-min(refinedMol2Bound)
-# 
-# 
-# refinedMol1[with(refinedMol1, order(st1)),]
-# refinedMol2[with(refinedMol2, order(st1)),]
-# 
-# merged = 
-# # make an artificial scaffold
-# # gapSize = 100K
-# # Len1 = End1 - Start1
-# # Len2 = End2 - Start2
-# # ChrA = [ 0 ~ Len1 ] + gapSize + [ Len1+gapSize+1 ~ Len1+gapSize+Len2 ] 
-# # 
-# 
-# plotMol=function(chrom, chromstart, chromend, beddata, sharedBarID){
-#   beddata$row=as.integer(as.factor(sharedBarID))
-#   beddata$color=maptocolors(beddata$row,col=SushiColors(6))
-#   plotBed(beddata = beddata,
-#           chrom = chrom, 
-#           chromstart = chromstart, 
-#           chromend = chromend, 
-#           type = "circles",
-#           color = beddata$color,
-#           rownumber = beddata$row,
-#           row = "given",
-#           plotbg = "grey95",
-#           rowlabels = unique(beddata$barID),
-#           rowlabelcol = unique(beddata$color) )
-#   labelgenome(chrom,chromstart,chromend,scale="Mb")
-# }
-# 
-# plotMol(chrom=refined$chr1,chromstart=refined$start1,chromend=refined$end1,beddata=refinedMol1)
-# plotMol(chrom=refined$chr2,chromstart=refined$start2,chromend=refined$end2,beddata=refinedMol2)
-# 
-# 
-# 
-# 
-# 
-# 
-# par(mfrow=c(3,1))
-# chrom="chr14"
-# chromstart=96000000
-# chromend=97000000
-# plotMol(chrom,chromstart,chromend,raw)
-# chromstart=106000000
-# chromend=107000000
-# plotMol(chrom,chromstart,chromend,raw)
-# chromstart=116000000
-# chromend=117000000
-# plotMol(chrom,chromstart,chromend,raw)
-# 
-# chromstart=106000000
-# chromend=106200000
-# plotMol(chrom,chromstart,chromend,raw)
-# 
-# chrom="chr11"
-# chromstart=4295000
-# chromend=4360000
-# plotMol(chrom,chromstart,chromend,raw)
-# 
-# labelgenome(chrom,chromstart,chromend,n=3,scale="Mb")
-# 
-# 
-# 
-# data(package="Sushi")
