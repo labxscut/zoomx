@@ -1,7 +1,7 @@
 #!/bin/bash
 #to use this script need to set $cfgfile and $moleFile
 source $cfgfile
-log=$moleFile.plot.run.log.$mydate
+log=$moleFile.log.getMoleFile.$mydate
 maxSize=$(cat $moleFile | wc -l)
 maxSize=$(expr $(($maxPlot>$maxSize?$maxSize:$maxPlot)) - 1)
 for i in `seq 1 $maxSize`; do
