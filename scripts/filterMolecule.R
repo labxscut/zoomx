@@ -54,7 +54,7 @@ for(p in c("GenomicRanges")) myrequire(p, repo="bioC")
 
 ####Options####
 option_list2 <- list(
-  make_option(c("-o", "--outPrefix"), type="integer", default="none",
+  make_option(c("-o", "--outPrefix"), default="none",
               help="none=$molFile.clean [default %default]"),
   make_option(c("-x", "--xMadExclude"), type="integer", default=1,
               help="if coverage is x mad away from median, exclude regional molecules [default %default]"),
@@ -80,7 +80,7 @@ xMadExclude=cmd$options$xMadExclude
 yMedianInclude=cmd$options$yMedianInclude
 zMadInclude=cmd$options$zMadInclude
 windowsInclude=cmd$options$windowsInclude
-dubug=cmd$options$debug
+debug=cmd$options$debug
 noQuiet=cmd$options$noQuiet
 
 if(length(cmd$args)!=2 & !debug){ print_help(parser); quit() }
@@ -106,6 +106,7 @@ if(outPrefix=="none") {
 } else {
   cleanFile=paste(outPrefix,"clean",sep=".")
 }
+excludeFile=paste(cleanFile,"bed",sep=".")
 
 cov=read.table(covFile)  #takes a while
 mol=read.table(moleFile)  #takes a while
@@ -145,6 +146,7 @@ overlapEither = (overlapEnd | overlapStart)
 cat("overlapEither=",sum(overlapEither),"totalMolecules=",length(overlapEither),"\n")
 
 write.table(file=cleanFile,mol[!overlapEither,],sep="\t",quote=FALSE,row.names=FALSE,col.names=FALSE)
+write.table(file=excludeFile,cov[cov[["EX2"]],c(1,2,3,4)],sep="\t",quote=FALSE,row.names=FALSE,col.names=FALSE)
 cat("covFilterDone in",proc.time()[3]-ptm[3],"seconds! \n")
 
 
