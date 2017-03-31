@@ -1,6 +1,8 @@
 #!/usr/bin/env Rscript
 
 ####Externalities####
+ptm=proc.time() #time keeper
+
 set_colClass <- function(d, colClasses) {
   colClasses <- rep(colClasses, len=length(d))
   d[] <- lapply(seq_along(d), function(i) switch(colClasses[i],
@@ -64,7 +66,6 @@ isUCSC=cmd$options$isUCSC
 gapSize=cmd$options$gapSize
 scaleSize=cmd$options$scaleSize
 flushSD=cmd$options$flushSD
-ptm=proc.time() #time keeper
 if(length(cmd$args)!=2 & !debug){ print_help(parser); quit() }
 plotDir=cmd$args[1]
 statsFile=cmd$args[2]
@@ -286,3 +287,5 @@ p = p + scale_x_continuous("Genomic Region Pair", breaks=tickReg1, labels=tickLa
 p = p + geom_vline(xintercept=breakReg1) + geom_vline(xintercept=breakReg2)
 print(p)
 dev.off()
+cat("plotMoleculeDone in",proc.time()[3]-ptm[3],"seconds! \n")
+
