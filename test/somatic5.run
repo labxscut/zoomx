@@ -1,0 +1,26 @@
+#!/bin/bash
+if [[ -z $1 ]]; then
+  cfgfile="somatic5.cfg"
+else
+  cfgfile=$1
+fi
+
+source $cfgfile
+#somatic5 controlCov $cfgfile >$cfgfile.controlCov.json.$mydate
+#somatic5 caseCov $cfgfile >$cfgfile.caseCov.json.$mydate
+somatic5 controlParse $cfgfile >$cfgfile.controlParse.json.$mydate
+somatic5 caseParse $cfgfile >$cfgfile.caseParse.json.$mydate
+somatic5 controlScan $cfgfile >$cfgfile.controlScan.json.$mydate
+somatic5 caseScan $cfgfile >$cfgfile.caseScan.json.$mydate
+somatic5 controlCisRef $cfgfile >$cfgfile.controlCisRef.json.$mydate
+somatic5 controlDistRef $cfgfile >$cfgfile.controlDistRef.json.$mydate
+somatic5 controlTransRef $cfgfile >$cfgfile.controlTransRef.json.$mydate
+somatic5 caseCisRef $cfgfile >$cfgfile.caseCisRef.json.$mydate
+somatic5 caseDistRef $cfgfile >$cfgfile.caseDistRef.json.$mydate
+somatic5 caseTransRef $cfgfile >$cfgfile.caseTransRef.json.$mydate
+somatic5 distDiff $cfgfile >$cfgfile.distDiff.json.$mydate
+somatic5 cisDiff $cfgfile >$cfgfile.cisDiff.json.$mydate
+somatic5 transDiff $cfgfile >$cfgfile.transDiff.json.$mydate
+somatic5 distShare $cfgfile >$cfgfile.distShare.json.$mydate
+somatic5 cisShare $cfgfile >$cfgfile.cisShare.json.$mydate
+somatic5 transShare $cfgfile >$cfgfile.transShare.json.$mydate

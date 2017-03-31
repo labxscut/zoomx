@@ -113,7 +113,7 @@ mol=read.table(moleFile)  #takes a while
 names(cov)=c("CHR","START","END","COV")
 stats=list()
 stats[["mean0"]]=mean(cov$COV)
-stats[["mean1"]]=mean(cov$COV[covCOV!=0])
+stats[["mean1"]]=mean(cov$COV[cov$COV!=0])
 stats[["sd0"]]= sd(cov$COV)
 stats[["sd1"]]= sd(cov$COV[ cov$COV!=0])
 stats[["mode1"]]= Mode(cov$COV[cov$COV!=0])
@@ -145,15 +145,11 @@ overlapEnd=!is.na(as.matrix(GenomicRanges::findOverlaps(molStart, regExclude, ig
 overlapEither = (overlapEnd | overlapStart)
 cat("overlapEither=",sum(overlapEither),"totalMolecules=",length(overlapEither),"\n")
 
+cat("cleanFile=",cleanFile,"\n")
+cat("excludeFile=",excludeFile,"\n")
 write.table(file=cleanFile,mol[!overlapEither,],sep="\t",quote=FALSE,row.names=FALSE,col.names=FALSE)
 write.table(file=excludeFile,cov[cov[["EX2"]],c(1,2,3,4)],sep="\t",quote=FALSE,row.names=FALSE,col.names=FALSE)
 cat("covFilterDone in",proc.time()[3]-ptm[3],"seconds! \n")
-
-
-
-
-
-
 
 quit()
 
