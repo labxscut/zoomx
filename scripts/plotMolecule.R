@@ -89,8 +89,8 @@ if(debug){
 
 ###LoadInput###
 options(stringsAsFactors = FALSE)
-setwd(plotDir)
 statsTab=fromJSON(paste(readLines(statsFile), collapse=""))
+setwd(plotDir)
 regCols=c("chr1","start1","end1","chr2","start2","end2","molcnt","IM","FF","RR") # in refined
 bedpeCols=c("chr1","st1","ed1","chr2","st2","ed2","hp")
 bedpeClass=c("character","numeric","numeric","character","numeric","numeric","numeric")
