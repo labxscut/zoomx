@@ -7,6 +7,9 @@ rm -rf zoomx_*
 rm -f *log*
 rm -f *.refined
 rm -f *.somatic
-rm -rf *Plot-*/
+rm -f *.germline
+rm -rf *Plot_*/
 rm -f *.merged
+rm -f *.clean*
+rm -f *.cov100
 echo "done"
