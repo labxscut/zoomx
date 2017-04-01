@@ -17,8 +17,8 @@ inPrefix=$2
 echo "lineNum=$3"
 headLineNum=$(expr $3 + 1)
 tailLineNum=1
-echo "outDir=$4-$3"
-outDir=$4-$3
+echo "outDir=$4"_"$3"
+outDir=$4"_"$3
 mkdir $outDir
 echo "head -n $headLineNum $inMolFile | tail -n $tailLineNum >$outDir/refined.bedpe"
 head -n $headLineNum $inMolFile | tail -n $tailLineNum >$outDir/refined.bedpe

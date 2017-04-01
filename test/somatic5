@@ -102,7 +102,7 @@ fi
 
 if [[ ! -z $( testSubstring "controlScan" $SomaticRunOp ) ]]; then
   if [[ $controlCovFile != "none" && -e $controlCovFile ]]; then  #covFile is specified and generated
-    filterCMD="$ZOOMXPAHT/../scripts/filterMolecule.R $controlCovFile $bed >$log.$SomaticRunOp.$mydate 2>&1" # apply filtering
+    filterCMD="$ZOOMXPATH/../scripts/filterMolecule.R $controlCovFile $bed >$log.$SomaticRunOp.$mydate 2>&1" # apply filtering
   else #covFile is not specified or generated (missing?)
     filterCMD="(cp $bed $bed.clean && touch $bed.clean.bed) >$log.$SomaticRunOp.$mydate 2>&1" #create dummy filter files
   fi
@@ -181,7 +181,7 @@ fi
 
 if [[ ! -z $( testSubstring "caseScan" $SomaticRunOp ) ]]; then
   if [[ $caseCovFile != "none" && -e $caseCovFile ]]; then  #covFile is specified and generated
-    filterCMD="$ZOOMXPAHT/../scripts/filterMolecule.R $caseCovFile $bed >$log.$SomaticRunOp.$mydate 2>&1" # apply filtering
+    filterCMD="$ZOOMXPATH/../scripts/filterMolecule.R $caseCovFile $bed >$log.$SomaticRunOp.$mydate 2>&1" # apply filtering
   else #covFile is not specified or generated (missing?)
     filterCMD="cp $bed $bed.clean && touch $bed.clean.bed >$log.$SomaticRunOp.$mydate 2>&1" #create dummy filter files
   fi
@@ -240,7 +240,7 @@ fi
 
 #do somatic differentiation
 if [[ ! -z $( testSubstring "cisDiff" $SomaticRunOp ) ]]; then
-  moleFile="$outputPf/$caseBam.cis.E$caseExp\_$controlBam.cis.E$controlExp.somatic"
+  moleFile=$( echo $outputPf/$caseBam.cis.E$caseExp"_"$controlBam.cis.E$controlExp.somatic )
   echo -e "    'moleFile':'$moleFile',"
   log="$moleFile.log.$SomaticRunOp.$mydate"
   cisDiffCMD="bedtools pairtopair -is -type notboth -a $outputPf/$caseBam.cis.E$caseExp.refined -b $outputPf/$controlBam.cis.E$controlExp.refined >$outputPf/$caseBam.cis.E$caseExp\_$controlBam.cis.E$controlExp.somatic 2>$log"
@@ -249,7 +249,7 @@ if [[ ! -z $( testSubstring "cisDiff" $SomaticRunOp ) ]]; then
 fi
 
 if [[ ! -z $( testSubstring "distDiff" $SomaticRunOp ) ]]; then
-  moleFile="$outputPf/$caseBam.dist.E$caseExp\_$controlBam.dist.E$controlExp.somatic"
+  moleFile=$( echo $outputPf/$caseBam.dist.E$caseExp"_"$controlBam.dist.E$controlExp.somatic )
   echo -e "  'moleFile':'$moleFile',"
   log="$moleFile.log.$SomaticRunOp.$mydate"
   distDiffCMD="bedtools pairtopair -is -type notboth -a $outputPf/$caseBam.dist.E$caseExp.refined -b $outputPf/$controlBam.dist.E$controlExp.refined >$outputPf/$caseBam.dist.E$caseExp\_$controlBam.dist.E$controlExp.somatic 2>$log"
@@ -258,7 +258,7 @@ if [[ ! -z $( testSubstring "distDiff" $SomaticRunOp ) ]]; then
 fi
 
 if [[ ! -z $( testSubstring "transDiff" $SomaticRunOp ) ]]; then
-  moleFile="$outputPf/$caseBam.tra.E$caseExp\_$controlBam.tra.E$controlExp.somatic"
+  moleFile=$( echo $outputPf/$caseBam.tra.E$caseExp"_"$controlBam.tra.E$controlExp.somatic )
   echo -e "  'moleFile':'$moleFile',"
   log="$moleFile.log.$SomaticRunOp.$mydate"
   transDiffCMD="bedtools pairtopair -is -type notboth -a $outputPf/$caseBam.tra.E$caseExp.refined -b $outputPf/$controlBam.tra.E$controlExp.refined >$outputPf/$caseBam.tra.E$caseExp\_$controlBam.tra.E$controlExp.somatic 2>$log"
@@ -268,7 +268,7 @@ fi
 
 #do germline sharing
 if [[ ! -z $( testSubstring "cisShare" $SomaticRunOp ) ]]; then
-  moleFile="$outputPf/$caseBam.cis.E$caseExp\_$controlBam.cis.E$controlExp.somatic"
+  moleFile=$( echo $outputPf/$caseBam.cis.E$caseExp"_"$controlBam.cis.E$controlExp.somatic )
   echo -e "  'moleFile':'$moleFile',"
   log="$moleFile.log.$SomaticRunOp.$mydate"
   cisShareCMD="bedtools pairtopair -is -type both -a $outputPf/$caseBam.cis.E$caseExp.refined -b $outputPf/$controlBam.cis.E$controlExp.refined >$outputPf/$caseBam.cis.E$caseExp\_$controlBam.cis.E$controlExp.germline 2>$log"
@@ -277,7 +277,7 @@ if [[ ! -z $( testSubstring "cisShare" $SomaticRunOp ) ]]; then
 fi
 
 if [[ ! -z $( testSubstring "distShare" $SomaticRunOp ) ]]; then
-  moleFile="$outputPf/$caseBam.dist.E$caseExp\_$controlBam.dist.E$controlExp.somatic"
+  moleFile=$( echo $outputPf/$caseBam.dist.E$caseExp"_"$controlBam.dist.E$controlExp.somatic )
   echo -e "  'moleFile':'$moleFile',"
   log="$moleFile.log.$SomaticRunOp.$mydate"
   distShareCMD="bedtools pairtopair -is -type both -a $outputPf/$caseBam.dist.E$caseExp.refined -b $outputPf/$controlBam.dist.E$controlExp.refined >$outputPf/$caseBam.dist.E$caseExp\_$controlBam.dist.E$controlExp.germline 2>$log"
@@ -286,7 +286,7 @@ if [[ ! -z $( testSubstring "distShare" $SomaticRunOp ) ]]; then
 fi
 
 if [[ ! -z $( testSubstring "transShare" $SomaticRunOp ) ]]; then
-  moleFile="$outputPf/$caseBam.tra.E$caseExp\_$controlBam.tra.E$controlExp.somatic"
+  moleFile=$( echo $outputPf/$caseBam.tra.E$caseExp"_"$controlBam.tra.E$controlExp.somatic )
   echo -e "  'moleFile':'$moleFile',"
   log="$moleFile.log.$SomaticRunOp.$mydate"
   transShareCMD="bedtools pairtopair -is -type both -a $outputPf/$caseBam.tra.E$caseExp.refined -b $outputPf/$controlBam.tra.E$controlExp.refined >$outputPf/$caseBam.tra.E$caseExp\_$controlBam.tra.E$controlExp.germline 2>$log"
@@ -304,9 +304,9 @@ if [[ ! -z $(testSubstring "Diff" $SomaticRunOp) || ! -z $(testSubstring "Share"
     for i in `seq 1 $maxSize`; do
       getMolCMD="$ZOOMXPATH/../scripts/getMolecule.sh $moleFile $outputPf/$caseBam $i $moleFile.Plot >>$log 2>&1"
       if [[ -z $dryMode ]]; then echo $getMolCMD | bash; fi
-      plotMolCMD="$ZOOMXPATH/../scripts/plotMolecule.R $isUCSC $moleFile.Plot_$i >>$log 2>&1" 
+      plotMolCMD="$ZOOMXPATH/../scripts/plotMolecule.R $isUCSC $moleFile.Plot_$i $outputPf/$caseBam.gridScan.cfg.json >>$log 2>&1" 
       if [[ -z $dryMode ]]; then echo $plotMolCMD | bash; fi
-      echo -e "    '[ $getMolCMD, $plotMolCMD ],'"
+      echo -e "    [ '$getMolCMD', '$plotMolCMD' ],"
     done
   fi
   echo -e "  ]"
