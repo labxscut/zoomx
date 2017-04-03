@@ -10,29 +10,29 @@
 
 
 if [[ -z $1 ]]; then
-  echo -e "usage:"
-  echo -e "somatic5 stage $cfgfile"  
-  echo -e "to auto generate command lines with this prompt, do following:"
-  echo -e "export cfgfile=some/cfgfile"
-  echo -e "somatic5 controlCov $cfgfile"
-  echo -e "somatic5 caseCov $cfgfile"  
-  echo -e "somatic5 controlParse $cfgfile"  
-  echo -e "somatic5 caseParse $cfgfile"
-  echo -e "somatic5 controlScan $cfgfile"  
-  echo -e "somatic5 caseScan $cfgfile"
-  echo -e "somatic5 controlCisRef $cfgfile"  
-  echo -e "somatic5 controlDistRef $cfgfile"  
-  echo -e "somatic5 controlTransRef $cfgfile"  
-  echo -e "somatic5 caseCisRef $cfgfile"  
-  echo -e "somatic5 caseDistRef $cfgfile"  
-  echo -e "somatic5 caseTransRef $cfgfile"  
-  echo -e "somatic5 distDiff $cfgfile"  
-  echo -e "somatic5 cisDiff $cfgfile"  
-  echo -e "somatic5 transDiff $cfgfile"  
-  echo -e "somatic5 distShare $cfgfile"  
-  echo -e "somatic5 cisShare $cfgfile"  
-  echo -e "somatic5 transShare $cfgfile"  
-  echo -e "add dry to any stage to preview the auto-generated command" 
+  echo "usage:"
+  echo "somatic5 stage $cfgfile"  
+  echo "to auto generate command lines with this prompt, do following:"
+  echo "export cfgfile=some/cfgfile"
+  echo "somatic5 controlCov $cfgfile"
+  echo "somatic5 caseCov $cfgfile"  
+  echo "somatic5 controlParse $cfgfile"  
+  echo "somatic5 caseParse $cfgfile"
+  echo "somatic5 controlScan $cfgfile"  
+  echo "somatic5 caseScan $cfgfile"
+  echo "somatic5 controlCisRef $cfgfile"  
+  echo "somatic5 controlDistRef $cfgfile"  
+  echo "somatic5 controlTransRef $cfgfile"  
+  echo "somatic5 caseCisRef $cfgfile"  
+  echo "somatic5 caseDistRef $cfgfile"  
+  echo "somatic5 caseTransRef $cfgfile"  
+  echo "somatic5 distDiff $cfgfile"  
+  echo "somatic5 cisDiff $cfgfile"  
+  echo "somatic5 transDiff $cfgfile"  
+  echo "somatic5 distShare $cfgfile"  
+  echo "somatic5 cisShare $cfgfile"  
+  echo "somatic5 transShare $cfgfile"  
+  echo "add dry to any stage to preview the auto-generated command" 
   exit
 fi
 
@@ -43,32 +43,33 @@ testSubstring () { # if $1 is a substring of $2
 SomaticRunOp=$1
 SomaticCfgFile=$2
 dryMode=$( testSubstring "dry" $SomaticRunOp )
+addHeader='sed "1ichr1\tstart1\tend1\tchr2\tstart2\tend2\tmolcnt\trdpIM\trdpFF\trdpRR"'
 source $SomaticCfgFile
 
-echo -e "{"
-echo -e "  'ZOOMXPATH': '$ZOOMXPATH',"
-echo -e "  'Task': 'ZoomX Somatic Calling'," 
-echo -e "  'Note': 'to run: change configurations in \$SomaticCfgFile and specify \$SomaticRunOp accordingly',"
-echo -e "  'mydate': '$mydate',"
-echo -e "  'SomaticRunOp': '$SomaticRunOp',"
-echo -e "  'SomaticCfgFile': '$SomaticCfgFile',"
-echo -e "  'dryMode': '$dryMode',"
-echo -e "  'ref': '$ref',"
-echo -e "  'gap': '$gap',"
-echo -e "  'grid': '$grid',"
-echo -e "  'covGrid': '$covGrid',"
-echo -e "  'outputPf': '$outputPf',"
-echo -e "  'distSize': $distSize,"
-echo -e "  'cisSize': $cisSize,"
-echo -e "  'controlPf': '$controlPf',"
-echo -e "  'controlBam': '$controlBam',"
-echo -e "  'controlExp': $controlExp,"
-echo -e "  'controlMax': $controlMax,"
-echo -e "  'casePf': '$casePf',"
-echo -e "  'caseBam': '$caseBam',"
-echo -e "  'caseExp': $caseExp,"
-echo -e "  'caseMax': $caseMax,"
-echo -e "  'maxPlot': $maxPlot,"
+echo "{"
+echo "  'ZOOMXPATH': '$ZOOMXPATH',"
+echo "  'Task': 'ZoomX Somatic Calling'," 
+echo "  'Note': 'to run: change configurations in \$SomaticCfgFile and specify \$SomaticRunOp accordingly',"
+echo "  'mydate': '$mydate',"
+echo "  'SomaticRunOp': '$SomaticRunOp',"
+echo "  'SomaticCfgFile': '$SomaticCfgFile',"
+echo "  'dryMode': '$dryMode',"
+echo "  'ref': '$ref',"
+echo "  'gap': '$gap',"
+echo "  'grid': '$grid',"
+echo "  'covGrid': '$covGrid',"
+echo "  'outputPf': '$outputPf',"
+echo "  'distSize': $distSize,"
+echo "  'cisSize': $cisSize,"
+echo "  'controlPf': '$controlPf',"
+echo "  'controlBam': '$controlBam',"
+echo "  'controlExp': $controlExp,"
+echo "  'controlMax': $controlMax,"
+echo "  'casePf': '$casePf',"
+echo "  'caseBam': '$caseBam',"
+echo "  'caseExp': $caseExp,"
+echo "  'caseMax': $caseMax,"
+echo "  'maxPlot': $maxPlot,"
 
 #process control files;
 if [[ ! -z $( testSubstring "control" $SomaticRunOp ) ]]; then # define common control variables;
@@ -79,9 +80,9 @@ if [[ ! -z $( testSubstring "control" $SomaticRunOp ) ]]; then # define common c
   distal=$outputPf/$controlBam.jct.bedpe.dis  #output of distal (>200 KB) junctions
   cis=$outputPf/$controlBam.jct.bedpe.cis     #output of intra  (>50 KB) junctions
   cfg=$outputPf/$controlBam.gridScan.cfg.json        #output of gridScan configuraiton
-  echo -e "  'controlOption': {"
-  echo -e "    'log': '$log', 'bed': '$bed', 'h5': '$h5', 'trans': '$trans', 'distal': '$distal', 'cis':'$cis', 'cfg':'$cfg' },"
-  echo -e "  'controlCmd': {"
+  echo "  'controlOption': {"
+  echo "    'log': '$log', 'bed': '$bed', 'h5': '$h5', 'trans': '$trans', 'distal': '$distal', 'cis':'$cis', 'cfg':'$cfg' },"
+  echo "  'controlCmd': {"
 fi
 
 if [[ ! -z $( testSubstring "controlCov" $SomaticRunOp ) ]]; then
@@ -91,13 +92,13 @@ if [[ ! -z $( testSubstring "controlCov" $SomaticRunOp ) ]]; then
     controlCovCMD="(time samtools bedcov $ref.bed.w100s100 $controlPf/$controlBam >$controlCovFile) 2>$log.$SomaticRunOp.$mydate"
   fi
   if [[ -z $dryMode ]]; then echo $controlCovCMD | bash; fi
-  echo -e "    controlCovCMD': '$controlCovCMD',"
+  echo "    controlCovCMD': '$controlCovCMD',"
 fi
 
 if [[ ! -z $( testSubstring "controlParse" $SomaticRunOp ) ]]; then
   parse10xCMD="PYTHONPATH=$ZOOMXPATH  python -m parse10x -o $outputPf/$controlBam -l 2 $controlPf/$controlBam >$log.$SomaticRunOp.$mydate 2>&1"        #run parse10x module
   if [[ -z $dryMode ]]; then echo $parse10xCMD | bash; fi
-  echo -e "    parse10xCMD': '$parse10xCMD',"
+  echo "    parse10xCMD': '$parse10xCMD',"
 fi
 
 if [[ ! -z $( testSubstring "controlScan" $SomaticRunOp ) ]]; then
@@ -107,46 +108,46 @@ if [[ ! -z $( testSubstring "controlScan" $SomaticRunOp ) ]]; then
     filterCMD="(cp $bed $bed.clean && touch $bed.clean.bed) >$log.$SomaticRunOp.$mydate 2>&1" #create dummy filter files
   fi
   if [[ -z $dryMode ]]; then echo $filterCMD | bash; fi
-  echo -e "    filterCMD': '$filterCMD',"
-  gridScanCMD="PYTHONPATH=$ZOOMXPATH  python -m gridScan -n 3 $grid $bed $h5 $outputPf/$controlBam >>$log.$SomaticRunOp.$mydate 2>&1" #run gridScan module on Chr22 only (50 Mbp)
+  echo "    filterCMD': '$filterCMD',"
+  gridScanCMD="PYTHONPATH=$ZOOMXPATH  python -m gridScan -n 3 $grid $bed.clean $h5 $outputPf/$controlBam >>$log.$SomaticRunOp.$mydate 2>&1" #run gridScan module on Chr22 only (50 Mbp)
   if [[ -z $dryMode ]]; then echo $gridScanCMD | bash; fi
-  echo -e "    'gridScanCMD': '$gridScanCMD'," 
+  echo "    'gridScanCMD': '$gridScanCMD'," 
   cisJctCMD="awk '{if(\$1 == \$4 && \$5 - \$2>$cisSize && \$5 - \$2<=$distSize) print}' $outputPf/$controlBam.jct.bedpe >$cis 2>>$log.$SomaticRunOp.$mydate"
   if [[ -z $dryMode ]]; then echo $cisJctCMD | bash; fi
-  echo -e "    'cisJctCMD':'$cisJctCMD'," 
+  echo "    'cisJctCMD':'$cisJctCMD'," 
   distJctCMD="awk '{if(\$1 == \$4 && \$5 - \$2>$distSize) print}' $outputPf/$controlBam.jct.bedpe >$distal 2>>$log.$SomaticRunOp.$mydate"
   if [[ -z $dryMode ]]; then echo $distJctCMD | bash; fi
-  echo -e "    'distJctCMD': '$distJctCMD',"
+  echo "    'distJctCMD': '$distJctCMD',"
   transJctCMD="awk '{if(\$1 != \$4 && \$1 < \$4) print}' $outputPf/$controlBam.jct.bedpe >$trans 2>>$log.$SomaticRunOp.$mydate"
   if [[ -z $dryMode ]]; then echo $transJctCMD | bash; fi
-  echo -e "    'transJctCMD': '$transJctMCD',"
+  echo "    'transJctCMD': '$transJctCMD',"
   IMrdpCMD="awk '{if( \$4 != \$1 || (\$5-\$2)>$cisSize || (\$5-\$2)<-$cisSize) print}' $outputPf/$controlBam.IM.bedpe >$outputPf/$controlBam.geq$cisSize.IM.bedpe 2>>$log.$SomaticRunOp.$mydate"
   if [[ -z $dryMode ]]; then echo $IMrdpCMD | bash; fi
-  echo -e "    'IMrdpCMD':'$IMrdpCMD',"
+  echo "    'IMrdpCMD':'$IMrdpCMD',"
   FFrdpCMD="awk '{if( \$4 != \$1 || (\$5-\$2)>$cisSize || (\$5-\$2)<-$cisSize) print}' $outputPf/$controlBam.FF.bedpe >$outputPf/$controlBam.geq$cisSize.FF.bedpe 2>>$log.$SomaticRunOp.$mydate"
   if [[ -z $dryMode ]]; then echo $FFrdpCMD | bash; fi
-  echo -e "    'FFrdpCMD':'$FFrdpCMD',"
+  echo "    'FFrdpCMD':'$FFrdpCMD',"
   RRrdpCMD="awk '{if( \$4 != \$1 || (\$5-\$2)>$cisSize || (\$5-\$2)<-$cisSize) print}' $outputPf/$controlBam.RR.bedpe >$outputPf/$controlBam.geq$cisSize.RR.bedpe 2>>$log.$SomaticRunOp.$mydate"
   if [[ -z $dryMode ]]; then echo $RRrdpCMD | bash; fi
-  echo -e "    'RRrdpCMD':'$RRrdpCMD',"
+  echo "    'RRrdpCMD':'$RRrdpCMD',"
 fi
   
 if [[ ! -z $( testSubstring "controlCisRef" $SomaticRunOp ) ]]; then
   cisRefCMD="PYTHONPATH=$ZOOMXPATH  python -m refineBreak -n 8 -m $controlMax -e $controlExp -f $controlExp -o $outputPf/$controlBam.cis.E$controlExp -i $outputPf/$controlBam.geq$cisSize.IM.bedpe -j $outputPf/$controlBam.geq$cisSize.FF.bedpe -k $outputPf/$controlBam.geq$cisSize.RR.bedpe $controlPf/$controlBam $cis $cfg >$log.$SomaticRunOp.$mydate 2>&1"
   if [[ -z $dryMode ]]; then echo $cisRefCMD | bash; fi
-  echo -e "    'cisRefCMD':'$cisRefCMD',"
+  echo "    'cisRefCMD':'$cisRefCMD',"
 fi
   
 if [[ ! -z $( testSubstring "controlDistRef" $SomaticRunOp ) ]]; then
   distRefCMD="PYTHONPATH=$ZOOMXPATH  python -m refineBreak -n 8 -m $controlMax -e $controlExp -f $controlExp -o $outputPf/$controlBam.dist.E$controlExp -i $outputPf/$controlBam.geq$cisSize.IM.bedpe -j $outputPf/$controlBam.geq$cisSize.FF.bedpe -k $outputPf/$controlBam.geq$cisSize.RR.bedpe $controlPf/$controlBam $distal $cfg >$log.$SomaticRunOp.$mydate 2>&1"
   if [[ -z $dryMode ]]; then echo $distRefCMD | bash; fi
-  echo -e "    'distRefCMD':'$distRefCMD',"
+  echo "    'distRefCMD':'$distRefCMD',"
 fi
   
 if [[ ! -z $( testSubstring "controlTransRef" $SomaticRunOp ) ]]; then
   transRefCMD="PYTHONPATH=$ZOOMXPATH  python -m refineBreak -n 8 -m $controlMax -e $controlExp -f $controlExp -o $outputPf/$controlBam.tra.E$controlExp -i $outputPf/$controlBam.geq$cisSize.IM.bedpe -j $outputPf/$controlBam.geq$cisSize.FF.bedpe -k $outputPf/$controlBam.geq$cisSize.RR.bedpe $controlPf/$controlBam $trans $cfg >$log.$SomaticRunOp.$mydate 2>&1"
   if [[ -z $dryMode ]]; then echo $transRefCMD | bash; fi
-  echo -e "    'transRefCMD':'$transRefCMD',"
+  echo "    'transRefCMD':'$transRefCMD',"
 fi
 
 #process case files
@@ -158,9 +159,9 @@ if [[ ! -z $( testSubstring "case" $SomaticRunOp ) ]]; then # define common case
   distal=$outputPf/$caseBam.jct.bedpe.dis  #output of distal (>200 KB) junctions
   cis=$outputPf/$caseBam.jct.bedpe.cis     #output of intra  (>50 KB) junctions
   cfg=$outputPf/$caseBam.gridScan.cfg.json        #output of gridScan configuraiton
-  echo -e "  'caseOption': {"
-  echo -e "    'log': '$log', 'bed': '$bed', 'h5': '$h5', 'trans': '$trans', 'distal': '$distal', 'cis':'$cis', 'cfg':'$cfg' },"
-  echo -e "  'caseCmd': {"
+  echo "  'caseOption': {"
+  echo "    'log': '$log', 'bed': '$bed', 'h5': '$h5', 'trans': '$trans', 'distal': '$distal', 'cis':'$cis', 'cfg':'$cfg' },"
+  echo "  'caseCmd': {"
 fi
 
 if [[ ! -z $( testSubstring "caseCov" $SomaticRunOp ) ]]; then
@@ -170,13 +171,13 @@ if [[ ! -z $( testSubstring "caseCov" $SomaticRunOp ) ]]; then
     caseCovCMD="(time samtools bedcov $ref.bed.w100s100 $casePf/$caseBam >$caseCovFile) 2>$log.$SomaticRunOp.$mydate"
   fi
   if [[ -z $dryMode ]]; then echo $caseCovCMD | bash; fi
-  echo -e "    caseCovCMD': '$caseCovCMD',"
+  echo "    caseCovCMD': '$caseCovCMD',"
 fi
 
 if [[ ! -z $( testSubstring "caseParse" $SomaticRunOp ) ]]; then
   parse10xCMD="PYTHONPATH=$ZOOMXPATH  python -m parse10x -c $caseCovFile -o $outputPf/$caseBam -l 2 $casePf/$caseBam >$log.$SomaticRunOp.$mydate 2>&1"        #run parse10x module
   if [[ -z $dryMode ]]; then echo $parse10xCMD | bash; fi
-  echo -e "    parse10xCMD': '$parse10xCMD',"
+  echo "    parse10xCMD': '$parse10xCMD',"
 fi
 
 if [[ ! -z $( testSubstring "caseScan" $SomaticRunOp ) ]]; then
@@ -186,117 +187,111 @@ if [[ ! -z $( testSubstring "caseScan" $SomaticRunOp ) ]]; then
     filterCMD="cp $bed $bed.clean && touch $bed.clean.bed >$log.$SomaticRunOp.$mydate 2>&1" #create dummy filter files
   fi
   if [[ -z $dryMode ]]; then echo $filterCMD | bash; fi
-  echo -e "    filterCMD': '$filterCMD',"
-  gridScanCMD="PYTHONPATH=$ZOOMXPATH  python -m gridScan -n 3 $grid $bed $h5 $outputPf/$caseBam >>$log.$SomaticRunOp.$mydate 2>&1" #run gridScan module on Chr22 only (50 Mbp)
+  echo "    filterCMD': '$filterCMD',"
+  gridScanCMD="PYTHONPATH=$ZOOMXPATH  python -m gridScan -n 3 $grid $bed.clean $h5 $outputPf/$caseBam >>$log.$SomaticRunOp.$mydate 2>&1" #run gridScan module on Chr22 only (50 Mbp)
   if [[ -z $dryMode ]]; then echo $gridScanCMD | bash; fi
-  echo -e "    'gridScanCMD': '$gridScanCMD'," 
-
+  echo "    'gridScanCMD': '$gridScanCMD'," 
   cisJctCMD="awk '{if(\$1 == \$4 && \$5 - \$2>$cisSize && \$5 - \$2<=$distSize) print}' $outputPf/$caseBam.jct.bedpe >$cis 2>>$log.$SomaticRunOp.$mydate"
   if [[ -z $dryMode ]]; then echo $cisJctCMD | bash; fi
-  echo -e "    'cisJctCMD':'$cisJctCMD'," 
-
+  echo "    'cisJctCMD':'$cisJctCMD'," 
   distJctCMD="awk '{if(\$1 == \$4 && \$5 - \$2>$distSize) print}' $outputPf/$caseBam.jct.bedpe >$distal 2>>$log.$SomaticRunOp.$mydate"
   if [[ -z $dryMode ]]; then echo $distJctCMD | bash; fi
-  echo -e "    'distJctCMD': '$distJctCMD',"
-
+  echo "    'distJctCMD': '$distJctCMD',"
   transJctCMD="awk '{if(\$1 != \$4 && \$1 < \$4) print}' $outputPf/$caseBam.jct.bedpe >$trans 2>>$log.$SomaticRunOp.$mydate"
   if [[ -z $dryMode ]]; then echo $transJctCMD | bash; fi
-  echo -e "    'transJctCMD': '$transJctMCD',"
-  
+  echo "    'transJctCMD': '$transJctCMD',"
   IMrdpCMD="awk '{if( \$4 != \$1 || (\$5-\$2)>$cisSize || (\$5-\$2)<-$cisSize) print}' $outputPf/$caseBam.IM.bedpe >$outputPf/$caseBam.geq$cisSize.IM.bedpe 2>>$log.$SomaticRunOp.$mydate"
   if [[ -z $dryMode ]]; then echo $IMrdpCMD | bash; fi
-  echo -e "    'IMrdpCMD':'$IMrdpCMD',"
-  
+  echo "    'IMrdpCMD':'$IMrdpCMD',"
   FFrdpCMD="awk '{if( \$4 != \$1 || (\$5-\$2)>$cisSize || (\$5-\$2)<-$cisSize) print}' $outputPf/$caseBam.FF.bedpe >$outputPf/$caseBam.geq$cisSize.FF.bedpe 2>>$log.$SomaticRunOp.$mydate"
   if [[ -z $dryMode ]]; then echo $FFrdpCMD | bash; fi
-  echo -e "    'FFrdpCMD':'$FFrdpCMD',"
-  
+  echo "    'FFrdpCMD':'$FFrdpCMD',"
   RRrdpCMD="awk '{if( \$4 != \$1 || (\$5-\$2)>$cisSize || (\$5-\$2)<-$cisSize) print}' $outputPf/$caseBam.RR.bedpe >$outputPf/$caseBam.geq$cisSize.RR.bedpe 2>>$log.$SomaticRunOp.$mydate"
   if [[ -z $dryMode ]]; then echo $RRrdpCMD | bash; fi
-  echo -e "    'RRrdpCMD':'$RRrdpCMD',"
+  echo "    'RRrdpCMD':'$RRrdpCMD',"
 fi
   
 if [[ ! -z $( testSubstring "caseCisRef" $SomaticRunOp ) ]]; then
   cisRefCMD="PYTHONPATH=$ZOOMXPATH  python -m refineBreak -n 8 -m $caseMax -e $caseExp -f $caseExp -o $outputPf/$caseBam.cis.E$caseExp -i $outputPf/$caseBam.geq$cisSize.IM.bedpe -j $outputPf/$caseBam.geq$cisSize.FF.bedpe -k $outputPf/$caseBam.geq$cisSize.RR.bedpe $casePf/$caseBam $cis $cfg >$log.$SomaticRunOp.$mydate 2>&1"
   if [[ -z $dryMode ]]; then echo $cisRefCMD | bash; fi
-  echo -e "    'cisRefCMD':'$cisRefCMD',"
+  echo "    'cisRefCMD':'$cisRefCMD',"
 fi
-  
+ 
 if [[ ! -z $( testSubstring "caseDistRef" $SomaticRunOp ) ]]; then
   distRefCMD="PYTHONPATH=$ZOOMXPATH  python -m refineBreak -n 8 -m $caseMax -e $caseExp -f $caseExp -o $outputPf/$caseBam.dist.E$caseExp -i $outputPf/$caseBam.geq$cisSize.IM.bedpe -j $outputPf/$caseBam.geq$cisSize.FF.bedpe -k $outputPf/$caseBam.geq$cisSize.RR.bedpe $casePf/$caseBam $distal $cfg >$log.$SomaticRunOp.$mydate 2>&1"
   if [[ -z $dryMode ]]; then echo $distRefCMD | bash; fi
-  echo -e "    'distRefCMD':'$distRefCMD',"
+  echo "    'distRefCMD':'$distRefCMD',"
 fi
   
 if [[ ! -z $( testSubstring "caseTransRef" $SomaticRunOp ) ]]; then
   transRefCMD="PYTHONPATH=$ZOOMXPATH  python -m refineBreak -n 8 -m $caseMax -e $caseExp -f $caseExp -o $outputPf/$caseBam.tra.E$caseExp -i $outputPf/$caseBam.geq$cisSize.IM.bedpe -j $outputPf/$caseBam.geq$cisSize.FF.bedpe -k $outputPf/$caseBam.geq$cisSize.RR.bedpe $casePf/$caseBam $trans $cfg >$log.$SomaticRunOp.$mydate 2>&1"
   if [[ -z $dryMode ]]; then echo $transRefCMD | bash; fi
-  echo -e "    'transRefCMD':'$transRefCMD',"
+  echo "    'transRefCMD':'$transRefCMD',"
 fi
 
 if [[ ! -z $( testSubstring "case" $SomaticRunOp ) || ! -z $( testSubstring "control" $SomaticRunOp ) ]]; then
-  echo -e "  }" #closing caseCmd or controlCmd
+  echo "  }" #closing caseCmd or controlCmd
 fi
 
 #do somatic differentiation
 if [[ ! -z $( testSubstring "cisDiff" $SomaticRunOp ) ]]; then
   moleFile=$( echo $outputPf/$caseBam.cis.E$caseExp"_"$controlBam.cis.E$controlExp.somatic )
-  echo -e "    'moleFile':'$moleFile',"
+  echo "    'moleFile':'$moleFile',"
   log="$moleFile.log.$SomaticRunOp.$mydate"
   cisDiffCMD="bedtools pairtopair -is -type notboth -a $outputPf/$caseBam.cis.E$caseExp.refined -b $outputPf/$controlBam.cis.E$controlExp.refined >$outputPf/$caseBam.cis.E$caseExp\_$controlBam.cis.E$controlExp.somatic 2>$log"
   if [[ -z $dryMode ]]; then echo $cisDiffCMD | bash; fi
-  echo -e "  'cisDiffCMD':'$cisDiffCMD',"
+  echo "  'cisDiffCMD':'$cisDiffCMD',"
 fi
 
 if [[ ! -z $( testSubstring "distDiff" $SomaticRunOp ) ]]; then
   moleFile=$( echo $outputPf/$caseBam.dist.E$caseExp"_"$controlBam.dist.E$controlExp.somatic )
-  echo -e "  'moleFile':'$moleFile',"
+  echo "  'moleFile':'$moleFile',"
   log="$moleFile.log.$SomaticRunOp.$mydate"
-  distDiffCMD="bedtools pairtopair -is -type notboth -a $outputPf/$caseBam.dist.E$caseExp.refined -b $outputPf/$controlBam.dist.E$controlExp.refined >$outputPf/$caseBam.dist.E$caseExp\_$controlBam.dist.E$controlExp.somatic 2>$log"
+  distDiffCMD="bedtools pairtopair -is -type notboth -a $outputPf/$caseBam.dist.E$caseExp.refined -b $outputPf/$controlBam.dist.E$controlExp.refined +2 >$outputPf/$caseBam.dist.E$caseExp\_$controlBam.dist.E$controlExp.somatic 2>$log"
   if [[ -z $dryMode ]]; then echo $distDiffCMD | bash; fi
-  echo -e "  'distDiffCMD':'$distDiffCMD',"
+  echo "  'distDiffCMD':'$distDiffCMD',"
 fi
 
 if [[ ! -z $( testSubstring "transDiff" $SomaticRunOp ) ]]; then
   moleFile=$( echo $outputPf/$caseBam.tra.E$caseExp"_"$controlBam.tra.E$controlExp.somatic )
-  echo -e "  'moleFile':'$moleFile',"
+  echo "  'moleFile':'$moleFile',"
   log="$moleFile.log.$SomaticRunOp.$mydate"
-  transDiffCMD="bedtools pairtopair -is -type notboth -a $outputPf/$caseBam.tra.E$caseExp.refined -b $outputPf/$controlBam.tra.E$controlExp.refined >$outputPf/$caseBam.tra.E$caseExp\_$controlBam.tra.E$controlExp.somatic 2>$log"
+  transDiffCMD="bedtools pairtopair -is -type notboth -a $outputPf/$caseBam.tra.E$caseExp.refined -b $outputPf/$controlBam.tra.E$controlExp.refined +2 >$outputPf/$caseBam.tra.E$caseExp\_$controlBam.tra.E$controlExp.somatic 2>$log"
   if [[ -z $dryMode ]]; then echo $transDiffCMD | bash; fi
-  echo -e "  'transDiffCMD':'$transDiffCMD',"
+  echo "  'transDiffCMD':'$transDiffCMD',"
 fi
 
 #do germline sharing
 if [[ ! -z $( testSubstring "cisShare" $SomaticRunOp ) ]]; then
-  moleFile=$( echo $outputPf/$caseBam.cis.E$caseExp"_"$controlBam.cis.E$controlExp.somatic )
-  echo -e "  'moleFile':'$moleFile',"
+  moleFile=$( echo $outputPf/$caseBam.cis.E$caseExp"_"$controlBam.cis.E$controlExp.germline )
+  echo "  'moleFile':'$moleFile',"
   log="$moleFile.log.$SomaticRunOp.$mydate"
-  cisShareCMD="bedtools pairtopair -is -type both -a $outputPf/$caseBam.cis.E$caseExp.refined -b $outputPf/$controlBam.cis.E$controlExp.refined >$outputPf/$caseBam.cis.E$caseExp\_$controlBam.cis.E$controlExp.germline 2>$log"
+  cisShareCMD="bedtools pairtopair -is -type both -a $outputPf/$caseBam.cis.E$caseExp.refined -b $outputPf/$controlBam.cis.E$controlExp.refined | $addHeader >$outputPf/$caseBam.cis.E$caseExp\_$controlBam.cis.E$controlExp.germline 2>$log"
   if [[ -z $dryMode ]]; then echo $cisShareCMD | bash; fi
-  echo -e "  'cisShareCMD':'$cisShareCMD',"
+  echo "  'cisShareCMD':'$cisShareCMD',"
 fi
 
 if [[ ! -z $( testSubstring "distShare" $SomaticRunOp ) ]]; then
-  moleFile=$( echo $outputPf/$caseBam.dist.E$caseExp"_"$controlBam.dist.E$controlExp.somatic )
-  echo -e "  'moleFile':'$moleFile',"
+  moleFile=$( echo $outputPf/$caseBam.dist.E$caseExp"_"$controlBam.dist.E$controlExp.germline )
+  echo "  'moleFile':'$moleFile',"
   log="$moleFile.log.$SomaticRunOp.$mydate"
-  distShareCMD="bedtools pairtopair -is -type both -a $outputPf/$caseBam.dist.E$caseExp.refined -b $outputPf/$controlBam.dist.E$controlExp.refined >$outputPf/$caseBam.dist.E$caseExp\_$controlBam.dist.E$controlExp.germline 2>$log"
+  distShareCMD="bedtools pairtopair -is -type both -a $outputPf/$caseBam.dist.E$caseExp.refined -b $outputPf/$controlBam.dist.E$controlExp.refined | $addHeader >$outputPf/$caseBam.dist.E$caseExp\_$controlBam.dist.E$controlExp.germline 2>$log"
   if [[ -z $dryMode ]]; then echo $distShareCMD | bash; fi
-  echo -e "  'distShareCMD':'$distShareCMD',"
+  echo "  'distShareCMD':'$distShareCMD',"
 fi
 
 if [[ ! -z $( testSubstring "transShare" $SomaticRunOp ) ]]; then
-  moleFile=$( echo $outputPf/$caseBam.tra.E$caseExp"_"$controlBam.tra.E$controlExp.somatic )
-  echo -e "  'moleFile':'$moleFile',"
+  moleFile=$( echo $outputPf/$caseBam.tra.E$caseExp"_"$controlBam.tra.E$controlExp.germline )
+  echo "  'moleFile':'$moleFile',"
   log="$moleFile.log.$SomaticRunOp.$mydate"
-  transShareCMD="bedtools pairtopair -is -type both -a $outputPf/$caseBam.tra.E$caseExp.refined -b $outputPf/$controlBam.tra.E$controlExp.refined >$outputPf/$caseBam.tra.E$caseExp\_$controlBam.tra.E$controlExp.germline 2>$log"
+  transShareCMD="bedtools pairtopair -is -type both -a $outputPf/$caseBam.tra.E$caseExp.refined -b $outputPf/$controlBam.tra.E$controlExp.refined | $addHeader >$outputPf/$caseBam.tra.E$caseExp\_$controlBam.tra.E$controlExp.germline 2>$log"
   if [[ -z $dryMode ]]; then echo $transShareCMD | bash; fi
-  echo -e "  'transShareCMD':'$transShareCMD',"
+  echo "  'transShareCMD':'$transShareCMD',"
 fi
 
 #plotting of Diff or Share Molecules
 if [[ ! -z $(testSubstring "Diff" $SomaticRunOp) || ! -z $(testSubstring "Share" $SomaticRunOp) ]]; then 
-  echo -e "  'getAndPlotCMD':["
+  echo "  'getAndPlotCMD':["
   if [[ -e $moleFile ]]; then
     log="$moleFile.log.$SomaticRunOp.$mydate"
     maxSize=$(cat $moleFile | wc -l)
@@ -306,10 +301,10 @@ if [[ ! -z $(testSubstring "Diff" $SomaticRunOp) || ! -z $(testSubstring "Share"
       if [[ -z $dryMode ]]; then echo $getMolCMD | bash; fi
       plotMolCMD="$ZOOMXPATH/../scripts/plotMolecule.R $isUCSC $moleFile.Plot_$i $outputPf/$caseBam.gridScan.cfg.json >>$log 2>&1" 
       if [[ -z $dryMode ]]; then echo $plotMolCMD | bash; fi
-      echo -e "    [ '$getMolCMD', '$plotMolCMD' ],"
+      echo "    [ '$getMolCMD', '$plotMolCMD' ],"
     done
   fi
-  echo -e "  ]"
+  echo "  ]"
 fi
 
  #here we iterate through following steps for each junction file, handling max maxPlot events
@@ -317,4 +312,4 @@ fi
  #  the packages should be automatically installed at first run of plotMolecule.R
  #  if not, you can do it mannually
 
-echo -e "}" #closing global
+echo "}" #closing global
