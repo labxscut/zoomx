@@ -75,13 +75,15 @@ echo "  'maxPlot': $maxPlot,"
 if [[ ! -z $( testSubstring "control" $SomaticRunOp ) ]]; then # define common control variables;
   log=$outputPf/$controlBam.log
   bed=$outputPf/$controlBam.multiFragBar.bed.a0
+  clean=$bed.clean
+  filter=$clean.bed
   h5=$outputPf/$controlBam.multiFragBar.h5.a0
   trans=$outputPf/$controlBam.jct.bedpe.tra   #output of inter chromosome junctions
   distal=$outputPf/$controlBam.jct.bedpe.dis  #output of distal (>200 KB) junctions
   cis=$outputPf/$controlBam.jct.bedpe.cis     #output of intra  (>50 KB) junctions
   cfg=$outputPf/$controlBam.gridScan.cfg.json        #output of gridScan configuraiton
   echo "  'controlOption': {"
-  echo "    'log': '$log', 'bed': '$bed', 'h5': '$h5', 'trans': '$trans', 'distal': '$distal', 'cis':'$cis', 'cfg':'$cfg' },"
+  echo "    'log': '$log', 'bed': '$bed', 'clean':'$clean', 'filter':'$filter', 'h5': '$h5', 'trans': '$trans', 'distal': '$distal', 'cis':'$cis', 'cfg':'$cfg' },"
   echo "  'controlCmd': {"
 fi
 
@@ -105,11 +107,11 @@ if [[ ! -z $( testSubstring "controlScan" $SomaticRunOp ) ]]; then
   if [[ $controlCovFile != "none" && -e $controlCovFile ]]; then  #covFile is specified and generated
     filterCMD="$ZOOMXPATH/../scripts/filterMolecule.R $controlCovFile $bed >$log.$SomaticRunOp.$mydate 2>&1" # apply filtering
   else #covFile is not specified or generated (missing?)
-    filterCMD="(cp $bed $bed.clean && touch $bed.clean.bed) >$log.$SomaticRunOp.$mydate 2>&1" #create dummy filter files
+    filterCMD="(cp $bed $clean && touch $filter) >$log.$SomaticRunOp.$mydate 2>&1" #create dummy filter files
   fi
   if [[ -z $dryMode ]]; then echo $filterCMD | bash; fi
   echo "    filterCMD': '$filterCMD',"
-  gridScanCMD="PYTHONPATH=$ZOOMXPATH  python -m gridScan -n 3 $grid $bed.clean $h5 $outputPf/$controlBam >>$log.$SomaticRunOp.$mydate 2>&1" #run gridScan module on Chr22 only (50 Mbp)
+  gridScanCMD="PYTHONPATH=$ZOOMXPATH  python -m gridScan -n 3 $grid $clean $h5 $outputPf/$controlBam >>$log.$SomaticRunOp.$mydate 2>&1" #run gridScan module on Chr22 only (50 Mbp)
   if [[ -z $dryMode ]]; then echo $gridScanCMD | bash; fi
   echo "    'gridScanCMD': '$gridScanCMD'," 
   cisJctCMD="awk '{if(\$1 == \$4 && \$5 - \$2>$cisSize && \$5 - \$2<=$distSize) print}' $outputPf/$controlBam.jct.bedpe >$cis 2>>$log.$SomaticRunOp.$mydate"
@@ -154,13 +156,15 @@ fi
 if [[ ! -z $( testSubstring "case" $SomaticRunOp ) ]]; then # define common case variables;
   log=$outputPf/$caseBam.log
   bed=$outputPf/$caseBam.multiFragBar.bed.a0
+  clean=$bed.clean
+  filter=$clean.bed
   h5=$outputPf/$caseBam.multiFragBar.h5.a0
   trans=$outputPf/$caseBam.jct.bedpe.tra   #output of inter chromosome junctions
   distal=$outputPf/$caseBam.jct.bedpe.dis  #output of distal (>200 KB) junctions
   cis=$outputPf/$caseBam.jct.bedpe.cis     #output of intra  (>50 KB) junctions
   cfg=$outputPf/$caseBam.gridScan.cfg.json        #output of gridScan configuraiton
   echo "  'caseOption': {"
-  echo "    'log': '$log', 'bed': '$bed', 'h5': '$h5', 'trans': '$trans', 'distal': '$distal', 'cis':'$cis', 'cfg':'$cfg' },"
+  echo "    'log': '$log', 'bed': '$bed', 'clean':'$clean', 'filter':'$filter', 'h5': '$h5', 'trans': '$trans', 'distal': '$distal', 'cis':'$cis', 'cfg':'$cfg' },"
   echo "  'caseCmd': {"
 fi
 
@@ -184,11 +188,11 @@ if [[ ! -z $( testSubstring "caseScan" $SomaticRunOp ) ]]; then
   if [[ $caseCovFile != "none" && -e $caseCovFile ]]; then  #covFile is specified and generated
     filterCMD="$ZOOMXPATH/../scripts/filterMolecule.R $caseCovFile $bed >$log.$SomaticRunOp.$mydate 2>&1" # apply filtering
   else #covFile is not specified or generated (missing?)
-    filterCMD="cp $bed $bed.clean && touch $bed.clean.bed >$log.$SomaticRunOp.$mydate 2>&1" #create dummy filter files
+    filterCMD="cp $bed $clean && touch $filter >$log.$SomaticRunOp.$mydate 2>&1" #create dummy filter files
   fi
   if [[ -z $dryMode ]]; then echo $filterCMD | bash; fi
   echo "    filterCMD': '$filterCMD',"
-  gridScanCMD="PYTHONPATH=$ZOOMXPATH  python -m gridScan -n 3 $grid $bed.clean $h5 $outputPf/$caseBam >>$log.$SomaticRunOp.$mydate 2>&1" #run gridScan module on Chr22 only (50 Mbp)
+  gridScanCMD="PYTHONPATH=$ZOOMXPATH  python -m gridScan -n 3 $grid $clean $h5 $outputPf/$caseBam >>$log.$SomaticRunOp.$mydate 2>&1" #run gridScan module on Chr22 only (50 Mbp)
   if [[ -z $dryMode ]]; then echo $gridScanCMD | bash; fi
   echo "    'gridScanCMD': '$gridScanCMD'," 
   cisJctCMD="awk '{if(\$1 == \$4 && \$5 - \$2>$cisSize && \$5 - \$2<=$distSize) print}' $outputPf/$caseBam.jct.bedpe >$cis 2>>$log.$SomaticRunOp.$mydate"
