@@ -2,67 +2,131 @@
 # Assumes you've already run coverageBed -hist, and grep'd '^all'. E.g. something like:
 # find *.bam | parallel 'bedtools -abam {} -b capture.bed -hist | grep ^all > {}.all.txt'
 
-# Get a list of the bedtools output files you'd like to read in
-setwd("~/ws/10x6")
-files = list.files(pattern="all.txt$")
-labels = gsub("_WGS_phased_possorted_bam.bam.hist.all.txt","_read",files)
-labels = gsub("_WGS_phased_possorted_bam.bam.multiFragBar.bed.a0.hist.all.txt","_molecule",labels)
-labels = gsub(".10X_v2.bam.hist.all.txt","_read",labels)
-labels = gsub(".10X_v2.bam.multiFragBar.bed.a0.hist.all.txt","_molecule",labels)
-pf = "all.cumcov"
-giabpf = "giab.cumcov"
-giabnormpf = "giab.norm.cumcov"
-giabfiles = files[grepl("NA12878",files)]
-giablabels = labels[grepl("NA12878",labels)]
-normpf = "norm.cumcov"
-normnormpf = "norm.norm.cumcov"
-normfiles = files[grepl("2386",files)]
-normlabels = labels[grepl("2386",labels)]
-metRpf = "metR.cumcov"
-metRnormpf = "metR.norm.cumcov"
-metRfiles = files[grepl("2721",files)]
-metRlabels = labels[grepl("2721",labels)]
-metLpf = "metL.cumcov"
-metLnormpf = "metL.norm.cumcov"
-metLfiles = files[grepl("2725",files)]
-metLlabels = labels[grepl("2725",labels)]
+####Externalities####
+ptm=proc.time() #time keeper
 
-plotCumCov = function(files, labels, pf, addNorm=T) { 
+set_colClass <- function(d, colClasses) {
+  colClasses <- rep(colClasses, len=length(d))
+  d[] <- lapply(seq_along(d), function(i) switch(colClasses[i],
+                                                 numeric=as.numeric(d[[i]]),
+                                                 character=as.character(d[[i]]),
+                                                 Date=as.Date(d[[i]], origin='1970-01-01'),
+                                                 POSIXct=as.POSIXct(d[[i]], origin='1970-01-01'),
+                                                 factor=as.factor(d[[i]]),
+                                                 as(d[[i]], colClasses[i]) ))
+  return(d)
+}
 
+myrequire = function(pkg, repo="CRAN", lib=Sys.getenv("R_LIBS_USER"), ...){
+  cat("requiring package", pkg, "\n")
+  tryCatch(suppressMessages(library(pkg,character.only=T)), error=function(e) {
+    print(e)
+    if(repo!="CRAN"){
+      source("http://bioconductor.org/biocLite.R")
+      biocLite(pkg,...)
+    } else {
+      install.packages(pkg,repo="http://cran.us.r-project.org",lib=lib,...)
+    }
+  })
+  tryCatch(suppressMessages(library(pkg,character.only=T)), error=function(e) {
+    print(e)
+    stop(pkg," was not installed and cannot install on the fly!\n")
+  })
+}
+
+for(p in c("RColorBrewer","optparse")) myrequire(p)
+#for(p in c("GenomicRanges", "ggbio", "GenomeInfoDb")) myrequire(p, repo="bioC")
+
+#
+
+option_list2 <- list(
+  make_option(c("-o", "--outPrefix1"), default="none",
+              help="outPrefix for a merged plot without normalization, none=not plotting [default %default]"),
+  make_option(c("-p", "--outPrefix2"), default="none",
+              help="outPrefix for separate plots without normalization, none=not plotting [default %default]"),
+  make_option(c("-q", "--outPrefix3"), default="none",
+              help="outPrefix for separate plots with normalization, none=not plotting [default %default]"),
+  make_option(c("-l", "--labels"), default="none",
+              help="none=$histSet1File1,$histSet1File2;$histSet2File1,$histSet2File2;... [default %default]"),
+  make_option(c("-q", "--noQuiet"), action="store_true", default=FALSE,
+              help="show verbose, [default %default]"),
+  make_option(c("-a", "--debug"), action="store_true", default=FALSE,
+              help="save debug, [default %default]")
+)
+
+parser <- OptionParser(usage = "%prog [options] $histSet1File1,$histSet1File2;$histSet2File1,$histSet2File2;...",
+                       option_list=option_list2)
+cat("-Info: invoking command:",commandArgs(),"\n")
+args <- commandArgs(trailingOnly = TRUE)
+cmd = parse_args(parser, args, print_help_and_exit = TRUE, positional_arguments = TRUE)
+if(length(cmd$args)!=1 & !debug){ print_help(parser); quit() }
+histFiles=strsplit(cmd$args[1],",")[[1]]
+labels=histFiles
+outPrefix1=cmd$options$outPrefix1                                #plotMerge
+outPrefix2=strsplit(cmd$options$outPrefix2,";")                  #plotSeparate
+outPrefix3=strsplit(cmd$options$outPrefix3,";")                  #plotSepNorm
+debug=cmd$options$debug
+noQuiet=cmd$options$noQuiet
+colScheme="Dark2"
+pdfScale=0.7
+if(cmd$options$labels!="none") labels=strsplit(unlist(strsplit(cmd$options$labels,";")),",")
+if(outPrefix1=="none") plotMerge=FALSE
+if(outPrefix2=="none") plotSeparate=FALSE
+if(outPrefix3=="none") plotSepNorm=FALSE
+
+# Get a list of the bedtools output histFiles you'd like to read in
+if(debug){
+  setwd("~/ws/10x6")
+  histFiles = list.files(pattern="all.txt$")
+  histFiles = list(c("NA12878_WGS_phased_possorted_bam.bam.hist.all.txt","NA12878_WGS_phased_possorted_bam.bam.multiFragBar.bed.a0.hist.all.txt"),c("P00526_2386_nt.10X_v2.bam.hist.all.txt","P00526_2386_nt.10X_v2.bam.multiFragBar.bed.a0.hist.all.txt"),c("P00526_2721_mt.st.10X_v2.bam.hist.all.txt","P00526_2721_mt.st.10X_v2.bam.multiFragBar.bed.a0.hist.all.txt"),c("P00526_2725_mt.10X_v2.bam.hist.all.txt","P00526_2725_mt.10X_v2.bam.multiFragBar.bed.a0.hist.all.txt"))
+  labels = list(c("NA12878_read","NA12878_molecule"),c("Norm2386_read","Norm2386_molecule"),c("MetR2721_read","MetR2721_molecule"),c("MetL2725_read","MetL2725_molecule"))
+  outPrefix1 = "zoomx.cumcov.plot"
+  plotMerge=TRUE
+  outPrefix2 = c("NA12878_WGS_phased_possorted_bam.cumcov.plot","P00526_2386_nt.10X_v2.bam.cumcov.plot","P00526_2721_mt.st.10X_v2.bam.cumcov.plot","P00526_2725_mt.10X_v2.bam.cumcov.plot")
+  plotSeparate=TRUE
+  outPrefix3 = c("NA12878_WGS_phased_possorted_bam.cumncov.plot","P00526_2386_nt.10X_v2.bam.cumncov.plot","P00526_2721_mt.st.10X_v2.bam.cumncov.plot","P00526_2725_mt.10X_v2.bam.cumncov.plot")
+  plotSepNorm=TRUE
+}
+
+# define the plotCumCov function
+plotCumCov = function(histFiles, labels, pf, addNorm=T, pdfScale=0.7) { 
+  
   # Create lists to hold coverage and cumulative coverage for each alignment,
   # and read the data into these lists.
   cov <- list()
   cov_cumul <- list()
-  for (i in 1:length(files)) {
-      cov[[i]] <- read.table(files[i])
-      cov_cumul[[i]] <- 1-cumsum(cov[[i]][,5])
+  for (i in 1:length(histFiles)) {
+    cov[[i]] <- read.table(histFiles[i])
+    cov_cumul[[i]] <- 1-cumsum(cov[[i]][,5])
   }
-
+  
   # Pick some colors
   # Ugly:
   # cols <- 1:length(cov)
   # Prettier:
   # ?colorRampPalette
   # display.brewer.all()
-  library(RColorBrewer)
-  cols <- brewer.pal(length(cov)+1, "Set1")
-
+  cols <- brewer.pal(length(cov), colScheme)
+  
   # Save the graph to a file
-  png(paste(pf, "png", sep="."), h=750, w=750, pointsize=20)
-
+  pdf(paste(pf, "pdf", sep="."), w=8.4*pdfScale, h=8.4*pdfScale)
+  message("pdfFile=",paste(pf, "pdf", sep="."))
+  
   # Create plot area, but do not plot anything. Add gridlines and axis labels.
   plot(cov[[1]][2:401, 2], cov_cumul[[1]][1:400], type='n', xlab="Coverage", 
-       ylab="Fraction of genome \u2265 coverage", ylim=c(0,1.0), main="Genome Coverage (Cumulative)")
-  abline(v = 20, col = "gray60")
+       ylab="Fraction of genome at coverage", ylim=c(0,1.0), main="Genome Coverage (Cumulative)", cex=1/pdfScale)
+  
+  #abline(v = 20, col = "gray60")
   abline(v = 50, col = "gray60")
-  abline(v = 80, col = "gray60")
+  #abline(v = 80, col = "gray60")
   abline(v = 100, col = "gray60")
   abline(h = 0.50, col = "gray60")
   abline(h = 0.90, col = "gray60")
-  axis(1, at=c(20,50,80), labels=c(20,50,80))
+  #axis(1, at=c(20,50,80), labels=c(20,50,80))
+  axis(1, at=c(50), labels=c(50))
   axis(2, at=c(0.90), labels=c(0.90))
   axis(2, at=c(0.50), labels=c(0.50))
-
+  
   # Actually plot the data for each of the alignments (stored in the lists).
   tmp_cov=cov; tmp_cov_cumul=cov_cumul; tmp_labels=labels; tmp_lty=rep(1,length(cov))
   if(addNorm) { #add normaliation step to cov[[ai]], cov_cumul[[ai]], labels[ai] based on cov[[bi]]
@@ -84,31 +148,68 @@ plotCumCov = function(files, labels, pf, addNorm=T) {
     tmp_labels[ai] = alab
     tmp_lty[ai] = 2
   } 
-  for (i in 1:length(tmp_cov)) points(tmp_cov[[i]][2:401, 2], tmp_cov_cumul[[i]][1:400], type='l', lwd=3, lty=tmp_lty[i], col=cols[i])
-
+  for (i in 1:length(tmp_cov)) 
+    points(tmp_cov[[i]][2:401, 2], tmp_cov_cumul[[i]][1:400], type='l', lwd=3, lty=tmp_lty[i], col=cols[i])
+  
   # Add a legend using the nice sample labeles rather than the full filenames.
   legend("topright", legend=tmp_labels, col=cols, lty=tmp_lty, lwd=3)
   
   dev.off()
-
+  
 }
 
-plotCumCov( files, labels, pf, addNorm=F )
+# plotMerge
+if(plotMerge) {
+  mergeHistFiles = unlist(histFiles)
+  mergeLabels = unlist(labels)
+  plotCumCov( mergeHistFiles, mergeLabels, outPrefix1, addNorm=F, pdfScale=pdfScale )
+}
 
-plotCumCov( giabfiles, giablabels, giabpf, addNorm=F )
+if(plotSeparate) {
+  lapply( seq(length(histFiles)), function(x) { plotCumCov( histFiles[[x]], labels[[x]], outPrefix2[x], addNorm=F, pdfScale=pdfScale ) })
+}
 
-plotCumCov( normfiles, normlabels, normpf, addNorm=F )
+if(plotSepNorm) {
+  lapply( seq(length(histFiles)), function(x) { plotCumCov( histFiles[[x]], labels[[x]], outPrefix3[x], addNorm=T, pdfScale=pdfScale ) })
+}
 
-plotCumCov( metRfiles, metRlabels, metRpf, addNorm=F )
+quit()
 
-plotCumCov( metLfiles, metLlabels, metLpf, addNorm=F )
+# obsolete codes: proof of idea
+pf = "all.cumcov"
+  giabpf = "giab.cumcov"
+  giabnormpf = "giab.norm.cumcov"
+  giabhistFiles = histFiles[grepl("NA12878",histFiles)]
+  giablabels = labels[grepl("NA12878",labels)]
+  normpf = "norm.cumcov"
+  normnormpf = "norm.norm.cumcov"
+  normhistFiles = histFiles[grepl("2386",histFiles)]
+  normlabels = labels[grepl("2386",labels)]
+  metRpf = "metR.cumcov"
+  metRnormpf = "metR.norm.cumcov"
+  metRhistFiles = histFiles[grepl("2721",histFiles)]
+  metRlabels = labels[grepl("2721",labels)]
+  metLpf = "metL.cumcov"
+  metLnormpf = "metL.norm.cumcov"
+  metLhistFiles = histFiles[grepl("2725",histFiles)]
+  metLlabels = labels[grepl("2725",labels)]
 
-plotCumCov( giabfiles, giablabels, giabnormpf, addNorm=T )
 
-plotCumCov( normfiles, normlabels, normnormpf, addNorm=T )
 
-plotCumCov( metRfiles, metRlabels, metRnormpf, addNorm=T )
+plotCumCov( giabhistFiles, giablabels, giabpf, addNorm=F )
 
-plotCumCov( metLfiles, metLlabels, metLnormpf, addNorm=T )
+plotCumCov( normhistFiles, normlabels, normpf, addNorm=F )
+
+plotCumCov( metRhistFiles, metRlabels, metRpf, addNorm=F )
+
+plotCumCov( metLhistFiles, metLlabels, metLpf, addNorm=F )
+
+plotCumCov( giabhistFiles, giablabels, giabnormpf, addNorm=T )
+
+plotCumCov( normhistFiles, normlabels, normnormpf, addNorm=T )
+
+plotCumCov( metRhistFiles, metRlabels, metRnormpf, addNorm=T )
+
+plotCumCov( metLhistFiles, metLlabels, metLnormpf, addNorm=T )
 
 
