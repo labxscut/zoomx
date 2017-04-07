@@ -59,7 +59,7 @@ parser <- OptionParser(usage = "%prog [options] moleSet1File1,moleSet1File2,...;
 cat("-Info: invoking command:",commandArgs(),"\n")
 args <- commandArgs(trailingOnly = TRUE)
 cmd = parse_args(parser, args, print_help_and_exit = TRUE, positional_arguments = TRUE)
-if(length(cmd$args)!=1 & !debug){ print_help(parser); quit() }
+if(length(cmd$args)!=1 & !cmd$options$debug){ print_help(parser); quit() }
 #moleFiles=strsplit(cmd$args[1],";")[[1]]
 moleFiles=strsplit(unlist(strsplit(cmd$args[1],";")),",")
 
