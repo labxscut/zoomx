@@ -37,7 +37,7 @@ for(p in c("RColorBrewer","optparse","ggplot2","MASS","rjson")) myrequire(p)
 option_list2 <- list(
   make_option(c("-p", "--outPrefix"), default="none",
               help="outPrefix for separate plots separated by ';', none=mcvFiles [default %default]"),
-  make_option(c("-v", "--overlapFactor"), type="integer", default=2,
+  make_option(c("-v", "--overlapFactor"), type="integer", default=1,
               help="a factor of 2 means windows are half overlapping [default %default]"),
   make_option(c("-d", "--referenceGridsize"), type="integer", default=10000,
               help="gridSize used ad reference [default %default]"),
@@ -47,6 +47,8 @@ option_list2 <- list(
               help="output format, [default %default]"),
   make_option(c("-s", "--plotScale"), default=1,
               help="output scaling, [default %default]"),
+  make_option(c("-l", "--label"), default="none",
+              help="output label, [default %default]"),
   make_option(c("-q", "--noQuiet"), action="store_true", default=FALSE,
               help="show verbose, [default %default]"),
   make_option(c("-a", "--debug"), action="store_true", default=FALSE,
@@ -69,13 +71,11 @@ genomeSize=cmd$options$genomeSize
 overlapFactor=cmd$options$overlapFactor
 referenceGridsize=cmd$options$referenceGridsize
 plotScale=cmd$options$plotScale
+label=cmd$options$label
 debug=cmd$options$debug
 noQuiet=cmd$options$noQuiet
-colScheme="Dark2"
-cols <- brewer.pal(8, colScheme)[3:4]
-colnames = c("Theory","Empirical")
-names(cols) = colnames
 if(outPrefix=="none") outPrefix=mcvFiles
+if(label=="none") label=""
 
 if(debug){
   setwd("~/ws/10x6")
@@ -86,21 +86,27 @@ if(debug){
   cfgFile = "NA12878_WGS_phased_possorted_bam.bam.gridScan.cfg.json"
   gridSize = as.integer(c("100000","100000000","10000","10000000","1000000"))
   referenceGridsize = 10000
-  overlapFactor = 2
+  overlapFactor = 1
   genomeSize = 3200000000
   plotScale = 10
   format = "tiff"
+  label = "NA12878_"
 }
+colScheme="Dark2"
+cols <- brewer.pal(8, colScheme)[3:4]
+colnames = paste(label,c("Theory","Empirical"),sep="")
+names(cols) = colnames
 
 mainTextSize=14
 legendTextSize=16
 mainLineSize=1.5
-plotMargin = unit(c(0.56,0.56,0.56,0.56), "in")
+plotMargin = unit(c(0.28,0.28,0.28,0.28), "in")
 cfgOptions = fromJSON(readLines(cfgFile))
 averageFragLength = cfgOptions$mLf
 #fragNumber = cfgOptions$aNf
 fragNumber = cfgOptions$aNf
-coveragePerBlock = round(fragNumber / (genomeSize/gridSize) )  
+coveragePerBlock = round(fragNumber / (genomeSize/gridSize) )
+names(coveragePerBlock) = as.character(gridSize)
 tickFactor = overlapFactor / (gridSize/referenceGridsize)  # times tick to correct for x labels
 
 data = lapply(mcvFiles, "read.table")
@@ -108,29 +114,28 @@ cov = lapply(seq_along(data), FUN=function(x){ data[[x]][,4][data[[x]][,4]>10] }
 
 plotDenCov = function(i, cov, outPrefix, coveragePerBlock, cols, tickFactor, plotScale, format){
   prefix=outPrefix[[i]];
-  
-  Coverage = cov[[i]]; cpb=coveragePerBlock[[i]]; tf=tickFactor[[i]]
+  colnames=names(cols)
+  Coverage = cov[[i]]; cpb=coveragePerBlock[[i]]; tf=tickFactor[[i]]; gs=names(coveragePerBlock)[[i]]
   xlim=round(c(0.25*cpb,1.75*cpb)/10)*10  #round to 10-based
-  xticks=seq(xlim[1],xlim[2],by=40/tf) 
-  xticklabs=paste(as.integer(seq(xlim[1]*tf,xlim[2]*tf,by=40)))
+  xticks=seq(xlim[1],xlim[2],by=50/tf) 
+  xticklabs=paste(as.integer(seq(xlim[1]*tf,xlim[2]*tf,by=50)))
   ylim=c(0, 1.25*max(dpois(seq(1,1.5*cpb),lambda=cpb)))
   cat("theory: Poisson lamba=", cpb, "\n")
   cat("xlim:", xlim, "\n")
   cat("ylim:", ylim, "\n")
   p0 = qplot(Coverage, geom = 'blank') +   
     geom_histogram(aes(y = ..density..), alpha = 0.4, fill="blue", color="gray", binwidth=4/tf) +
-    geom_line(aes(y = ..density.., colour="Empirical"), stat="density", size=mainLineSize) +
+    geom_line(aes(y = ..density.., colour=colnames[2]), stat="density", size=mainLineSize) + #Empricial
     geom_line(aes(x = seq(xlim[1], xlim[2]), 
                   y = dpois(seq(xlim[1], xlim[2]), lambda=cpb), 
-                  colour="Theory"), 
+                  colour=colnames[1]), #Theory
               size=mainLineSize) +
     theme_classic() +
     scale_colour_manual(name = '', values = cols ) +
-    scale_x_continuous('Coverage', breaks=xticks, label=xticklabs, limit=xlim) +
-    ylim(ylim) + ggtitle("Genome Molecule Coverage (Density)") + ylab("Density") + 
-    theme(legend.position = c(0.85,0.85), 
-          text=element_text(size=legendTextSize)) + 
-          #plot.margin=plotMargin) + 
+    scale_x_continuous('Count', breaks=xticks, label=xticklabs, limit=xlim) +
+    ylim(ylim) + ggtitle(paste("Molecule Count per", as.integer(gs)/1000,"KB")) + ylab("Density") + 
+    theme(legend.position = c(0.85,0.85), text=element_text(size=legendTextSize)) + 
+    theme(plot.margin=plotMargin) + 
     theme(plot.title = element_text(hjust=0.5, size=as.integer(mainTextSize), face="bold")) #+
   message("plotFile=",paste(prefix, format, sep="."))
   ggsave(filename=paste(prefix, format, sep="."),plot=p0,w=5.6, h=5.6,units="in",dpi=72*plotScale,

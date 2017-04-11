@@ -44,10 +44,8 @@ option_list2 <- list(
               help="none=$outPrefix  [default %default]"),
   make_option(c("-c", "--maxCnt"), default=75,
               help="maximum cnt in legend [default %default]"),
-  #make_option(c("-w", "--withLegend"), action="store_true", default=FALSE,
-  #            help="show legends, [default %default]"),
-  #make_option(c("-m", "--isMale"), action="store_true", default=FALSE,
-  #            help="show Y or chrY, [default %default]"),
+  make_option(c("-m", "--isMale"), action="store_true", default=FALSE,
+              help="show Y or chrY, [default %default]"),
   make_option(c("-q", "--noQuiet"), action="store_true", default=FALSE,
               help="show verbose, [default %default]"),
   make_option(c("-a", "--debug"), action="store_true", default=FALSE,
@@ -66,8 +64,7 @@ moleFiles=strsplit(unlist(strsplit(cmd$args[1],";")),",")
 outPrefix=cmd$options$outPrefix
 labels=strsplit(cmd$options$labels,",")[[1]]
 maxCnt=cmd$options$maxCnt
-#isMale=cmd$options$isMale
-#withLegend=cmd$options$withLegend
+isMale=cmd$options$isMale
 titleText=cmd$options$titleText
 debug=cmd$options$debug
 noQuiet=cmd$options$noQuiet
@@ -75,22 +72,27 @@ noQuiet=cmd$options$noQuiet
 if(outPrefix=="none") outPrefix="zoomx.circus.plot"
 if(titleText=="none") titleText=lapply(moleFiles,"[[",1)
 if(debug){ 
-  setwd("~/ws/10x6")
+  setwd("~/ws/crcbrain/02_ZoomX")
   outPrefix = list("zoomx-Figure4")
-  moleFiles = list(c("P05378_7175_mt.wg12.bam.dist.E25_P05378_7176_nt.wg12.bam.dist.E10.somatic","P05378_7175_mt.wg12.bam.dist.E25_P05378_7176_nt.wg12.bam.dist.E10.germline","P05378_7175_mt.wg12.bam.tra.E25_P05378_7176_nt.wg12.bam.tra.E10.somatic","P05378_7175_mt.wg12.bam.tra.E25_P05378_7176_nt.wg12.bam.tra.E10.germline"),
-    c("P00526_2721_mt.st.10X_v2.bam.dist.E25_P00526_2386_nt.10X_v2.bam.dist.E10.somatic","P00526_2721_mt.st.10X_v2.bam.tra.E25_P00526_2386_nt.10X_v2.bam.tra.E10.somatic","P00526_2721_mt.st.10X_v2.bam.dist.E25_P00526_2386_nt.10X_v2.bam.dist.E10.germline","P00526_2721_mt.st.10X_v2.bam.tra.E25_P00526_2386_nt.10X_v2.bam.tra.E10.germline"),
-    c("P00526_2725_mt.10X_v2.bam.dist.E25_P00526_2386_nt.10X_v2.bam.dist.E10.somatic","P00526_2725_mt.10X_v2.bam.tra.E25_P00526_2386_nt.10X_v2.bam.tra.E10.somatic","P00526_2725_mt.10X_v2.bam.dist.E25_P00526_2386_nt.10X_v2.bam.dist.E10.germline","P00526_2725_mt.10X_v2.bam.tra.E25_P00526_2386_nt.10X_v2.bam.tra.E10.germline"))
-  titleText = list("MetB7175","MetR2721","MetL2725")
-  labels = c("IntraChr(MetTiss)","InterChr(MetTiss)","IntraChr(NormTiss)","InterChr(NormTiss)")
+  moleFiles = list(c("P05378_7175_mt.wg12.bam.dist.E25_P05378_7176_nt.wg12.bam.dist.E10.somatic.curate","P05378_7175_mt.wg12.bam.tra.E25_P05378_7176_nt.wg12.bam.tra.E10.somatic.curate"))
+  titleText = list("MetB7175")
+  labels = c("IntraChr","InterChr")
+  #setwd("~/ws/10x6")
+  #moleFiles = list(c("P05378_7175_mt.wg12.bam.dist.E25_P05378_7176_nt.wg12.bam.dist.E10.somatic","P05378_7175_mt.wg12.bam.dist.E25_P05378_7176_nt.wg12.bam.dist.E10.germline","P05378_7175_mt.wg12.bam.tra.E25_P05378_7176_nt.wg12.bam.tra.E10.somatic","P05378_7175_mt.wg12.bam.tra.E25_P05378_7176_nt.wg12.bam.tra.E10.germline"),
+  #  c("P00526_2721_mt.st.10X_v2.bam.dist.E25_P00526_2386_nt.10X_v2.bam.dist.E10.somatic","P00526_2721_mt.st.10X_v2.bam.tra.E25_P00526_2386_nt.10X_v2.bam.tra.E10.somatic","P00526_2721_mt.st.10X_v2.bam.dist.E25_P00526_2386_nt.10X_v2.bam.dist.E10.germline","P00526_2721_mt.st.10X_v2.bam.tra.E25_P00526_2386_nt.10X_v2.bam.tra.E10.germline"),
+  #  c("P00526_2725_mt.10X_v2.bam.dist.E25_P00526_2386_nt.10X_v2.bam.dist.E10.somatic","P00526_2725_mt.10X_v2.bam.tra.E25_P00526_2386_nt.10X_v2.bam.tra.E10.somatic","P00526_2725_mt.10X_v2.bam.dist.E25_P00526_2386_nt.10X_v2.bam.dist.E10.germline","P00526_2725_mt.10X_v2.bam.tra.E25_P00526_2386_nt.10X_v2.bam.tra.E10.germline"))
+  #titleText = list("MetB7175","MetR2721","MetL2725")
+  #labels = c("IntraChr(Tumour)","InterChr(Tumour)","IntraChr(NormTiss)","InterChr(NormTiss)")
   maxCnt = 75
+  isMale = FALSE
 }
 
+#options control subplots in ggbio
 colScheme="Dark2"
-pdfScale=1.4
 circleTextSize=3.5
-circleLineSize=1*pdfScale
-mainTextSize=10*pdfScale
-scaleSize=2
+circleLineSize=1
+mainTextSize=10
+circleScaleSize=2
 isMale=FALSE
 processedArgs=list("outPrefix"=outPrefix,"moleFiles"=moleFiles,"labels"=labels,"maxCnt"=maxCnt,"isMale"=isMale,"colScheme"=colScheme)
 #handle both 10 and 11 columns input and convert as 9 column input
@@ -109,7 +111,7 @@ hg19sub=GRanges(seqnames=names(hg19info),
 colors=brewer.pal(length(labels), colScheme)
 names(colors)=labels
 
-#plotCircus(1,moleFiles,labels)
+#p=plotCircus(1,moleFiles,labels)
 plotCircus = function(idx, moleFiles, labels) {
   raw=lapply(seq_along(moleFiles[[idx]]), FUN=function(x) { 
     tmp=read.table(moleFiles[[idx]][x], header=T, sep="\t")
@@ -154,55 +156,57 @@ plotCircus = function(idx, moleFiles, labels) {
   grmp <- GRanges( seqnames = c(convertedAll$chrom1, convertedAll$chrom2),
                    ranges = IRanges(start = c(convertedAll$start1, convertedAll$start2), 
                                     end = c(convertedAll$end1, convertedAll$end2)),
-                   Molecule =  rep(convertedAll$molcnt, 2),
+                   Molecule =  round(rep(convertedAll$molcnt, 2) / 5) * 5, #ceiling to nearest 5
                    Type = rep(convertedAll$type, 2),
                    seqlengths=seqlengths(hg19sub))
   genome(grmp) = "hg19"
 
   p <- ggbio() +
-    circle(gr, geom = "link", linked.to = "linkTo", aes(color = Type), size=circleLineSize) +
-    scale_color_manual(values=colors[match(labels,names(colors))]) +
-    circle(grmp, geom = "point", aes(size=Molecule)) +
+    circle(gr, geom = "link", linked.to = "linkTo", aes(color = Type), size = circleLineSize) +
+    scale_color_manual(values=colors[match(labels,names(colors))], guide=guide_legend(nrow=1)) +
+    circle(grmp, geom = "point", aes(size = Molecule)) +
+    scale_radius(breaks=seq(min(grmp$Molecule),max(grmp$Molecule),by=5),range=c(3,10),guide=guide_legend(nrow=1)) +
     circle(hg19sub, geom = "ideo", fill = "gray70") +
-    #circle(hg19sub, geom = "scale", size = scaleSize) +
+    #circle(hg19sub, geom = "scale", size = circleScaleSize) +
     #theme(axis.text=element_blank(), axis.ticks=element_blank()) + #Scale
     circle(hg19sub, geom = "text", aes(label = seqnames), vjust = 0, size = circleTextSize) +
     ggtitle(titleText[[idx]]) +
     theme(plot.title = element_text(hjust=0.5, size=mainTextSize)) +
-    #theme(legend.direction = "horizontal", legend.box="vertical", legend.position="bottom") + 
-    theme(legend.box.just="top", legend.position="bottom", legend.box="vertical") + 
-    theme(legend.text = element_text(size = mainTextSize-2)) + 
-    theme(legend.title = element_text(size = mainTextSize-2)) +
-    theme(legend.box.spacing = unit(c(0,0,0,0), "pt")) +
-    theme(plot.margin = unit(c(0,0,0,0), "pt")) +
-    theme(panel.spacing = unit(c(0,0,0,0), "pt"))
-  
+    theme(legend.position="bottom", legend.box="vertical", legend.direction = "horizontal") + #box-v, item-h
+    theme(legend.margin = margin(c(0,0,0,0), unit="in")) + #reduces legend margin
+    theme(legend.box.just="top") #this moves legend to the top of its bounding box
   p
 }
 
-cowLabelVjust=8*pdfScale
-cowLabelTextSize=mainTextSize/pdfScale
+#options control cowplot
+legendHeight=0.1 #control legend area height
+cowLabelVjust=8
+cowLabelTextSize=mainTextSize
 plots=lapply(seq(length(moleFiles)),plotCircus,moleFiles,labels)
 plotGrobs1=lapply(plots,ggbio:::Grob)
 legend <- get_legend(plotGrobs1[[1]])
 plotGrobs2=lapply(plots,function(p) { ggbio:::Grob(p+theme(legend.position="none")) })
 #par(mar=c(0,0,0,0))
+#if(length(plotGrobs2)>1) { labels=LETTERS[seq(length(plotGrobs2))] } else {labels=NULL}
+if(length(plotGrobs2)>1) { labels="AUTO" } else {labels=NULL}
 prow <- plot_grid( plotlist = plotGrobs2,
-                   align = 'v',
-                   labels = LETTERS[seq(length(plotGrobs2))],
-                   label_size = mainTextSize,
-                   hjust = -0.5,
-                   vjust = cowLabelVjust,
+                   #align = 'none',
+                   labels = labels,
+                   #label_size = mainTextSize,
+                   #hjust = -0.5,
+                   #vjust = cowLabelVjust,
                    nrow = 1
 )
-prow = prow + draw_grob(legend,x=0,y=-0.37,width=1,height=1) +
-       theme(plot.margin = margin(t = 0, r = 0, b = 0, l = 0, "pt")) +
-       theme(panel.spacing = margin(t = 0, r = 0, b = 0, l = 0, "pt")) +
-       theme(legend.box.spacing = unit(c(0,0,0,0), "pt"))
+lrow <- ggdraw() + draw_grob(legend) #this only draws the legend, all aes has to be predefined.
+
+
+pall = plot_grid( prow, lrow, ncol=1, rel_heights=c(1,legendHeight))
 
 pdfFile=paste(outPrefix,"pdf",sep=".")
-pdf(pdfFile,width=8.5*pdfScale)
-print(prow)
+pdf(pdfFile,width=5.6*length(plots),height=5.6*(1+legendHeight)) #assuming length 
+
+print(pall)
+
 dev.off()
 
 

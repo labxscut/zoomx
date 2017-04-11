@@ -46,6 +46,12 @@ option_list2 <- list(
               help="outPrefix for separate plots with normalization, none=not plotting [default %default]"),
   make_option(c("-l", "--labels"), default="none",
               help="none=$histSet1File1,$histSet1File2;$histSet2File1,$histSet2File2;... [default %default]"),
+  make_option(c("-i", "--insertSize"), type="integer", default=340,
+              help="mean insert size [default %default]"),
+  make_option(c("-d", "--readPairSize"), type="integer", default=280,
+              help="read pair size, rl1 + rl2 - barcode [default %default]"),
+  make_option(c("-m", "--maxCoverage"), type="integer", default=400,
+              help="maximum cvoerage [default %default]"),
   make_option(c("-f", "--format"), default="tiff",
               help="output format, [default %default]"),
   make_option(c("-s", "--plotScale"), default=1,
@@ -71,6 +77,9 @@ format=cmd$options$format
 plotScale=cmd$options$plotScale
 debug=cmd$options$debug
 noQuiet=cmd$options$noQuiet
+readPairSize=cmd$options$readPairSize
+insertSize=cmd$options$insertSize
+maxCoverage=cmd$options$maxCoverage
 colScheme="Dark2"
 if(cmd$options$labels!="none") labels=strsplit(unlist(strsplit(cmd$options$labels,";")),",")
 if(outPrefix1=="none") plotMerge=FALSE
@@ -81,7 +90,7 @@ if(outPrefix3=="none") plotSepNorm=FALSE
 if(debug){
   setwd("~/ws/10x6")
   histFiles = list(c("NA12878_WGS_phased_possorted_bam.bam.hist.all.txt","NA12878_WGS_phased_possorted_bam.bam.multiFragBar.bed.a0.hist.all.txt"),c("P00526_2386_nt.10X_v2.bam.hist.all.txt","P00526_2386_nt.10X_v2.bam.multiFragBar.bed.a0.hist.all.txt"),c("P00526_2721_mt.st.10X_v2.bam.hist.all.txt","P00526_2721_mt.st.10X_v2.bam.multiFragBar.bed.a0.hist.all.txt"),c("P00526_2725_mt.10X_v2.bam.hist.all.txt","P00526_2725_mt.10X_v2.bam.multiFragBar.bed.a0.hist.all.txt"))
-  labels = list(c("NA12878_read","NA12878_molecule"),c("Norm2386_read","Norm2386_molecule"),c("MetR2721_read","MetR2721_molecule"),c("MetL2725_read","MetL2725_molecule"))
+  labels = list(c("NA12878_PEfrag","NA12878_molecule"),c("Norm2386_PEfrag","Norm2386_molecule"),c("MetR2721_PEfrag","MetR2721_molecule"),c("MetL2725_PEfrag","MetL2725_molecule"))
   outPrefix1 = "zoomx.cumcov.plot"
   plotMerge=TRUE
   outPrefix2 = c("NA12878_WGS_phased_possorted_bam.cumcov.plot","P00526_2386_nt.10X_v2.bam.cumcov.plot","P00526_2721_mt.st.10X_v2.bam.cumcov.plot","P00526_2725_mt.10X_v2.bam.cumcov.plot")
@@ -89,13 +98,17 @@ if(debug){
   outPrefix3 = c("NA12878_WGS_phased_possorted_bam.cumncov.plot","P00526_2386_nt.10X_v2.bam.cumncov.plot","P00526_2721_mt.st.10X_v2.bam.cumncov.plot","P00526_2725_mt.10X_v2.bam.cumncov.plot")
   plotSepNorm=TRUE
   plotScale=10
+  readPairSize=280
+  insertSize=340
+  maxCoverage=400
   format="tiff"
 }
+insertFactor=insertSize/readPairSize
 
 # define the plotCumCov function
 # histFiles=mergeHistFiles
 # labels=mergeLabels
-plotCumCov = function(histFiles, labels, pf, format, addNorm=T, plotScale=1) { 
+plotCumCov = function(histFiles, labels, pf, insertFactor, format, addNorm=T, plotScale=1) { 
   
   # Create lists to hold coverage and cumulative coverage for each alignment,
   # and read the data into these lists.
@@ -103,8 +116,37 @@ plotCumCov = function(histFiles, labels, pf, format, addNorm=T, plotScale=1) {
   cov_cumul <- list()
   for (i in 1:length(histFiles)) {
     cov[[i]] <- read.table(histFiles[i])
-    cov_cumul[[i]] <- 1-cumsum(cov[[i]][,5])
+    names(cov[[i]]) = c("region","coverage","bases","totalBases","density")
+    cov[[i]][["cumulative"]] = 1-cumsum(cov[[i]][,5])
+    if(i%%2==1) {
+      x = cov[[i]][["coverage"]]*insertFactor
+      y = cov[[i]][["cumulative"]]
+      sp <- smooth.spline(y[1:(2*maxCoverage+1)]~x[1:(2*maxCoverage+1)], all.knots=FALSE)
+      xmax = floor(length(cov[[i]][["cumulative"]])*insertFactor)+1 #fit range from 1:xmax
+      tmpCumCov = pmax(predict(sp, 0:xmax)$y,0)
+      tmpCov = list()
+      tmpCov[["region"]] = rep("all",2*maxCoverage+1)
+      tmpCov[["coverage"]] = 0:(2*maxCoverage)
+      tmpCov[["bases"]] = NA
+      tmpCov[["totalBases"]] = NA
+      tmpCov[["density"]] = -diff(c(1, tmpCumCov))[1:(2*maxCoverage+1)]
+      tmpCov[["cumulative"]] = tmpCumCov[1:(2*maxCoverage+1)]
+      cov[[i]] = as.data.frame(tmpCov)
+    }
+    cov_cumul[[i]] = cov[[i]][["cumulative"]]
   }
+  #max(which(cov[[1]]$cumulative>0.5))
+  #max(which(tmpCov$cumulative>0.5))
+  #max(which(cov[[1]]$cumulative>0.5))
+  #max(which(tmpCov$cumulative>0.8))
+  #max(which(cov[[1]]$cumulative>0.8))
+  #max(which(cov[[2]]$cumulative>0.8))
+  #sqrt(27)=5.19 ~=5
+  #sqrt(176)=13.3 ~=13
+  #sqrt(33)=5.74 ~=6
+  #-diff(cov[[1]][["cumulative"]][c(27-5+1,27+5+1)])
+  #-diff(tmpCov[["cumulative"]][c(33-6+1,33+6+1)])
+  #-diff(cov[[2]][["cumulative"]][c(176-13+1,176+13+1)])
   
   # Pick some colors
   # Ugly:
@@ -125,8 +167,8 @@ plotCumCov = function(histFiles, labels, pf, format, addNorm=T, plotScale=1) {
   }
   
   # Create plot area, but do not plot anything. Add gridlines and axis labels.
-  plot(cov[[1]][2:401, 2], cov_cumul[[1]][1:400], type='n', xlab="Coverage", 
-       ylab="Fraction of genome at coverage", ylim=c(0,1.0), main="Genome Coverage (Cumulative)", cex=plotScale)
+  plot(cov[[1]][2:(maxCoverage+1), 2], cov_cumul[[1]][1:maxCoverage], type='n', xlab="Coverage", 
+       ylab="Fraction of genome at coverage", ylim=c(0,1.0), main="Cumulative Genome Coverage", cex=plotScale)
   
   abline(v = 50, col = "gray")
   abline(v = 100, col = "gray")
@@ -147,19 +189,20 @@ plotCumCov = function(histFiles, labels, pf, format, addNorm=T, plotScale=1) {
     al_step = amid/bmid                    #alignment step
     alab = paste(labels[ai],"(normalized)",sep="")
     tmp_cov[[ai]]=cov[[ai]]
-    tmp_cov_cumul[[ai]]=rep(NA,400)
-    for(s in 1:400) {
+    tmp_cov_cumul[[ai]]=rep(NA,maxCoverage)
+    for(s in 1:maxCoverage) {
       sj = which( (1:length(cov_cumul[[ai]]))/al_step > s )[1]
       if( is.na(sj) ) sj = length(cov_cumul[[ai]])
       tmp_cov_cumul[[ai]][s] = cov_cumul[[ai]][sj]
     }
     #x = 1:401; y=tmp_cov_cumul[[ai]]; lo <- loess(y~x); tmp_cov_cumul[[ai]]=predict(lo)
-    x = 1:400; y=tmp_cov_cumul[[ai]]; sp <- smooth.spline(y~x, all.knots=FALSE); tmp_cov_cumul[[ai]]=predict(sp)$y
+    x = 1:maxCoverage; y=tmp_cov_cumul[[ai]]; 
+    sp <- smooth.spline(y~x, all.knots=FALSE); tmp_cov_cumul[[ai]]=predict(sp)$y
     tmp_labels[ai] = alab
     tmp_lty[ai] = 2
   } 
   for (i in 1:length(tmp_cov)) 
-    points(tmp_cov[[i]][2:401, 2], tmp_cov_cumul[[i]][1:400], type='l', lwd=3, lty=tmp_lty[i], col=cols[i])
+    points(tmp_cov[[i]][2:(maxCoverage+1), 2], tmp_cov_cumul[[i]][1:maxCoverage], type='l', lwd=3, lty=tmp_lty[i], col=cols[i])
   
   # Add a legend using the nice sample labeles rather than the full filenames.
   legend("topright", legend=tmp_labels, col=cols, lty=tmp_lty, lwd=3, bty="n") #,box.lty=NA,box.col="white",bg="white")
@@ -171,15 +214,15 @@ plotCumCov = function(histFiles, labels, pf, format, addNorm=T, plotScale=1) {
 if(plotMerge) {
   mergeHistFiles = unlist(histFiles)
   mergeLabels = unlist(labels)
-  plotCumCov( mergeHistFiles, mergeLabels, outPrefix1, format=format, addNorm=F, plotScale=plotScale )
+  plotCumCov( mergeHistFiles, mergeLabels, outPrefix1, insertFactor=insertFactor, format=format, addNorm=F, plotScale=plotScale )
 }
 
 if(plotSeparate) {
-  lapply( seq(length(histFiles)), function(x) { plotCumCov( histFiles[[x]], labels[[x]], outPrefix2[x], format=format, addNorm=F, plotScale=plotScale ) })
+  lapply( seq(length(histFiles)), function(x) { plotCumCov( histFiles[[x]], labels[[x]], outPrefix2[x], insertFactor=insertFactor, format=format, addNorm=F, plotScale=plotScale ) })
 }
 
 if(plotSepNorm) {
-  lapply( seq(length(histFiles)), function(x) { plotCumCov( histFiles[[x]], labels[[x]], outPrefix3[x], format=format, addNorm=T, plotScale=plotScale ) })
+  lapply( seq(length(histFiles)), function(x) { plotCumCov( histFiles[[x]], labels[[x]], outPrefix3[x], insertFactor=insertFactor, format=format, addNorm=T, plotScale=plotScale ) })
 }
 
 quit()
