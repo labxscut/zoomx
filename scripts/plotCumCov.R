@@ -83,9 +83,9 @@ insertSize=cmd$options$insertSize
 maxCoverage=cmd$options$maxCoverage
 colScheme="Dark2"
 if(cmd$options$labels!="none") labels=strsplit(unlist(strsplit(cmd$options$labels,";")),",")
-if(outPrefix1=="none") plotMerge=FALSE
-if(outPrefix2=="none") plotSeparate=FALSE
-if(outPrefix3=="none") plotSepNorm=FALSE
+if(outPrefix1=="none") { plotMerge=FALSE } else { plotMerge=TRUE }
+if(outPrefix2=="none") { plotSeparate=FALSE } else { plotSeparate=TRUE }
+if(outPrefix3=="none") { plotSepNorm=FALSE } else { plotSepNorm=TRUE }
 
 # Get a list of the bedtools output histFiles you'd like to read in
 if(debug){
