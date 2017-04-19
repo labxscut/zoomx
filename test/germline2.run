@@ -1,0 +1,14 @@
+#!/bin/bash
+if [[ -z $1 ]]; then
+  cfgfile="germline2.cfg"
+else
+  cfgfile=$1
+fi
+
+source $cfgfile
+#somatic5 controlCov $cfgfile >$cfgfile.controlCov.json.$mydate
+somatic5 controlParse $cfgfile >$cfgfile.controlParse.json.$mydate
+somatic5 controlScan $cfgfile >$cfgfile.controlScan.json.$mydate
+somatic5 controlCisRef $cfgfile >$cfgfile.controlCisRef.json.$mydate
+somatic5 controlDistRef $cfgfile >$cfgfile.controlDistRef.json.$mydate
+somatic5 controlTransRef $cfgfile >$cfgfile.controlTransRef.json.$mydate
