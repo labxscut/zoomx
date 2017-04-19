@@ -51,7 +51,7 @@ echo $maxSize
 for i in `seq 1 $maxSize`; do
   echo "$ZOOMXPATH/../scripts/getMolecule.sh $moleFile $file $i $moleFile.Plot"
   $ZOOMXPATH/../scripts/getMolecule.sh $moleFile $file $i $moleFile.Plot
-  echo "$ZOOMXPATH/../scripts/plotMolecule.R --isUCSC $moleFile.Plot-$i" #turn on isUCSC if chrX not X
-  $ZOOMXPATH/../scripts/plotMolecule.R --isUCSC $moleFile.Plot-$i
+  echo "$ZOOMXPATH/../scripts/plotMolecule.R --isUCSC $moleFile.Plot_$i $cfg" #turn on isUCSC if chrX not X
+  $ZOOMXPATH/../scripts/plotMolecule.R --isUCSC $moleFile.Plot_$i $cfg
 done
 echo "done"

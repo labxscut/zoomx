@@ -17,15 +17,14 @@ myrequire = function(pkg, repo="CRAN", lib=Sys.getenv("R_LIBS_USER"), ...){
   })
 }
 
-#for(p in c("optparse", "ggplot2", "grid", "gridExtra", "reshape2", "Cowplot")) myrequire(p)
 for(p in c("optparse", "ggplot2", "reshape2", "cowplot")) myrequire(p)
 for(p in c("rhdf5")) myrequire(p,repo="Bioc")
 
 option_list <- list(
   make_option(c("-o", "--output"), default="parse10xh5.pdf", help="output file name, [default: %default] \n"),
   make_option(c("-t", "--title"), default="Linked Read Sequencing Statistics", help="output title, [default: %default] \n"),
-  make_option(c("-l", "--labels"), default="none", help="sample labels, [default: %default] \n"),
-  )
+  make_option(c("-l", "--labels"), default="none", help="sample labels, [default: %default] \n")
+)
 
 parser <- OptionParser(
   usage="%prog [options] parse10x.a1.h5,parse10x.a2.h5,...\n Plotting multiple 10x background statistics", 
