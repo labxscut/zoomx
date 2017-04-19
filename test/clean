@@ -12,4 +12,5 @@ rm -rf *Plot_*/
 rm -f *.merged
 rm -f *.clean*
 rm -f *.cov100
+rm -f *.json.*
 echo "done"
