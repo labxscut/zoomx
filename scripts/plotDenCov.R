@@ -138,8 +138,12 @@ plotDenCov = function(i, cov, outPrefix, coveragePerBlock, cols, tickFactor, plo
     theme(plot.margin=plotMargin) + 
     theme(plot.title = element_text(hjust=0.5, size=as.integer(mainTextSize), face="bold")) #+
   message("plotFile=",paste(prefix, format, sep="."))
-  ggsave(filename=paste(prefix, format, sep="."),plot=p0,w=5.6, h=5.6,units="in",dpi=72*plotScale,
+  #ggsave(filename=paste(prefix, format, sep="."),plot=p0,w=5.6, h=5.6,units="in",dpi=72*plotScale,
+  #       type="Xlib", compression="lzw")
+  tiff(filename=paste(prefix, format, sep="."),w=5.6*72*plotScale,h=5.6*72*plotScale,units="px",res=72*plotScale,
          type="Xlib", compression="lzw")
+  print(p0)
+  dev.off()
 }
 
 sapply(seq(length(mcvFiles)), "plotDenCov", cov, outPrefix, coveragePerBlock, cols=cols, 

@@ -1,6 +1,7 @@
 #!/usr/bin/env Rscript
 # Assumes you've already run coverageBed -hist, and grep'd '^all'. E.g. something like:
 # find *.bam | parallel 'bedtools -abam {} -b capture.bed -hist | grep ^all > {}.all.txt'
+# find *.bam | parallel 'bedtools -abam {} -b capture.bed -hist | grep ^all > {}.all.txt'
 
 ####Externalities####
 ptm=proc.time() #time keeper
@@ -54,7 +55,7 @@ option_list2 <- list(
               help="maximum cvoerage [default %default]"),
   make_option(c("-f", "--format"), default="tiff",
               help="output format, [default %default]"),
-  make_option(c("-s", "--plotScale"), default=1,
+  make_option(c("-s", "--plotScale"), default=10,
               help="output scaling, [default %default]"),
   make_option(c("-q", "--noQuiet"), action="store_true", default=FALSE,
               help="show verbose, [default %default]"),
@@ -108,7 +109,7 @@ insertFactor=insertSize/readPairSize
 # define the plotCumCov function
 # histFiles=mergeHistFiles
 # labels=mergeLabels
-plotCumCov = function(histFiles, labels, pf, insertFactor, format, addNorm=T, plotScale=1) { 
+plotCumCov = function(histFiles, labels, pf, insertFactor, format, addNorm=T, plotScale=10) { 
   
   # Create lists to hold coverage and cumulative coverage for each alignment,
   # and read the data into these lists.
@@ -158,11 +159,11 @@ plotCumCov = function(histFiles, labels, pf, insertFactor, format, addNorm=T, pl
   
   # Save the graph to a file
   if(format=="tiff") {
-    tiff(paste(pf, "tiff", sep="."), w=5.6*plotScale*72, h=5.6*plotScale*72, units="px", 
+    tiff(paste(pf, "tiff", sep="."), w=ceiling(5.6*plotScale*72/2)*2, h=ceiling(5.6*plotScale*72/2)*2, units="px", 
          res=72*plotScale, type="Xlib", compression="lzw")
     message("tiffFile=",paste(pf, "tiff", sep="."))
   } else {
-    pdf(paste(pf, "pdf", sep="."), w=2.8*plotScale, h=2.8*plotScale, units="in")
+    pdf(paste(pf, "pdf", sep="."), w=5.6, h=5.6, units="in")
     message("pdfFile=",paste(pf, "pdf", sep="."))
   }
   
