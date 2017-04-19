@@ -69,7 +69,7 @@ cat("-Info: invoking command:",commandArgs(),"\n")
 args <- commandArgs(trailingOnly = TRUE)
 cmd = parse_args(parser, args, print_help_and_exit = TRUE, positional_arguments = TRUE)
 if(length(cmd$args)!=1 & !cmd$options$debug){ print_help(parser); quit() }
-histFiles=strsplit(cmd$args[1],",")[[1]]
+histFiles=strsplit(unlist(strsplit(cmd$args[1],";")),",")
 labels=histFiles
 outPrefix1=cmd$options$outPrefix1                                #plotMerge
 outPrefix2=strsplit(cmd$options$outPrefix2,";")                  #plotSeparate
