@@ -6,9 +6,15 @@ else
 fi
 
 source $cfgfile
-zoomxRun controlCov $cfgfile >$cfgfile.controlCov.json.$mydate
-zoomxRun controlParse $cfgfile >$cfgfile.controlParse.json.$mydate
-zoomxRun controlScan $cfgfile >$cfgfile.controlScan.json.$mydate
-zoomxRun controlCisRef $cfgfile >$cfgfile.controlCisRef.json.$mydate
-zoomxRun controlDistRef $cfgfile >$cfgfile.controlDistRef.json.$mydate
-zoomxRun controlTransRef $cfgfile >$cfgfile.controlTransRef.json.$mydate
+zoomxRun controlCov $cfgfile >$cfgfile.controlCov.json.$mydate &&
+echo "$cfgfile.controlCov.json.$mydate" &&
+zoomxRun controlParse $cfgfile >$cfgfile.controlParse.json.$mydate &&
+echo "$cfgfile.controlParse.json.$mydate" &&
+zoomxRun controlScan $cfgfile >$cfgfile.controlScan.json.$mydate &&
+echo "$cfgfile.controlScan.json.$mydate" &&
+zoomxRun controlCisRef $cfgfile >$cfgfile.controlCisRef.json.$mydate &&
+echo "$cfgfile.controlCisRef.json.$mydate" &&
+zoomxRun controlDistRef $cfgfile >$cfgfile.controlDistRef.json.$mydate &&
+echo "$cfgfile.controlDistRef.json.$mydate" &&
+zoomxRun controlTransRef $cfgfile >$cfgfile.controlTransRef.json.$mydate &&
+echo "$cfgfile.controlTransRef.json.$mydate"
