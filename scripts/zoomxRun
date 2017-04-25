@@ -15,7 +15,7 @@
 if [[ -z $1 ]]; then
   echo "usage:"
   echo "zoomxRun Stage $cfgfile"  
-  echo "use only controlStage for one sample/germline calling"
+  echo "use only caseStage for one sample/germline calling"
   echo "to auto generate command lines with this prompt, do following:"
   echo "export cfgfile=some/cfgfile"
   echo "zoomxRun controlCov $cfgfile"
