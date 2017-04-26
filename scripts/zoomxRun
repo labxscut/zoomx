@@ -2,15 +2,15 @@
 
 #this script pipelines ZoomX germline and somatic call analysis
 
-#germline test configuration as in germline2.cfg
-#bam from 10X Chromium data of Chr22 of NA12878
+#germline test configuration as in germline3.cfg
+#bam from 10X Chromium data of Chr22:22M-24M of NA12878
 
-#somatic test configuration as in somatic5.cfg
-#bam from 10X Chromium data of Chr10:90M-130M of Patient526 matched tunor and normal
+#somatic test configuration as in somatic7.cfg
+#bam from 10X Chromium data of Chr8:98M-100M of a matched MetB7175 and Norm7176 sample
 
 #tested on BioLinux v8 Virtual Machine on running on AWS
 #hardware configuration: cpu=1,mem=2GB,disk=25GB
-#set ZOOMXPATH to your downloaded or cloned package path
+#set ZOOMXPKG to your downloaded or cloned package path
 
 if [[ -z $1 ]]; then
   echo "#usage:"
