@@ -165,7 +165,8 @@ plotCircus = function(idx, moleFiles, labels) {
     circle(gr, geom = "link", linked.to = "linkTo", aes(color = Type), size = circleLineSize) +
     scale_color_manual(values=colors[match(labels,names(colors))], guide=guide_legend(nrow=1)) +
     circle(grmp, geom = "point", aes(size = Molecule)) +
-    scale_radius(breaks=seq(min(grmp$Molecule),max(grmp$Molecule),by=5),range=c(3,10),guide=guide_legend(nrow=1)) +
+    scale_radius(breaks=seq(min(grmp$Molecule),max(grmp$Molecule),by=5),range=c(3,10),
+                 guide=guide_legend(title="Number of Molecules", nrow=1)) +
     circle(hg19sub, geom = "ideo", fill = "gray70") +
     #circle(hg19sub, geom = "scale", size = circleScaleSize) +
     #theme(axis.text=element_blank(), axis.ticks=element_blank()) + #Scale
