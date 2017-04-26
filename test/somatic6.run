@@ -18,9 +18,12 @@ zoomxRun controlTransRef $cfgfile >$cfgfile.controlTransRef.json.$mydate
 zoomxRun caseCisRef $cfgfile >$cfgfile.caseCisRef.json.$mydate
 zoomxRun caseDistRef $cfgfile >$cfgfile.caseDistRef.json.$mydate
 zoomxRun caseTransRef $cfgfile >$cfgfile.caseTransRef.json.$mydate
-zoomxRun distDiff $cfgfile >$cfgfile.distDiff.json.$mydate
-zoomxRun cisDiff $cfgfile >$cfgfile.cisDiff.json.$mydate
-zoomxRun transDiff $cfgfile >$cfgfile.transDiff.json.$mydate
+zoomxRun distDiffMix $cfgfile >$cfgfile.distDiff.json.$mydate
+zoomxRun cisDiffMix $cfgfile >$cfgfile.cisDiff.json.$mydate
+zoomxRun transDiffMix $cfgfile >$cfgfile.transDiff.json.$mydate
+zoomxRun distDiffPure $cfgfile >$cfgfile.distDiff.json.$mydate
+zoomxRun cisDiffPure $cfgfile >$cfgfile.cisDiff.json.$mydate
+zoomxRun transDiffPure $cfgfile >$cfgfile.transDiff.json.$mydate
 zoomxRun distShare $cfgfile >$cfgfile.distShare.json.$mydate
 zoomxRun cisShare $cfgfile >$cfgfile.cisShare.json.$mydate
 zoomxRun transShare $cfgfile >$cfgfile.transShare.json.$mydate
