@@ -24,6 +24,3 @@
   'caseOption': {
     'log': './NA12878.wg12.chr22-22M-24M.bam.log', 'bed': './NA12878.wg12.chr22-22M-24M.bam.multiFragBar.bed.a0', 'clean':'./NA12878.wg12.chr22-22M-24M.bam.multiFragBar.bed.a0.clean', 'filter':'./NA12878.wg12.chr22-22M-24M.bam.multiFragBar.bed.a0.clean.bed', 'h5': './NA12878.wg12.chr22-22M-24M.bam.multiFragBar.h5.a0', 'trans': './NA12878.wg12.chr22-22M-24M.bam.jct.bedpe.tra', 'distal': './NA12878.wg12.chr22-22M-24M.bam.jct.bedpe.dis', 'cis':'./NA12878.wg12.chr22-22M-24M.bam.jct.bedpe.cis', 'cfg':'./NA12878.wg12.chr22-22M-24M.bam.gridScan.cfg.json' },
   'caseCmd': {
-    caseCovCMD': '(time samtools bedcov human_g1k_v37.ucsc.fasta.bed.w100s100 ./NA12878.wg12.chr22-22M-24M.bam >./NA12878.wg12.chr22-22M-24M.bam.cov100) 2>./NA12878.wg12.chr22-22M-24M.bam.log.caseCov.2017Apr26',
-  }
-}

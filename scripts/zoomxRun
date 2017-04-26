@@ -13,33 +13,45 @@
 #set ZOOMXPATH to your downloaded or cloned package path
 
 if [[ -z $1 ]]; then
-  echo "usage:"
-  echo "zoomxRun Stage $cfgfile"  
-  echo "use only caseStage for one sample/germline calling"
-  echo "to auto generate command lines with this prompt, do following:"
+  echo "#usage:"
+  echo "#zoomxRun <stage> $cfgfile"  
+  echo "#to auto generate a list of command lines, do following"
   echo "export cfgfile=some/cfgfile"
+  echo "zoomxRun"
+  echo "#------------------------------------------"
+  echo "#individual/germline sample analysis stages"
+  echo "#------------------------------------------"
+  echo "zoomxRun caseCov $cfgfile       #prepare coverage tracks"  
+  echo "zoomxRun caseParse $cfgfile     #parse Bam from long-ranger"
+  echo "zoomxRun caseScan $cfgfile      #do grid Poisson field scan"
+  echo "zoomxRun caseDistRef $cfgfile   #refine large-scale (>200K) intra-chrosomsome i.e. dist events"  
+  echo "zoomxRun caseTransRef $cfgfile  #refine large-scale inter-chrosomsome i.e. trans events"
+  echo "zoomxRun caseCisRef $cfgfile    #refine mid-scale (50K-200K) intra-chrosomsome i.e. cis events"  
+  echo "zoomxRun caseDistPlot $cfgfile  #plot dist events in case (optional)"  
+  echo "zoomxRun caseTransPlot $cfgfile #plot trans events in case (optional)"  
+  echo "zoomxRun caseCisPlot $cfgfile   #plot cis events in case (optional)"  
+  echo "#------------------------------------------"
+  echo "#matched samples analysis stages           "
+  echo "#------------------------------------------"
   echo "zoomxRun controlCov $cfgfile"
-  echo "zoomxRun caseCov $cfgfile"  
   echo "zoomxRun controlParse $cfgfile"  
-  echo "zoomxRun caseParse $cfgfile"
   echo "zoomxRun controlScan $cfgfile"  
-  echo "zoomxRun caseScan $cfgfile"
   echo "zoomxRun controlCisRef $cfgfile"  
   echo "zoomxRun controlDistRef $cfgfile"  
-  echo "zoomxRun controlTransRef $cfgfile"  
-  echo "zoomxRun caseCisRef $cfgfile"  
-  echo "zoomxRun caseDistRef $cfgfile"  
-  echo "zoomxRun caseTransRef $cfgfile"  
-  echo "zoomxRun distDiffMix $cfgfile"  
-  echo "zoomxRun cisDiffMix $cfgfile"  
-  echo "zoomxRun transDiffMix $cfgfile"  
-  echo "zoomxRun distDiffPure $cfgfile"  
-  echo "zoomxRun cisDiffPure $cfgfile"  
-  echo "zoomxRun transDiffPure $cfgfile"  
-  echo "zoomxRun distShare $cfgfile"  
-  echo "zoomxRun cisShare $cfgfile"  
-  echo "zoomxRun transShare $cfgfile"  
-  echo "add dry to any Stage to preview the auto-generated command" 
+  echo "zoomxRun controlTransRef $cfgfile"
+  echo "zoomxRun controlDistPlot $cfgfile  #plot dist events in control (optional)"  
+  echo "zoomxRun controlTransPlot $cfgfile #plot trans events in control (optional)"  
+  echo "zoomxRun controlCisPlot $cfgfile   #plot cis events in control (optional)"  
+  echo "zoomxRun distDiffMix $cfgfile    #find somatic dist events assuming matched is mixture"  
+  echo "zoomxRun transDiffMix $cfgfile   #find somatic trans events assuming matched is mixture"  
+  echo "zoomxRun cisDiffMix $cfgfile     #find somatic cis events assuming matched is mixture"  
+  echo "zoomxRun distDiffPure $cfgfile   #find somatic dist events assuming matched is pure"  
+  echo "zoomxRun transDiffPure $cfgfile  #find somatic trans events assuming matched is pure"  
+  echo "zoomxRun cisDiffPure $cfgfile    #find somatic cis events assuming matched is pure"  
+  echo "zoomxRun distShare $cfgfile      #find shared dist events between the two matched"  
+  echo "zoomxRun transShare $cfgfile     #find shared trans events between the two matched"  
+  echo "zoomxRun cisShare $cfgfile       #find shared cis events between the two matched"  
+  echo "#add keyword dry to any <stage> to preview the auto-generated commands" 
   exit
 fi
 
@@ -239,6 +251,42 @@ if [[ ! -z $( testSubstring "caseTransRef" $ZoomXRunOp ) ]]; then
   echo "    'transRefCMD':'$transRefCMD',"
 fi
 
+#plotting of Diff or Share Molecules, moleFile is predefined in previous Diff and Share stages
+if [[ ! -z $(testSubstring "Plot" $ZoomXRunOp) ]]; then 
+  if [[ ! -z $(testSubstring "case" $ZoomXRunOp) && ! -z $(testSubstring "Dist" $ZoomXRunOp) ]]; then
+    moleFile=$( echo "$outputPf/$caseBam.dist.E$caseExp.refined" )
+  fi 
+  if [[ ! -z $(testSubstring "case" $ZoomXRunOp) && ! -z $(testSubstring "Trans" $ZoomXRunOp) ]]; then
+    moleFile=$( echo "$outputPf/$caseBam.trans.E$caseExp.refined" )
+  fi 
+  if [[ ! -z $(testSubstring "case" $ZoomXRunOp) && ! -z $(testSubstring "Cis" $ZoomXRunOp) ]]; then
+    moleFile=$( echo "$outputPf/$caseBam.cis.E$caseExp.refined" )
+  fi 
+  if [[ ! -z $(testSubstring "control" $ZoomXRunOp) && ! -z $(testSubstring "Dist" $ZoomXRunOp) ]]; then
+    moleFile=$( echo "$outputPf/$controlBam.dist.E$controlExp.refined" )
+  fi 
+  if [[ ! -z $(testSubstring "control" $ZoomXRunOp) && ! -z $(testSubstring "Trans" $ZoomXRunOp) ]]; then
+    moleFile=$( echo "$outputPf/$controlBam.trans.E$controlExp.refined" )
+  fi 
+  if [[ ! -z $(testSubstring "control" $ZoomXRunOp) && ! -z $(testSubstring "Cis" $ZoomXRunOp) ]]; then
+    moleFile=$( echo "$outputPf/$controlBam.cis.E$controlExp.refined" )
+  fi 
+  echo "  'getAndPlotCMD':["
+  if [[ -e $moleFile ]]; then
+    log="$moleFile.log.$ZoomXRunOp.$mydate"
+    maxSize=$(cat $moleFile | wc -l)
+    maxSize=$(expr $(($maxPlot>$maxSize?$maxSize:$maxPlot)) - 1)
+    for i in `seq 1 $maxSize`; do
+      getMolCMD="$ZOOMXPATH/../scripts/getMolecule.sh $moleFile $outputPf/$caseBam $i $moleFile.Plot >>$log 2>&1"
+      if [[ -z $dryMode ]]; then echo $getMolCMD | bash; fi
+      plotMolCMD="$ZOOMXPATH/../scripts/plotMolecule.R $isUCSC $moleFile.Plot_$i $outputPf/$caseBam.gridScan.cfg.json >>$log 2>&1" 
+      if [[ -z $dryMode ]]; then echo $plotMolCMD | bash; fi
+      echo "    [ '$getMolCMD', '$plotMolCMD' ],"
+    done
+  fi
+  echo "  ]"
+fi
+
 if [[ ! -z $( testSubstring "case" $ZoomXRunOp ) || ! -z $( testSubstring "control" $ZoomXRunOp ) ]]; then
   echo "  }" #closing caseCmd or controlCmd
 fi
@@ -248,7 +296,7 @@ if [[ ! -z $( testSubstring "cisDiffMix" $ZoomXRunOp ) ]]; then
   moleFile=$( echo $outputPf/$caseBam.cis.E$caseExp"_"$controlBam.cis.E$controlExp.somatic )
   echo "    'moleFile':'$moleFile',"
   log="$moleFile.log.$ZoomXRunOp.$mydate"
-  cisDiffCMD="bedtools pairtopair -is -type notboth -a $outputPf/$caseBam.cis.E$caseExp.refined -b $outputPf/$controlBam.cis.E$controlExp.refined >$outputPf/$caseBam.cis.E$caseExp\_$controlBam.cis.E$controlExp.refined.somatic 2>$log"
+  cisDiffCMD="bedtools pairtopair -is -type notboth -a $outputPf/$caseBam.cis.E$caseExp.refined -b $outputPf/$controlBam.cis.E$controlExp.refined >$outputPf/$caseBam.cis.E$caseExp\_$controlBam.cis.E$controlExp.somatic 2>$log"
   if [[ -z $dryMode ]]; then echo $cisDiffCMD | bash; fi
   echo "  'cisDiffCMD':'$cisDiffCMD',"
 fi
@@ -257,7 +305,7 @@ if [[ ! -z $( testSubstring "distDiffMix" $ZoomXRunOp ) ]]; then
   moleFile=$( echo $outputPf/$caseBam.dist.E$caseExp"_"$controlBam.dist.E$controlExp.somatic )
   echo "  'moleFile':'$moleFile',"
   log="$moleFile.log.$ZoomXRunOp.$mydate"
-  distDiffCMD="bedtools pairtopair -is -type notboth -a $outputPf/$caseBam.dist.E$caseExp.refined -b $outputPf/$controlBam.dist.E$controlExp.refined >$outputPf/$caseBam.dist.E$caseExp\_$controlBam.dist.E$controlExp.refined.somatic 2>$log"
+  distDiffCMD="bedtools pairtopair -is -type notboth -a $outputPf/$caseBam.dist.E$caseExp.refined -b $outputPf/$controlBam.dist.E$controlExp.refined >$outputPf/$caseBam.dist.E$caseExp\_$controlBam.dist.E$controlExp.somatic 2>$log"
   if [[ -z $dryMode ]]; then echo $distDiffCMD | bash; fi
   echo "  'distDiffCMD':'$distDiffCMD',"
 fi
@@ -266,7 +314,7 @@ if [[ ! -z $( testSubstring "transDiffMix" $ZoomXRunOp ) ]]; then
   moleFile=$( echo $outputPf/$caseBam.tra.E$caseExp"_"$controlBam.tra.E$controlExp.somatic )
   echo "  'moleFile':'$moleFile',"
   log="$moleFile.log.$ZoomXRunOp.$mydate"
-  transDiffCMD="bedtools pairtopair -is -type notboth -a $outputPf/$caseBam.tra.E$caseExp.refined -b $outputPf/$controlBam.tra.E$controlExp.refined >$outputPf/$caseBam.tra.E$caseExp\_$controlBam.tra.E$controlExp.refined.somatic 2>$log"
+  transDiffCMD="bedtools pairtopair -is -type notboth -a $outputPf/$caseBam.tra.E$caseExp.refined -b $outputPf/$controlBam.tra.E$controlExp.refined >$outputPf/$caseBam.tra.E$caseExp\_$controlBam.tra.E$controlExp.somatic 2>$log"
   if [[ -z $dryMode ]]; then echo $transDiffCMD | bash; fi
   echo "  'transDiffCMD':'$transDiffCMD',"
 fi
@@ -327,7 +375,7 @@ if [[ ! -z $( testSubstring "transShare" $ZoomXRunOp ) ]]; then
   echo "  'transShareCMD':'$transShareCMD',"
 fi
 
-#plotting of Diff or Share Molecules
+#plotting of Diff or Share Molecules, moleFile is predefined in previous Diff and Share stages
 if [[ ! -z $(testSubstring "Diff" $ZoomXRunOp) || ! -z $(testSubstring "Share" $ZoomXRunOp) ]]; then 
   echo "  'getAndPlotCMD':["
   if [[ -e $moleFile ]]; then
