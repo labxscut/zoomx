@@ -1,5 +1,5 @@
 .. |Logo| image:: https://bitbucket.org/charade/zoomx/src/master/doc/images/logo.png?fileviewer=file-view-default
-   {+bitbucket}{/owner, repository_name}/src{/commitish}{/filepath}
+   :alt: logo.png
    :height: 50px
    :width: 50px
 
