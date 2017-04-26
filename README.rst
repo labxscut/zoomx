@@ -1,14 +1,14 @@
-.. |Logo| image:: https://bitbucket.org/charade/zoomx/src/images/logo.png
+.. |Logo| image:: https://bitbucket.org/charade/zoomx/src/master/doc/images/logo.png?fileviewer=file-view-default
    {+bitbucket}{/owner, repository_name}/src{/commitish}{/filepath}
    :height: 50px
    :width: 50px
 
-.. |Rationale| image:: https://bytebucket.org/charade/zoomx/wiki/images/rationale.png
+.. |Rationale| image:: https://bitbucket.org/charade/zoomx/src/master/doc/images/rationale.png?fileviewer=file-view-default
    :alt: rationale.png
    :height: 450px
    :width: 540px
 
-.. |Pipeline| image:: https://bytebucket.org/charade/zoomx/wiki/images/pipeline.png
+.. |Pipeline| image:: https://bitbucket.org/charade/zoomx/src/master/doc/images/pipeline.png?fileviewer=file-view-default
    :alt: pipeline.png
    :height: 320px
    :width: 520px
@@ -44,7 +44,6 @@ INTRODUCTION
   It might also work for Mac with Brew/Ports or Windows with Cygwin (not tested).
   ZoomX documentation is on wiki and it is available:
   http://bitbucket.org/charade/zoomx/wiki
-
 
 TRYOUT
 ------------
@@ -139,10 +138,13 @@ EXECUTABLES
     
   refineBreak   --  refine and report junction candidates 
 
+  filterMolecule.R -- filter molecules based on coverage (requires R>3.3 and optparse, IRanges, GenomicRanges from CRAN and BioConductor)
+
+  plotMolecule.R  --  plot molecules supporting a junction (requires R>3.3 and optparse, rjson, ggplot2, RColorBrewer, GenomicRanges, ggbio from CRAN and BioConductor)
+
   getMolecule.sh  --  output molecules supporting a junction 
-
-  plotMolecule.R  --  plot molecules supporting a junction (requires R>3.3 and additional packages from CRAN and BioConductor)
-
+ 
+  bedpe2loupe.sh  --  convert bedpe coordinates to loupe coordinates for visualization 
 
 USAGE
 ------------
@@ -178,4 +180,4 @@ CONTACTS
 CITATIONS
 ---------
 
-  The ZoomX manuscript is under preparation.
+  The ZoomX manuscript is under review.
