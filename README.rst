@@ -1,4 +1,5 @@
-.. |Logo| image:: https://bytebucket.org/charade/zoomx/wiki/images/logo.png
+.. |Logo| image:: https://bitbucket.org/charade/zoomx/src/images/logo.png
+   {+bitbucket}{/owner, repository_name}/src{/commitish}{/filepath}
    :height: 50px
    :width: 50px
 
