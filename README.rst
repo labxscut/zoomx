@@ -1,4 +1,5 @@
-.. |Logo| image:: https://bytebucket.org/charade/zoomx/wiki/images/logo.png
+.. |Logo| image:: https://bitbucket.org/charade/zoomx/src/images/logo.png
+   {+bitbucket}{/owner, repository_name}/src{/commitish}{/filepath}
    :height: 50px
    :width: 50px
 
@@ -44,6 +45,22 @@ INTRODUCTION
   ZoomX documentation is on wiki and it is available:
   http://bitbucket.org/charade/zoomx/wiki
 
+
+TRYOUT
+------------
+
+  *AWS*:
+
+    ZoomX is available for tryout in a live Amazon EC2 instance.
+    Simply log on with SSH and find the package located in ~/setup/zoomx .
+    ssh bkd@ec2-54-190-36-93.us-west-2.compute.amazonaws.com # secret is the same as user
+    Testing data and scripts are available in ~/setup/zoomx/test .
+
+  *VirtualMachine*:
+
+    The Amazon Machine Image (ami) of the same EC2 instance is downloadable from Amazon S3 bucket.
+    https://s3-us-west-2.amazonaws.com/lixiabucket/zoomxDemo.ova
+
 INSTALL
 ------------
     
@@ -58,6 +75,13 @@ INSTALL
       (there is samtools api comes with Pysam, however it has to be able to compile on your system with dafault setting. otherwise expect the "csamtools.c" not found error. e.g. libcurse is required for build samtools but often missing in some Linux.)
       
     Bedtools http://bedtools.org       
+    
+    R  http://r-project.org
+
+  *NoInstallation*:
+
+    ZoomX can be used without installation as long as required commands are all in $PATH.
+    see manual for more informations
 
   *Installation*
     

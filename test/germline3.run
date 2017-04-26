@@ -1,0 +1,26 @@
+#!/bin/bash
+if [[ -z $1 ]]; then
+  cfgfile="germline3.cfg"
+else
+  cfgfile=$1
+fi
+
+source $cfgfile &&
+zoomxRun caseCov $cfgfile >$cfgfile.caseCov.json.$mydate &&
+echo "$cfgfile.caseCov.json.$mydate" &&
+zoomxRun caseParse $cfgfile >$cfgfile.caseParse.json.$mydate &&
+echo "$cfgfile.caseParse.json.$mydate" &&
+zoomxRun caseScan $cfgfile >$cfgfile.caseScan.json.$mydate &&
+echo "$cfgfile.caseScan.json.$mydate" &&
+zoomxRun caseDistRef $cfgfile >$cfgfile.caseDistRef.json.$mydate &&
+echo "$cfgfile.caseDistRef.json.$mydate" &&
+zoomxRun caseTransRef $cfgfile >$cfgfile.caseTransRef.json.$mydate &&
+echo "$cfgfile.caseTransRef.json.$mydate" &&
+zoomxRun caseCisRef $cfgfile >$cfgfile.caseCisRef.json.$mydate &&
+echo "$cfgfile.caseCisRef.json.$mydate" &&
+zoomxRun caseDistPlot $cfgfile >$cfgfile.caseDistPlot.json.$mydate &&
+echo "$cfgfile.caseDistPlot.json.$mydate" &&
+zoomxRun caseTransPlot $cfgfile >$cfgfile.caseTransPlot.json.$mydate &&
+echo "$cfgfile.caseTransPlot.json.$mydate" &&
+zoomxRun caseCisPlot $cfgfile >$cfgfile.caseCisPlot.json.$mydate &&
+echo "$cfgfile.caseCisPlot.json.$mydate"
