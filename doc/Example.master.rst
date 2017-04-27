@@ -44,12 +44,3 @@ test/somatic7.run
   .. code:: bash
 
 REPLACE_WITH_ZOOMXTESTSOMATICRUN
-
-Staged germline/somatic analysis with zoomxRun
---------------------------------------------------
-
-$ZOOMXPKG/scripts/zoomxRun
-
-  .. code:: bash
-
-REPLACE_WITH_ZOOMXRUN

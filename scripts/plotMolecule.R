@@ -16,7 +16,6 @@ set_colClass <- function(d, colClasses) {
 }
 
 myrequire = function(pkg, repo="CRAN", lib=Sys.getenv("R_LIBS_USER"), ...){
-  cat("requiring package", pkg, "\n")
   tryCatch(suppressMessages(library(pkg,character.only=T)), error=function(e) {
     print(e)
     if(repo!="CRAN"){
@@ -56,9 +55,9 @@ option_list2 <- list(
 )
 
 parser <- OptionParser(usage = "%prog [options] plotDir statsJSON", option_list=option_list2)
-cat("-Info: invoking command:",commandArgs(),"\n")
 args <- commandArgs(trailingOnly = TRUE)
 cmd = parse_args(parser, args, print_help_and_exit = TRUE, positional_arguments = TRUE)
+cat("-Info: invoking command:",commandArgs(),"\n")
 breakCI=cmd$options$breakCI
 verbose=cmd$options$noQuiet
 debug=cmd$options$debug
