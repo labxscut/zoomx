@@ -56,7 +56,7 @@ Installation Related
 2-2. Q: Where to find the full example data set of ZoomX
 -------------------------------------------------------------------------------------------------------------------------------------
 
-  A: I compiled a full testing data set which is downloadable at: `here <https://stanford.box.com/s/kbyzc82gowz5pszw7uureh6plj9xgf49>`_
+  A: I compiled a full testing data set which is downloadable at: `here <https://s3-us-west-2.amazonaws.com/lixiabucket/zoomx.test.full.tgz>`_
 
   And there is an amazon instance where the full test data is preinstalled at ~/setup/zoomx/test. Use following ssh command to access (password bkd).
 
