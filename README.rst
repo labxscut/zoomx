@@ -1,14 +1,14 @@
-.. |Logo| image:: https://bitbucket.org/charade/zoomx/src/master/doc/images/logo.png?fileviewer=file-view-default
+.. |Logo| image:: https://bitbucket.org/charade/zoomx/raw/master/doc/images/logo.png
    :alt: logo.png
    :height: 50px
    :width: 50px
 
-.. |Rationale| image:: https://bitbucket.org/charade/zoomx/src/master/doc/images/rationale.png?fileviewer=file-view-default
+.. |Rationale| image:: https://bitbucket.org/charade/zoomx/raw/master/doc/images/rationale.png
    :alt: rationale.png
    :height: 450px
    :width: 540px
 
-.. |Pipeline| image:: https://bitbucket.org/charade/zoomx/src/master/doc/images/pipeline.png?fileviewer=file-view-default
+.. |Pipeline| image:: https://bitbucket.org/charade/zoomx/raw/master/doc/images/pipeline.png
    :alt: pipeline.png
    :height: 320px
    :width: 520px
@@ -21,11 +21,11 @@
 QUICK LINKS
 -----------
 
-`Examples <Example>`_
+`Examples <Example>`__
 
-`Manuals <Manual>`_
+`Manuals <Manual>`__
 
-`FAQ <FAQ>`_
+`FAQ <FAQ>`__
 
 INTRODUCTION
 ------------
@@ -63,71 +63,72 @@ TRYOUT
 INSTALL
 ------------
     
-  *Dependencies* (and that of):
+  *Dependencies*:
 
     Python2(>=2.7)  http://www.python.org/
 
-    Pysam  http://pysam.readthedocs.org/en/latest/
+      Pysam  http://pysam.readthedocs.org/en/latest/
+
+    R(>=3.3)  http://r-project.org
+      
+      optparse, IRanges, GenmicRanges, ggplot2, ggbio, rjson, RColorBrewer 
       
     Samtools (>0.19) http://samtools.org
-      (executables have to be in $PATH and within the sve_py virtual env)
-      (there is samtools api comes with Pysam, however it has to be able to compile on your system with dafault setting. otherwise expect the "csamtools.c" not found error. e.g. libcurse is required for build samtools but often missing in some Linux.)
+      executables have to be in $PATH and within the sve_py virtual env
+      there is samtools api comes with Pysam, however it has to be able to compile on your system with dafault setting. otherwise expect the "csamtools.c" not found error. e.g. libcurse is required for build samtools but often missing in some Linux.
       
-    Bedtools http://bedtools.org       
+    Bedtools (>2.20) http://bedtools.org
     
-    R  http://r-project.org
-
-  *NoInstallation*:
+  *InstallationFree*:
 
     ZoomX can be used without installation as long as required commands are all in $PATH.
     see manual for more informations
 
   *Installation*
     
-    virtualenv based non-root installation and python site separation. 
+    virtualenv based non-root installation with python site separation. 
+    virtualenv command is standard with Python 2.7 or later. 
+    If it is not present, please see https://virtualenv.pypa.io for details to install virtualenv for your python. Possibly as simple as:
     
-    (1) Install through system/site python and virtualenv
-      
-      (1.1) virtualenv command is standard with Python 2.7 or later. If it is not present, please see https://virtualenv.pypa.io for details to install virtualenv for your python. Possibly as simple as:
-      
-      .. code::
+    .. code::
 
-        sudo easy_install pip
-        sudo pip install virtualenv
+      sudo easy_install pip
+      sudo pip install virtualenv
 
-      Ask your IT manager to help install it for you if you have permission difficulties.
+    Ask your IT manager to help install it for you if you have permission difficulties.
+    When your system python has virtualenv, make sure your $PYTHONPATH is set to empty. 
+    Follow steps below:
+    
+    .. code::
       
-      (1.2) When your system python has virtualenv, make sure your $PYTHONPATH is set to empty and follow steps below:
+      sudo pip install --upgrade pip
+      virtualenv zoomx_vpy
+
+    Now you can activate this virtual python for installing ZoomX python dependencies:
+    
+    .. code::
       
-      .. code::
-        
-        sudo pip install --upgrade pip
-        virtualenv zoomx_vpy
+      # in zoomx_vpy>
+      source zoomx_vpy/bin/activate 
+      pip install scipy
+      pip install tables
+      pip install pandas
+      pip install pysam
+      pip install pybedtools
 
-      (1.3) Then you can activate this virtual python for installing ZoomX:
-      
-      .. code::
-        
-        # in zoomx_py>
-        source zoomx_vpy/bin/activate 
-        pip install scipy
-        pip install tables
-        pip install pandas
-        pip install pysam
-        pip install pybedtools
+    Optionally, on most platforms, the python dependencies will be automatically setup by ZoomX:
+    
+    .. code::
 
-      (1.4) Optionally, under your virtualenv, the dependencies will be automatically setup by ZoomX installation itself:
-      
-      .. code::
+      # in zoomx_vpy>
+      git clone git@bitbucket.org:charade/zoomx.git
+      cd zoomx
+      git submodule update --init --recursive 
+      python setup.py install 
 
-        # in zoomx_py>
-        git clone git@bitbucket.org:charade/zoomx.git
-        cd zoomx
-        git submodule update --init --recursive 
-        python setup.py install 
-
-      (1.5) Now the ZoomX executables will be available from "$PWD/zoomx_vpy/bin". Because you installed ZoomX via virtualenv, remember to activate the virtualenv first every time you use ZoomX. Also export the environmental variable $ZOOMX_BIN=$PWD/zoomx_vpy/bin
-       
+    Now the ZoomX executables will be available from "$PWD/zoomx_vpy/bin". 
+    Because you installed ZoomX via virtualenv, remember to activate the virtualenv every time you use ZoomX. 
+    Also export the environmental variable $ZOOMX_BIN=$PWD/zoomx_vpy/bin and add it to your $PATH
 
 EXECUTABLES      
 -----------
@@ -149,16 +150,10 @@ EXECUTABLES
 USAGE
 ------------
     
-  (1) By default all above executables will be available from $ZOOMX_bin/ .
-    Use '-h' to read script-wise usage.
+  By default all above executables will be available from $ZOOMX_BIN/ .
+  Use '-h' to read script-wise usage.
+  See Wiki pages for more details.
 
-  (2) Do a Sanity check for installation
-
-  .. code::
-
-     cd test
-     ./simple Your/Path/To/ZoomX
-    
 WIKI
 -------------
 
@@ -166,10 +161,12 @@ WIKI
     
 FAQ
 -------------
+
   http://bitbucket.org/charade/zoomx/wiki/FAQ
     
 BUG
 -------------
+
   https://bitbucket.org/charade/zoomx/issues
 
 CONTACTS

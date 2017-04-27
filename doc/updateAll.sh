@@ -1,4 +1,4 @@
-./updateExample.sh
 ./updateHome.sh
-./makehtml.sh
-./makelatex.sh
+./updateExample.sh
+./updateManual.sh
+./updateWiki.sh

@@ -61,6 +61,7 @@ Installation Related
   And there is an amazon instance where the full test data is preinstalled at ~/setup/zoomx/test. Use following ssh command to access (password bkd).
 
   .. code:: bash
+
      ssh -i "biolinux8_key_pair.pem" bkd:bkd@ec2-54-190-195-126.us-west-2.compute.amazonaws.com
 
   With the provided test data, the program should just take minutes.
