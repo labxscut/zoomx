@@ -151,30 +151,94 @@ sapply(seq(length(mcvFiles)), "plotDenCov", cov, outPrefix, coveragePerBlock, co
 
 quit()
 
-#obsolete proof-of-idea codes
-sapply(1, "plotDenCov", cov, outPrefix, coveragePerBlock, cols=cols, plotScale=plotScale)
 
-testDenCov = function(i, cov, files, coveragePerBlock) {
-  cv = cov[[i]]; prefix=files[[i]]; cpb=coveragePerBlock[[i]]
+library(fitdistrplus)
+library(logspline)
+
+i=3
+descdist(cov[[i]], discrete = FALSE)
+k=ks.test(cov[[i]]+rnorm(length(cov[[i]]))/1000, "ppois", mean(cov[[i]]))
+
+
+library(car)
+qqPlot(cv)
+
+m1 <- glm(Freq ~ cv, family="poisson", data=tb)
+summary(m1)
+
+#In the classic textbook by Johnson and Wichern (Applied Multivariate Statistical Analysis, Third Edition, 1992, p. 164), it says:
+
+#All measures of goodness-of-fit suffer the same serious drawback. When the sample size is small, only the most aberrant behaviors will be identified as lack of fit. On the other hand, very large samples invariably produce statistically significant lack of fit. Yet the departure from the specified distributions may be very small and technically unimportant to the inferential conclusions.
+
+#obsolete proof-of-idea codes
+testDenCov = function(i, cov, outPrefix, coveragePerBlock) {
+  cv = cov[[i]]; prefix=outPrefix[[i]]; cpb=coveragePerBlock[[i]]
+  #cv_select = seq(round(0.5*median(cv)),round(1.5*median(cv))) #exclude outliers
+  #tcv = cv[ cv %in% cv_select ]
+  cv_tb = as.data.frame(table(cv))
+  cat("fitdistr fitting", i, "-th figure", paste(prefix, "pdf", sep="."), "\n")
   my.mle<-fitdistr(cv, densfun="poisson")
-  BIC(my.mle)
-  cv_select = seq(round(0.5*median(cv)),round(1.5*median(cv))) #exclude outliers
-  tcv = cv[ cv %in% cv_select ]
-  tb = as.data.frame(table(tcv))
-  tb$tcv = as.integer(as.character(tb$tcv))
-  tb$Freq = as.integer(as.character(tb$Freq))
-  tcv_max = max(tb$tcv)
-  tcv_min = min(tb$tcv)
-  for(j in seq(tcv_min, tcv_max)) if(! j %in% tb$tcv) tb=rbind(tb, data.frame(tcv=j,Freq=0))
+  print(my.mle)
+  print(my.mle$loglik)
+  cv_mean = my.mle$estimate
+  
+  tb$cv = as.numeric(as.character(tb$cv))
+  tb$Freq = as.numeric(as.character(tb$Freq))
+  probs = dpois(tb$cv,lambda=cv_mean)
+  chisq.test(x=tb$Freq, p=probs) #cannot have expected frequency=0
+  #chisq.test(x=tb$cv, p=probs) #cannot have expected frequency=0
+  min_freq=200
+  x=c(tb$Freq[tb$Freq>min_freq],sum(tb$Freq[tb$Freq<=min_freq])
+  p=c(probs[tb$Freq>min_freq],sum(probs[tb$Freq<=min_freq])
+  chisq.test(x=x, p=p)
+  chisq.test(x=x, p=p, simulate.p.value = T)
+  for(j in seq(cv_min, cv_max)) if(! j %in% tb$cv) tb=rbind(tb, data.frame(cv=j,Freq=0))
   tb$Expect = dpois(tb$tcv, median(tcv)) # or mean of (tcv)
   tb$P = tb$Expect/(sum(tb$Expect))
-  chisq.test(tb$Freq, p=tb$P, simulate.p.value=TRUE)
-  cat("testing", i, "-th figure", paste(prefix, "pdf", sep="."), "\n")
-  #ks.test(cv+rnorm(length(cv))/1000, "ppois", mean(cv))
-  cat("theory: Poisson lamba=", cpb, "\n")
+  cat("fitdistrplus fitting", i, "-th figure", paste(prefix, "pdf", sep="."), "\n")
+  pois.fit = fitdist(cv,"pois")
+  #pois.fit = fitdist(cv,"pois",method="mme")
+  plot(pois.fit)
+  gofstat(pois.fit)
+  nbinom.fit = fitdist(cv,"nbinom")
+  plot(nbinom.fit)
+  gofstat(nbinom.fit)
+  
+  Test with simulated Poisson
+  n.sims = 10
+
+  stats <- replicate(n.sims, {
+    r <- rpois(n = length(cov[[i]])
+                  , lambda = pois.fit$estimate["lambda"]
+    )
+    as.numeric(ks.test(r+rnorm(length(r),0,0.001)
+                       , "ppois"
+                       , lambda = pois.fit$estimate["lambda"])
+    )
+  })
+
+  fit <- logspline(stats[1,])
+
+  1 - plogspline(ks.test(cv+rnorm(length(r),0,0.001)
+                         , "ppois"
+                         , lambda = pois.fit$estimate["lambda"])$statistic
+                 , fit
+  )
+  
+
+  cat("chi-square testing", i, "-th figure", paste(prefix, "pdf", sep="."), "\n")
+  c=chisq.test(tb$Freq, p=tb$P, simulate.p.value=TRUE)
+  print(c)
+  cat("K-S testing", i, "-th figure", paste(prefix, "pdf", sep="."), "\n")
+  k=ks.test(cv+rnorm(length(cv))/1000, "ppois", mean(cv))
+  print(t)
+  cat("theory: empirical mean=", cpb, "\n")
   cat("xlim:", xlim, "\n")
   cat("ylim:", ylim, "\n")
 }
+
+library(MASS)
+sapply(seq(length(mcvFiles)), "testDenCov", cov, outPrefix, coveragePerBlock)
 
 
 # plotDenCov = function(i, cov, files, coveragePerBlock){

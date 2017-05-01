@@ -53,9 +53,11 @@ dist=setup(name="zoomx",
     provides=['zoomx'],
     py_modules = ['zoomx.parse10x', 'zoomx.gridScan', 'zoomx.refineBreak'],
 		scripts = ['scripts/getMolecule.sh', 'scripts/plotMolecule.R', \
-	  		   'scripts/bedpe2loupe.sh', 'scripts/getSomatic.sh', \
-                           'scripts/plot10x.R', 'scripts/plotCircus.R', \
-                           'scripts/plotCumCov.R', 'scripts/plotDenCov.R'],
+		           'scripts/getMoleFile.sh', 'scripts/plotMoleFile.sh', \
+	  		       'scripts/bedpe2loupe.sh', 'scripts/getSomatic.sh', \
+               'scripts/plotStats.R', 'scripts/plotCircus.R', \
+               'scripts/plotCumCov.R', 'scripts/plotDenCov.R', \
+               'scripts/filterMolecule.R', 'scripts/zoomxRun'],
     data_files = [('',['README.rst','LICENSE','VERSION.txt'])],
     entry_points = { 
       'console_scripts': [
