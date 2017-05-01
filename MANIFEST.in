@@ -12,6 +12,7 @@ include scripts/getSomatic.sh
 include scripts/plotCircus.R
 include scripts/plotCumCov.R
 include scripts/plotDenCov.R
+include scripts/plotBarFit.R
 include scripts/plotMoleFile.sh
 include scripts/plotMolecule.R
 include scripts/plotStats.R

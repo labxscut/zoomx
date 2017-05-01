@@ -19,7 +19,7 @@ myrequire = function(pkg, repo="CRAN", version=NULL, lib=Sys.getenv("R_LIBS_USER
   if(!is.null(version)) { #always install
     install_version(pkg, version = version, repos=repo)
   }
-  if(repo!="CRAN" | repo!="Bioc") { #always install
+  if(repo!="CRAN" & repo!="Bioc") { #always install
     install_git(repo)
   }
   tryCatch(suppressMessages(library(pkg,character.only=T)), error=function(e) {

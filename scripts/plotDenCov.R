@@ -151,6 +151,7 @@ sapply(seq(length(mcvFiles)), "plotDenCov", cov, outPrefix, coveragePerBlock, co
 
 quit()
 
+#obsolete proof-of-idea codes
 
 library(fitdistrplus)
 library(logspline)
@@ -158,7 +159,6 @@ library(logspline)
 i=3
 descdist(cov[[i]], discrete = FALSE)
 k=ks.test(cov[[i]]+rnorm(length(cov[[i]]))/1000, "ppois", mean(cov[[i]]))
-
 
 library(car)
 qqPlot(cv)
@@ -170,7 +170,7 @@ summary(m1)
 
 #All measures of goodness-of-fit suffer the same serious drawback. When the sample size is small, only the most aberrant behaviors will be identified as lack of fit. On the other hand, very large samples invariably produce statistically significant lack of fit. Yet the departure from the specified distributions may be very small and technically unimportant to the inferential conclusions.
 
-#obsolete proof-of-idea codes
+
 testDenCov = function(i, cov, outPrefix, coveragePerBlock) {
   cv = cov[[i]]; prefix=outPrefix[[i]]; cpb=coveragePerBlock[[i]]
   #cv_select = seq(round(0.5*median(cv)),round(1.5*median(cv))) #exclude outliers
