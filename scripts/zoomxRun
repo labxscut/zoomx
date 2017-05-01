@@ -109,7 +109,7 @@ if [[ ! -z $( testSubstring "controlCov" $ZoomXRunOp ) ]]; then
   if [[ $caseCovFile == "none" ]]; then
     controlCovCMD="Error: need to specify a controlCovFile other than none in $ZoomxCfgFile!"
   else
-    controlCovCMD="(time samtools bedcov $ref.bed.w100s100 $controlPf/$controlBam >$controlCovFile)"
+    controlCovCMD="samtools bedcov $ref.bed.w100s100 $controlPf/$controlBam >$controlCovFile"
   fi
   if [[ -z $dryMode ]]; then echo $controlCovCMD | bash; fi
   echo "    controlCovCMD': '$controlCovCMD',"
@@ -190,7 +190,7 @@ if [[ ! -z $( testSubstring "caseCov" $ZoomXRunOp ) ]]; then
   if [[ $caseCovFile == "none" ]]; then
     caseCovCMD="Error: need to specify a caseCovFile other than none in $ZoomxCfgFile!"
   else
-    caseCovCMD="(time samtools bedcov $ref.bed.w100s100 $casePf/$caseBam >$caseCovFile)"
+    caseCovCMD="samtools bedcov $ref.bed.w100s100 $casePf/$caseBam >$caseCovFile"
   fi
   if [[ -z $dryMode ]]; then echo $caseCovCMD | bash; fi
   echo "    caseCovCMD': '$caseCovCMD',"
