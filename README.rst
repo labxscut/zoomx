@@ -67,7 +67,7 @@ INSTALL
 
     Python2(>=2.7)  http://www.python.org/
 
-      pybedtools, pysam, pandas, scipy
+      pybedtools, pysam, pandas, tables, scipy
 
     R(>=3.3)  http://r-project.org
       
