@@ -43,6 +43,7 @@ for(p in c("GenomicRanges", "ggbio", "Rsamtools")) myrequire(p,repo="Bioc")
 for(p in c("primerTree")) myrequire(p,repo="https://github.com/chaelir/primerTree.git")
 #use following to test if primerTree works
 #mammals_16S = search_primer_pair(name='A','CGGTTGGGGTGACCTCGGA','GCTGTTATCCCTAGGGTAACT',num_aligns=1000, total_primer_specificity_mismatch=3)
+devtools::source_url("https://gist.github.com/chaelir/raw/callPrimer3.R")
 
 
 ####Options####

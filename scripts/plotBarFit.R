@@ -37,7 +37,7 @@ myrequire = function(pkg, repo="CRAN", version=NULL, lib=Sys.getenv("R_LIBS_USER
   })
 }
 
-for(p in c("optparse","devtools","fitdistrplus")) myrequire(p)
+for(p in c("optparse","devtools","fitdistrplus","ggplot2")) myrequire(p)
 for(p in c("GenomicRanges","rtracklayer")) myrequire(p, repo="Bioc")
 
 
@@ -122,11 +122,20 @@ testBarFit = function(bx, ovlapGridBX, grRefGrid) {
   #chisq.fit = chisq.test(x=c((length(grRefGrid)-nrow(bx_hist)), nrow(bx_hist)), p=dpois(0:1,lambda=bx_mean)) 
 }#bx=uniqueBX[1]; testBarFit(bx, ovlapGridBX)
 
+#need to do a density plot
+
 allTests = lapply(seq_along(moleFiles),runBarFit,moleFiles,gridFiles)
 for(i in seq_along(moleFiles)) {
   pvalues = sapply(allTests[[i]],"[[",1)
   lambdas = sapply(allTests[[i]],"[[",2)
-  save(pvalues, lambdas, file=paste(outPrefix[i],".RData",sep=""))
+  save(pvalues, lambdas, file=paste(outPrefix[i],".barfit.RData",sep=""))
+  plt = ggplot()
+  plt = plt+geom_histogram(aes(pvalues),breaks=seq(0,1,0.01))+scale_x_continuous(limits=c(0,1.01))
+  ggsave(file=paste(outPrefix[i],".barfit.tiff",sep=""))
 }
 
 quit()
+
+#m=c(40,34,32,30,29,27,26,50,34,27,27,26,26)
+#r=c(18,5,2,0,1,0,4,26,7,0,2,11,2)
+#t.test(m,r,paired=T,alternative="greater")

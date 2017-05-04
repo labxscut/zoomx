@@ -32,7 +32,7 @@ myrequire = function(pkg, repo="CRAN", lib=Sys.getenv("R_LIBS_USER"), ...){
   })
 }
 
-for(p in c("RColorBrewer","optparse","ggplot2","MASS","rjson")) myrequire(p)
+for(p in c("optparse","ggplot2","rjson","fitdistrplus","car","RColorBrewer")) myrequire(p)
 
 option_list2 <- list(
   make_option(c("-p", "--outPrefix"), default="none",
@@ -94,7 +94,7 @@ if(debug){
 }
 colScheme="Dark2"
 cols <- brewer.pal(8, colScheme)[3:4]
-colnames = paste(label,c("Theory","Empirical"),sep="")
+colnames = paste(label,c("Fit","Empirical"),sep="")
 names(cols) = colnames
 
 mainTextSize=14
@@ -103,7 +103,6 @@ mainLineSize=1.5
 plotMargin = unit(c(0.28,0.28,0.28,0.28), "in")
 cfgOptions = fromJSON(readLines(cfgFile))
 averageFragLength = cfgOptions$mLf
-#fragNumber = cfgOptions$aNf
 fragNumber = cfgOptions$aNf
 coveragePerBlock = round(fragNumber / (genomeSize/gridSize) )
 names(coveragePerBlock) = as.character(gridSize)
@@ -112,24 +111,28 @@ tickFactor = overlapFactor / (gridSize/referenceGridsize)  # times tick to corre
 data = lapply(mcvFiles, "read.table")
 cov = lapply(seq_along(data), FUN=function(x){ data[[x]][,4][data[[x]][,4]>10] } )
 
-plotDenCov = function(i, cov, outPrefix, coveragePerBlock, cols, tickFactor, plotScale, format){
+plotDenCov = function(i, cov, outPrefix, coveragePerBlock, cols, tickFactor, plotScale, format, showDensity=FALSE){
   prefix=outPrefix[[i]];
   colnames=names(cols)
-  Coverage = cov[[i]]; cpb=coveragePerBlock[[i]]; tf=tickFactor[[i]]; gs=names(coveragePerBlock)[[i]]
+  pois.fit = fitdist(cov[[i]],"pois"); cpb = pois.fit$estimate;
+  Coverage = cov[[i]]; tf=tickFactor[[i]]; gs=names(coveragePerBlock)[[i]] #genome size
   xlim=round(c(0.25*cpb,1.75*cpb)/10)*10  #round to 10-based
   xticks=seq(xlim[1],xlim[2],by=50/tf) 
   xticklabs=paste(as.integer(seq(xlim[1]*tf,xlim[2]*tf,by=50)))
   ylim=c(0, 1.25*max(dpois(seq(1,1.5*cpb),lambda=cpb)))
-  cat("theory: Poisson lamba=", cpb, "\n")
+  cat("fitted Poisson lamba=", cpb, "\n")
   cat("xlim:", xlim, "\n")
   cat("ylim:", ylim, "\n")
+  
+  message("plotFile1=",paste(prefix, "density", format, sep="."))
   p0 = qplot(Coverage, geom = 'blank') +   
-    geom_histogram(aes(y = ..density..), alpha = 0.4, fill="blue", color="gray", binwidth=4/tf) +
-    geom_line(aes(y = ..density.., colour=colnames[2]), stat="density", size=mainLineSize) + #Empricial
-    geom_line(aes(x = seq(xlim[1], xlim[2]), 
-                  y = dpois(seq(xlim[1], xlim[2]), lambda=cpb), 
-                  colour=colnames[1]), #Theory
-              size=mainLineSize) +
+    geom_histogram(aes(y = ..density..), alpha = 0.4, fill="blue", color="gray", binwidth=4/tf)
+  if(showDensity) {
+    p0 = p0 + geom_line(aes(y = ..density.., colour=colnames[2]), stat="density", size=mainLineSize) } #Empricial
+  p0 = p0 + geom_line(aes(x = seq(xlim[1], xlim[2]), 
+                          y = dpois(seq(xlim[1], xlim[2]), lambda=cpb), 
+                          colour=colnames[1]),
+                          size=mainLineSize) +
     theme_classic() +
     scale_colour_manual(name = '', values = cols ) +
     scale_x_continuous('Count', breaks=xticks, label=xticklabs, limit=xlim) +
@@ -137,31 +140,51 @@ plotDenCov = function(i, cov, outPrefix, coveragePerBlock, cols, tickFactor, plo
     theme(legend.position = c(0.85,0.85), text=element_text(size=legendTextSize)) + 
     theme(plot.margin=plotMargin) + 
     theme(plot.title = element_text(hjust=0.5, size=as.integer(mainTextSize), face="bold")) #+
-  message("plotFile=",paste(prefix, format, sep="."))
   #ggsave(filename=paste(prefix, format, sep="."),plot=p0,w=5.6, h=5.6,units="in",dpi=72*plotScale,
   #       type="Xlib", compression="lzw")
-  tiff(filename=paste(prefix, format, sep="."),w=5.6*72*plotScale,h=5.6*72*plotScale,units="px",res=72*plotScale,
-         type="Xlib", compression="lzw")
+  tiff(filename=paste(prefix, "density", format,  sep="."),w=5.6*72*plotScale,h=5.6*72*plotScale,units="px",res=72*plotScale, type="Xlib", compression="lzw")
   print(p0)
   dev.off()
-}
+  
+  message("plotFile2=",paste(prefix, "qqpois", format, sep="."))
+  tiff(filename=paste(prefix, "qqpois", format,  sep="."),w=5.6*72*plotScale,h=5.6*72*plotScale,units="px",res=72*plotScale,
+       type="Xlib", compression="lzw")
 
-sapply(seq(length(mcvFiles)), "plotDenCov", cov, outPrefix, coveragePerBlock, cols=cols, 
-       tickFactor=tickFactor, plotScale=plotScale, format=format)
+  cv = sample(cov[[i]],min(10000,length(cov[[i]])))
+  qqplot(y=cv, x=qpois(ppoints(length(cv)), lambda=pois.fit$estimate),
+                       xlim=xlim, ylim=xlim, 
+                       xlab="Poisson Fit", ylab="Emprical Coverage")
+  qqline(y=cv, distribution=function(p) qpois(p, lambda=pois.fit$estimate))
+  #library("BoutrosLab.plotting.general") #not working for some reason
+  #tmp.confidence.interval <- create.qqplot.fit.confidence.interval(cv);
+  #lines(tmp.confidence.interval$z, tmp.confidence.interval$upper.pw, lty = 2, col = "brown")
+  #lines(tmp.confidence.interval$z, tmp.confidence.interval$lower.pw, lty = 2, col = "brown")
+  #lines(tmp.confidence.interval$z[tmp.confidence.interval$u], 
+  #      tmp.confidence.interval$upper.sim, lty = 2, col = "blue")
+  #lines(tmp.confidence.interval$z[tmp.confidence.interval$l], 
+  #      tmp.confidence.interval$lower.sim, lty = 2, col = "blue")
+  #legend(1, -1.5, c("simultaneous", "pointwise"), col = c("blue", "brown"), lty = 2, bty = "n")
+  #qqPlot(cv, distribution="pois", lambda=pois.fit$estimate, main="", ylab="Empirical Coverage", xlab="Poisson Fit")
+  dev.off()
+} #plotDenCov(3,cov,outPrefix,coveragePerBlock,cols=cols, tickFactor=tickFactor, plotScale=plotScale, format=format)
+
+sapply(seq(length(mcvFiles)), "plotDenCov", cov, outPrefix, coveragePerBlock, cols=cols, tickFactor=tickFactor, plotScale=plotScale, format=format)
+
+
 
 quit()
 
 #obsolete proof-of-idea codes
 
-library(fitdistrplus)
-library(logspline)
+
 
 i=3
-descdist(cov[[i]], discrete = FALSE)
-k=ks.test(cov[[i]]+rnorm(length(cov[[i]]))/1000, "ppois", mean(cov[[i]]))
 
-library(car)
-qqPlot(cv)
+#k=ks.test(cov[[i]]+rnorm(length(cov[[i]]))/1000, "ppois", mean(cov[[i]]))
+
+
+
+descdist(cov[[i]], discrete = FALSE)
 
 m1 <- glm(Freq ~ cv, family="poisson", data=tb)
 summary(m1)
