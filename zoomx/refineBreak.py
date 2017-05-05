@@ -135,7 +135,7 @@ def main(args):
   if (len(rawCalls) > maxNum):
     rawCalls=rawCalls[0:maxNum]
 
-  mergeBedpe=pandas.DataFrame()
+  mergeBedpe=pandas.DataFrame(dict(zip(callLabels,[ [] for i in range(len(callLabels)) ])), columns=callLabels)
   if (len(rawCalls) > 0):
     #save bedpe file for pairtopair overlapping
     tmpBedpeFile=lib10x.getTemporaryFile('bedpe_')
