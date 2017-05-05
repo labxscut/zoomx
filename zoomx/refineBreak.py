@@ -131,66 +131,67 @@ def main(args):
   rawCalls['index']=xrange(0,rawCalls.shape[0])
   sys.stderr.write("maxNum={}\n".format(maxNum))
   #reduce rawCalls to maxNum allowed
-  sys.stderr.write("len(rawCalls))={}\n".format(len(rawCalls)))
+  sys.stderr.write("rawCalls={}\n".format(len(rawCalls)))
   if (len(rawCalls) > maxNum):
     rawCalls=rawCalls[0:maxNum]
-  #save bedpe file for pairtopair overlapping
-  tmpBedpeFile=lib10x.getTemporaryFile('bedpe_')
-  rawCalls.to_csv(tmpBedpeFile,header=False, sep="\t", index=False)
-  
-  #pairtopair overlapping
-  sys.stderr.write("merging calls...\n")
-  tmpOverlapFile=lib10x.getTemporaryFile('bedpe_')
-  if debug: sys.stderr.write("tmpBedpeFile='"+str(tmpBedpeFile)+"'\n")
-  pair2pair_cmd="bedtools pairtopair -is -a %s -b %s | cut -f8,16 >%s" % (tmpBedpeFile, tmpBedpeFile, tmpOverlapFile)
-  if debug: sys.stderr.write("pair2pair_cmd="+str(pair2pair_cmd)+"\n")
-  if lib10x.run_cmd(pair2pair_cmd) == False:
-    sys.stderr.write("Error in running pair2pair overlapping..."); quit()
-  end_time=time.time()
-  sys.stderr.write("overlapping done:{}s\n".format(end_time-start_time))
-  
-  sys.stderr.write("loading overlapping graph...")
-  overlapCalls=pandas.read_table(tmpOverlapFile, names=["bedpe1","bedpe2"], dtype={'bedpe1':numpy.int32,'bedpe2':numpy.int32})
-  
-  #load pairtopair overlapping into a sparse matrix
-  if debug:
-    save['overlapCalls']=overlapCalls
-  ones=[1]*overlapCalls.shape[0]
-  sys.stderr.write("analyzing connecting component...")
-  overlapGraph=scipy.sparse.coo_matrix((ones,(overlapCalls.iloc[:,0],overlapCalls.iloc[:,1])), shape=(len(rawCalls),len(rawCalls)))
-  if debug:
-    save['overlapGraph']=overlapGraph
-  #find connected components; only keep correctly ordered components
-  numComponents, components = scipy.sparse.csgraph.connected_components(overlapGraph)
-  #find connected entries of rawCalls
-  #c -> (c/23, c%23)
-  #reduce connected components to a new bedpe format
 
-  mergeChr1=numpy.array([None] * numComponents, dtype="object")
-  mergeStart1=numpy.array([None] * numComponents, dtype="object")
-  mergeEnd1=numpy.array([None] * numComponents, dtype="object")
-  mergeChr2=numpy.array([None] * numComponents, dtype="object")
-  mergeStart2=numpy.array([None] * numComponents, dtype="object")
-  mergeEnd2=numpy.array([None] * numComponents, dtype="object")
-  mergeMolCnt=numpy.array([None] * numComponents, dtype="object")
-  for ci in range(numComponents): # you might get flipped 
-    ri=numpy.where(components == ci)
-    mergeChr1[ci]=list(numpy.unique(rawCalls.iloc[ri]['chr1']))[0]
-    mergeStart1[ci]=min(rawCalls.iloc[ri]['start1'])
-    mergeEnd1[ci]=max(rawCalls.iloc[ri]['end1'])
-    mergeChr2[ci]=list(numpy.unique(rawCalls.iloc[ri]['chr2']))[0]
-    mergeStart2[ci]=min(rawCalls.iloc[ri]['start2'])
-    mergeEnd2[ci]=max(rawCalls.iloc[ri]['end2'])
-    mergeMolCnt[ci]=max(rawCalls.iloc[ri]['molcnt']) #
-  
-  mergeBedpe=pandas.DataFrame(dict(zip(callLabels,[mergeChr1,mergeStart1,mergeEnd1,mergeChr2,mergeStart2,mergeEnd2,mergeMolCnt])),\
-    columns=callLabels) # natually sorted, good!
-  
+  mergeBedpe=pandas.DataFrame()
+  if (len(rawCalls) > 0):
+    #save bedpe file for pairtopair overlapping
+    tmpBedpeFile=lib10x.getTemporaryFile('bedpe_')
+    rawCalls.to_csv(tmpBedpeFile,header=False, sep="\t", index=False)
+    
+    #pairtopair overlapping
+    sys.stderr.write("merging calls...\n")
+    tmpOverlapFile=lib10x.getTemporaryFile('bedpe_')
+    if debug: sys.stderr.write("tmpBedpeFile='"+str(tmpBedpeFile)+"'\n")
+    pair2pair_cmd="bedtools pairtopair -is -a %s -b %s | cut -f8,16 >%s" % (tmpBedpeFile, tmpBedpeFile, tmpOverlapFile)
+    if debug: sys.stderr.write("pair2pair_cmd="+str(pair2pair_cmd)+"\n")
+    if lib10x.run_cmd(pair2pair_cmd) == False:
+      sys.stderr.write("Error in running pair2pair overlapping..."); quit()
+    end_time=time.time()
+    sys.stderr.write("overlapping done:{}s\n".format(end_time-start_time))
+    
+    sys.stderr.write("loading overlapping graph...")
+    overlapCalls=pandas.read_table(tmpOverlapFile, names=["bedpe1","bedpe2"], dtype={'bedpe1':numpy.int32,'bedpe2':numpy.int32})
+    #load pairtopair overlapping into a sparse matrix
+    if debug:
+      save['overlapCalls']=overlapCalls
+    ones=[1]*overlapCalls.shape[0]
+    sys.stderr.write("analyzing connecting component...")
+    overlapGraph=scipy.sparse.coo_matrix((ones,(overlapCalls.iloc[:,0],overlapCalls.iloc[:,1])), shape=(len(rawCalls),len(rawCalls)))
+    if debug:
+      save['overlapGraph']=overlapGraph
+    #find connected components; only keep correctly ordered components
+    numComponents, components = scipy.sparse.csgraph.connected_components(overlapGraph)
+    #find connected entries of rawCalls
+    #c -> (c/23, c%23)
+    #reduce connected components to a new bedpe format
 
-  sys.stderr.write("output merged calls\n")
+    mergeChr1=numpy.array([None] * numComponents, dtype="object")
+    mergeStart1=numpy.array([None] * numComponents, dtype="object")
+    mergeEnd1=numpy.array([None] * numComponents, dtype="object")
+    mergeChr2=numpy.array([None] * numComponents, dtype="object")
+    mergeStart2=numpy.array([None] * numComponents, dtype="object")
+    mergeEnd2=numpy.array([None] * numComponents, dtype="object")
+    mergeMolCnt=numpy.array([None] * numComponents, dtype="object")
+    for ci in range(numComponents): # you might get flipped 
+      ri=numpy.where(components == ci)
+      mergeChr1[ci]=list(numpy.unique(rawCalls.iloc[ri]['chr1']))[0]
+      mergeStart1[ci]=min(rawCalls.iloc[ri]['start1'])
+      mergeEnd1[ci]=max(rawCalls.iloc[ri]['end1'])
+      mergeChr2[ci]=list(numpy.unique(rawCalls.iloc[ri]['chr2']))[0]
+      mergeStart2[ci]=min(rawCalls.iloc[ri]['start2'])
+      mergeEnd2[ci]=max(rawCalls.iloc[ri]['end2'])
+      mergeMolCnt[ci]=max(rawCalls.iloc[ri]['molcnt']) #
+    
+    mergeBedpe=pandas.DataFrame(dict(zip(callLabels,[mergeChr1,mergeStart1,mergeEnd1,mergeChr2,mergeStart2,mergeEnd2,mergeMolCnt])),\
+      columns=callLabels) # natually sorted, good!
+    mergeBedpe=mergeBedpe.sort_values(by=['molcnt'],ascending=False)
+
   mergeBedpeFile=".".join([outPrefix,"merged"])
-  refineBedpe=mergeBedpe.sort_values(by=['molcnt'],ascending=False)
-  refineBedpe.to_csv(mergeBedpeFile,header=True, sep="\t", index=False)
+  sys.stderr.write("output merged calls\n")
+  mergeBedpe.to_csv(mergeBedpeFile,header=True, sep="\t", index=False)
   sys.stderr.write("mergedBedpeFile='"+str(mergeBedpeFile)+"'\n")
   end_time=time.time()
   sys.stderr.write("output merged done:{}s\n".format(end_time-start_time))
@@ -250,6 +251,7 @@ def main(args):
   #    support[bi] = list(overlapCalls['bedpe2']+1)
   #  return support
   
+  sys.stderr.write("attaching short read support\n")
   sys.stderr.write("merging IM rdp\n")
   imSupport = lib10x.ParallelIdentifySupportRDP(mergeBedpe, imBedpeFile, callLabels, callTypes, numprocs, debug)
   print "imSupport=", imSupport
@@ -281,7 +283,7 @@ def main(args):
   
   sys.stderr.write("output refined calls\n")
   refineBedpeFile=".".join([outPrefix,"refined"])
-  refineBedpe=mergeBedpe.sort_values(by=['molcnt'],ascending=False)
+  #refineBedpe=mergeBedpe.sort_values(by=['molcnt'],ascending=False) #this is already sorted
   mergeBedpe.to_csv(refineBedpeFile,header=True, sep="\t", index=False)
   sys.stderr.write("refineBedpeFile='"+str(refineBedpeFile)+"'\n")
 

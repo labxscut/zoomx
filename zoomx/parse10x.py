@@ -196,6 +196,7 @@ def main(args):
          ps = -1
     
       #output imBedpe/ffBedpe/rrBedpe
+      #TODO: output split into ff, rr, im(1st=+,2nd=-) and mi(
       if ( not rd.is_reverse ) and rd.mate_is_reverse and ( not rd.is_proper_pair ) : #IM
         imBedpeFile.write('\t'.join([rd.reference_name, str(rd.reference_start), str(rd.reference_start+100), \
                          rd.next_reference_name, str(rd.next_reference_start), str(rd.next_reference_start+100), str(hp)])+'\n' )
@@ -274,6 +275,7 @@ def main(args):
   else:  #end of longRangerVersion
   
     print >>sys.stderr, "using 10x longranger inferred molecule..."
+    # need to merging in parsing for older longRangerVersion to this one
   
     setAlpha = [0]
     numAlpha = len(setAlpha)
