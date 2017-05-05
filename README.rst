@@ -86,7 +86,7 @@ INSTALL
   *InstallationFree*:
 
     ZoomX can be used without installation as long as required commands are all in $PATH.
-    see manual for more informations
+    see `Examples <Example>`__ and `Manuals <Manual>`__ for more informations
 
   *Installation*
     
