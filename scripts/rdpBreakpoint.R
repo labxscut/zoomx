@@ -322,7 +322,8 @@ for(i in seq_along(supportTypes)) {
 #contigs = list(contig1,contig2,contig3)
 
 contigSeqs = x <- vector(mode = "list", length = length(contigs))
-tmpSlopSize = min(slopSize,maxSlopSize)
+#tmpSlopSize = min(slopSize,maxSlopSize)
+tmpSlopSize = slopSize
 
 formatCoordinate=function(chrom1,start1,end1,chrom2,start2,end2,type,support){
   paste(chrom1,start1,end1,chrom2,start2,end2,type,support,sep="|")
