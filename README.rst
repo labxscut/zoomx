@@ -65,23 +65,27 @@ INSTALL
     
   *Dependencies*:
 
-    An example install dependency install script for Ubuntu 16 is here:
-
-      https://bitbucket.org/charade/zoomx/raw/master/test/ubuntu.install    
-
     Python2(>=2.7)  http://www.python.org/
 
       pybedtools, pysam, pandas, tables, scipy
+      However, to install pysam, that api has also to be able to compile on your system with dafault setting. 
+      Otherwise expect the "csamtools.c" not found error, sometimes because of libcurse is required for build samtools but often missing in Linux distros.
 
     R(>=3.3)  http://r-project.org
       
-      optparse, GenmicRanges, ggbio, rjson, RColorBrewer 
+      optparse, GenomicRanges, ggbio, rjson, RColorBrewer
       
     Samtools (>0.19) http://samtools.org
-      executables have to be in $PATH and within the sve_py virtual env
-      there is samtools api comes with Pysam, however it has to be able to compile on your system with dafault setting. otherwise expect the "csamtools.c" not found error. e.g. libcurse is required for build samtools but often missing in some Linux.
+      samtools executables have to be in $PATH and within the sve_py virtual env
+      NOTE: this is independent of the samtools api comes with Pysam. 
+      
       
     Bedtools (>2.20) http://bedtools.org
+      bedtools executables have to be in $PATH and within the sve_py virtual env
+      
+    An example dependency install script for Ubuntu is here:
+
+      https://bitbucket.org/charade/zoomx/raw/master/test/ubuntu.install   
 
     
   *InstallationFree*:
