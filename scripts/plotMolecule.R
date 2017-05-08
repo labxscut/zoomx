@@ -31,8 +31,9 @@ myrequire = function(pkg, repo="CRAN", lib=Sys.getenv("R_LIBS_USER"), ...){
   })
 }
 
-for(p in c("optparse", "rjson", "ggplot2", "RColorBrewer")) myrequire(p)
-for(p in c("GenomicRanges", "ggbio")) myrequire(p,repo="Bioc")
+#for(p in c("optparse", "rjson", "ggplot2", "RColorBrewer")) myrequire(p)
+#for(p in c("GenomicRanges", "ggbio")) myrequire(p,repo="Bioc")
+for(p in c("optparse", "rjson", "ggplot2", "RColorBrewer","GenomicRanges", "ggbio")) require(p,character.only=T)
 
 #genome plot packages: ggbio, Sushi, genoplotR, circlize 
 
@@ -78,8 +79,8 @@ if(debug){
   gapSize = 100000     #boundary padding is 10K/2 
   scaleSize = 10000    #boundary rounded to 10K
   flushSD = 5000
-  plotDir=paste("/Users/charlie/ws/crcbrain/02_ZoomX","P05378_7175_mt.wg12.LRv2.bam.dist.E25_P05378_7176_nt.wg12.LRv2.bam.dist.E10.somatic.curate.Plot-1",sep="/")
-  statsFile=paste("/Users/charlie/ws/crcbrain/02_ZoomX","P05378_7175_mt.wg12.LRv2.bam.gridScan.cfg.json",sep="/") 
+  plotDir=paste("~/ws/crcbrain/02_ZoomX","P05378_7175_mt.wg12.bam.dist.E25_P05378_7176_nt.wg12.bam.dist.E10.somatic.curate.Plot_1",sep="/")
+  statsFile=paste("~/ws/crcbrain/02_ZoomX","P05378_7175_mt.wg12.bam.gridScan.cfg.json",sep="/") 
 } else { 
   options(warn=-1)
 }

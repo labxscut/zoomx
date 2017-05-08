@@ -65,7 +65,7 @@ noQuiet=cmd$options$noQuiet
 if(outPrefix=="none") outPrefix=moleFiles
 
 if(debug){
-  setwd("~/ws/10x6")
+  setwd("~/ws/zoomx/03_Stats/")
   moleFiles = c("NA12878_from10X.wg12.bam.multiFragBar.bed.a0")
   gridFiles = c("~/ws/hg/hg19/human_g1k_v37.ucsc.fasta.bed.w10Ks10K")
   outPrefix = moleFiles

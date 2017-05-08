@@ -17,13 +17,18 @@ myrequire = function(pkg, repo="CRAN", lib=Sys.getenv("R_LIBS_USER"), ...){
   })
 }
 
-for(p in c("optparse", "ggplot2", "reshape2", "cowplot")) myrequire(p)
-for(p in c("rhdf5")) myrequire(p,repo="Bioc")
+#for(p in c("optparse", "ggplot2", "reshape2", "cowplot")) myrequire(p)
+#for(p in c("rhdf5")) myrequire(p,repo="Bioc")
+for(p in c("optparse", "ggplot2", "reshape2", "cowplot", "rhdf5")) require(p, character.only=T)
 
 option_list <- list(
   make_option(c("-o", "--output"), default="parse10xh5.pdf", help="output file name, [default: %default] \n"),
   make_option(c("-t", "--title"), default="Linked Read Sequencing Statistics", help="output title, [default: %default] \n"),
-  make_option(c("-l", "--labels"), default="none", help="sample labels, [default: %default] \n")
+  make_option(c("-l", "--labels"), default="none", help="sample labels, [default: %default] \n"),
+  make_option(c("-q", "--noQuiet"), action="store_true", default=FALSE,
+              help="show verbose, [default %default]"),
+  make_option(c("-a", "--debug"), action="store_true", default=FALSE,
+              help="save debug, [default %default]")
 )
 
 parser <- OptionParser(
@@ -35,18 +40,21 @@ cat("-Info: invoking command:",commandArgs(),"\n")
 args <- commandArgs(trailingOnly = TRUE)
 cmd = parse_args(parser, args, print_help_and_exit = TRUE, 
                  positional_arguments = TRUE)
+if(length(cmd$args)!=1 & !cmd$options$debug) { 
+	print_help(parser); quit()
+}
+debug=cmd$options$debug
 parse10xh5_text = cmd$args[1]
 master_pdf_text = cmd$options$output
 master_title_text = cmd$options$title
 sample_labels_text = cmd$options$labels
 
-if(length(cmd$args)!=1){ 
-	print_help(parser)
+if(debug){ 
+  setwd("~/ws/zoomx/03_Stats")
 	master_pdf_text="zoomx-FigureS2.pdf"
 	master_title_text="Linked Read Sequencing Statistics"
   parse10xh5_text="NA12878_WGS_phased_possorted_bam.bam.multiFragBar.h5.a0,P00526_2386_nt.10X_v2.bam.multiFragBar.h5.a0,P00526_2721_mt.st.10X_v2.bam.multiFragBar.h5.a0,P00526_2725_mt.10X_v2.bam.multiFragBar.h5.a0"
 	sample_labels_text="NA12878,Norm2386,MetR2721,MetL2725"
-  quit()
 }
 
 parse10xh5=strsplit(parse10xh5_text,',')[[1]]

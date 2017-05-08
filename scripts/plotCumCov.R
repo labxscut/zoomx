@@ -35,8 +35,8 @@ myrequire = function(pkg, repo="CRAN", lib=Sys.getenv("R_LIBS_USER"), ...){
   })
 }
 
-for(p in c("RColorBrewer","optparse")) myrequire(p)
-#for(p in c("GenomicRanges", "ggbio", "GenomeInfoDb")) myrequire(p, repo="bioC")
+#for(p in c("RColorBrewer","optparse")) myrequire(p)
+for(p in c("RColorBrewer","optparse")) require(p,character.only=T)
 
 option_list2 <- list(
   make_option(c("-o", "--outPrefix1"), default="none",
@@ -89,7 +89,7 @@ if(outPrefix3=="none") { plotSepNorm=FALSE } else { plotSepNorm=TRUE }
 
 # Get a list of the bedtools output histFiles you'd like to read in
 if(debug){
-  setwd("~/ws/10x6")
+  setwd("~/ws/zoomx/03_Stats")
   histFiles = list(c("NA12878_WGS_phased_possorted_bam.bam.hist.all.txt","NA12878_WGS_phased_possorted_bam.bam.multiFragBar.bed.a0.hist.all.txt"),c("P00526_2386_nt.10X_v2.bam.hist.all.txt","P00526_2386_nt.10X_v2.bam.multiFragBar.bed.a0.hist.all.txt"),c("P00526_2721_mt.st.10X_v2.bam.hist.all.txt","P00526_2721_mt.st.10X_v2.bam.multiFragBar.bed.a0.hist.all.txt"),c("P00526_2725_mt.10X_v2.bam.hist.all.txt","P00526_2725_mt.10X_v2.bam.multiFragBar.bed.a0.hist.all.txt"))
   labels = list(c("NA12878_PEfrag","NA12878_molecule"),c("Norm2386_PEfrag","Norm2386_molecule"),c("MetR2721_PEfrag","MetR2721_molecule"),c("MetL2725_PEfrag","MetL2725_molecule"))
   outPrefix1 = "zoomx.cumcov.plot"
@@ -160,7 +160,7 @@ plotCumCov = function(histFiles, labels, pf, insertFactor, format, addNorm=T, pl
   # Save the graph to a file
   if(format=="tiff") {
     tiff(paste(pf, "tiff", sep="."), w=ceiling(5.6*plotScale*72/2)*2, h=ceiling(5.6*plotScale*72/2)*2, units="px", 
-         res=72*plotScale, type="Xlib", compression="lzw")
+         res=72*plotScale, type="cairo", compression="lzw")
     message("tiffFile=",paste(pf, "tiff", sep="."))
   } else {
     pdf(paste(pf, "pdf", sep="."), w=5.6, h=5.6, units="in")
