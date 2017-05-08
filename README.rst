@@ -65,6 +65,10 @@ INSTALL
     
   *Dependencies*:
 
+    An example install dependency install script for Ubuntu 16 is here:
+
+      https://bitbucket.org/charade/zoomx/raw/master/test/ubuntu.install    
+
     Python2(>=2.7)  http://www.python.org/
 
       pybedtools, pysam, pandas, tables, scipy
@@ -79,9 +83,6 @@ INSTALL
       
     Bedtools (>2.20) http://bedtools.org
 
-    An example install dependency install script for Ubuntu 16 is here:
-
-      https://bitbucket.org/charade/zoomx/raw/master/test/ubuntu.install
     
   *InstallationFree*:
 
