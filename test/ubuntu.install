@@ -24,4 +24,5 @@ R> install.packages("RColorBrewer")
 R> source("http://bioconductor.org/biocLite.R")
 R> biocLite("GenomicRanges")
 R> biocLite("ggbio")
+R> biocLite(""GenomeInfoDb")
 
