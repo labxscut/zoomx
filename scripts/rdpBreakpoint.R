@@ -37,13 +37,15 @@ myrequire = function(pkg, repo="CRAN", version=NULL, lib=Sys.getenv("R_LIBS_USER
   })
 }
 
-for(p in c("devtools", "optparse", "rjson", "ggplot2", "RColorBrewer", "cowplot", "igraph", "raster","httr","plyr","stringr")) myrequire(p)
+#for(p in c("devtools", "optparse", "rjson", "ggplot2", "RColorBrewer", "cowplot", "igraph", "raster","httr","plyr","stringr")) myrequire(p)
+for(p in c("devtools", "optparse", "rjson", "ggplot2", "RColorBrewer", "cowplot", "igraph", "raster","httr","plyr","stringr")) require(p,character.only=T)
 #for(p in c("XML")) myrequire(p,version="3.96-0.2",repo="http://cran.us.r-project.org")
-for(p in c("GenomicRanges", "ggbio", "Rsamtools", "Biostrings","BSgenome.Hsapiens.UCSC.hg19","BSgenome.Hsapiens.UCSC.hg38")) myrequire(p,repo="Bioc")
+for(p in c("GenomicRanges", "ggbio", "Rsamtools", "Biostrings","BSgenome.Hsapiens.UCSC.hg19","BSgenome.Hsapiens.UCSC.hg38")) require(p,character.only=T)
+#for(p in c("GenomicRanges", "ggbio", "Rsamtools", "Biostrings","BSgenome.Hsapiens.UCSC.hg19","BSgenome.Hsapiens.UCSC.hg38")) myrequire(p,repo="Bioc")
 for(p in c("primerTree")) myrequire(p,repo="https://github.com/chaelir/primerTree.git")
 #use following to test if primerTree works
 #mammals_16S = search_primer_pair(name='A','CGGTTGGGGTGACCTCGGA','GCTGTTATCCCTAGGGTAACT',num_aligns=1000, total_primer_specificity_mismatch=3)
-devtools::source_url("https://gist.github.com/chaelir/raw/callPrimer3.R")
+#devtools::source_url("https://gist.github.com/chaelir/raw/callPrimer3.R")
 
 ####Options####
 option_list2 <- list(
@@ -441,7 +443,7 @@ contigSeqs = DNAStringSet(unlist(lapply(seq_along(contigs),"retrieveContig", con
 message("write contigs to:", paste(outPrefix,"fas",sep="."))
 writeXStringSet(contigSeqs, file=paste(outPrefix,"fas",sep="."), format="fasta")
 
-
+quit()
 #old proof-of-idea scripts
 #IMbr1=min(info[info$supportType=="rdpIM",]$start1)
 #IMbr2=min(info[info$supportType=="rdpIM",]$start2)

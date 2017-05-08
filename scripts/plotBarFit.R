@@ -37,9 +37,9 @@ myrequire = function(pkg, repo="CRAN", version=NULL, lib=Sys.getenv("R_LIBS_USER
   })
 }
 
-for(p in c("optparse","devtools","fitdistrplus","ggplot2")) myrequire(p)
-for(p in c("GenomicRanges","rtracklayer")) myrequire(p, repo="Bioc")
-
+#for(p in c("optparse","devtools","fitdistrplus","ggplot2")) myrequire(p)
+#for(p in c("GenomicRanges","rtracklayer")) myrequire(p, repo="Bioc")
+for(p in c("optparse","devtools","fitdistrplus","ggplot2","GenomicRanges","rtracklayer")) require(p,character.only=T)
 
 option_list2 <- list(
   make_option(c("-p", "--outPrefix"), default="none",
