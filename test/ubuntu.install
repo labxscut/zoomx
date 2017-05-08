@@ -1,6 +1,7 @@
 #!/bin/bash
 sudo apt-get install r-base python python-setuptools libpython-dev
 sudo easy_install pip
+python -m pip install --upgrade --force pip #sometimes pip has bugs, force upgrade it
 sudo pip install -U virtualenv
 sudo pip install -U scipy
 sudo pip install -U tables
@@ -9,3 +10,6 @@ sudo pip install -U pandas
 sudo pip install -U pysam
 sudo pip install -U pybedtools
 mkdir -p $(Rscript -e 'cat(Sys.getenv("R_LIBS_USER"))')
+#currently setuptools >=34 causes ImportError problem in easy_install, pytables. 
+#please use 33.1.1: 
+#pip install setuptools==33.1.1

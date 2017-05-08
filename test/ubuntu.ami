@@ -7,3 +7,4 @@ sudo pip install tables
 sudo pip install pandas
 sudo pip install pysam
 sudo pip install pybedtools
+sudo pip install awscli

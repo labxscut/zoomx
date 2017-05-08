@@ -21,11 +21,11 @@
 QUICK LINKS
 -----------
 
-`Examples <Example>`__
+`Examples <https://bitbucket.org/charade/zoomx/wiki/Example>`__
 
-`Manuals <Manual>`__
+`Manuals <https://bitbucket.org/charade/zoomx/wiki/Manual>`__
 
-`FAQ <FAQ>`__
+`FAQ <https://bitbucket.org/charade/zoomx/wiki/FAQ>`__
 
 INTRODUCTION
 ------------
@@ -65,9 +65,13 @@ INSTALL
     
   *Dependencies*:
 
+    An example install dependency install script for Ubuntu 16 is here:
+
+      https://bitbucket.org/charade/zoomx/raw/master/test/ubuntu.install    
+
     Python2(>=2.7)  http://www.python.org/
 
-      pybedtools, pysam, pandas, scipy
+      pybedtools, pysam, pandas, tables, scipy
 
     R(>=3.3)  http://r-project.org
       
@@ -79,14 +83,11 @@ INSTALL
       
     Bedtools (>2.20) http://bedtools.org
 
-    An example install dependency install script for Ubuntu 16 is here:
-
-      https://bitbucket.org/charade/zoomx/raw/master/test/ubuntu.install
     
   *InstallationFree*:
 
     ZoomX can be used without installation as long as required commands are all in $PATH.
-    see manual for more informations
+    see `Examples <https://bitbucket.org/charade/zoomx/wiki/Example>`__ and `Manuals <https://bitbucket.org/charade/zoomx/wiki/Manual>`__ for more informations
 
   *Installation*
     

@@ -148,6 +148,10 @@ test/somatic7.run
     echo $cfgfile.caseDistRef.json.$mydate &&
     zoomxRun caseTransRef $cfgfile >$cfgfile.caseTransRef.json.$mydate &&
     echo $cfgfile.caseTransRef.json.$mydate &&
+    echo "-----------------------------------------" &&
+    echo "NOTE: it is OK to see Errors below, resulting from bedtools complaining bed file cannot be opened. 
+    It is because the file is zero sized as a result of no junction found in previous steps" &&
+    echo "-----------------------------------------" &&
     zoomxRun distDiffMix $cfgfile >$cfgfile.distDiffMix.json.$mydate &&
     echo $cfgfile.distDiffMix.json.$mydate &&
     zoomxRun cisDiffMix $cfgfile >$cfgfile.cisDiffMix.json.$mydate &&
