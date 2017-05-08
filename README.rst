@@ -74,7 +74,7 @@ INSTALL
     R(>=3.3)  http://r-project.org
       
       optparse, GenomicRanges, ggbio, rjson, RColorBrewer, GenomeInfoDb
-      NOTE: using non-essential R scripts not listed in the EXECUTABLES section of this README file may incurr more dependencies, such as rhdf5. 
+      NOTE: using non-essential R scripts not listed in the EXECUTABLES section of this README file may incurr more dependencies, such as rhdf5, BSgenome.Hsapiens.UCSC.hg38, BSgenome.Hsapiens.UCSC.hg19, cowplot. 
       
     Samtools (>0.19) http://samtools.org
       samtools executables have to be in $PATH and within the sve_py virtual env

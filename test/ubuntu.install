@@ -26,4 +26,8 @@ R> biocLite("GenomicRanges")
 R> biocLite("ggbio")
 R> biocLite("GenomeInfoDb")
 R> biocLite("rhdf5")
+R> biocLite("BSgenome.Hsapiens.UCSC.hg19")
+R> biocLite("BSgenome.Hsapiens.UCSC.hg38")
+R> biocLite("Rsamtools")
+R> biocLite("Biostrings")
 

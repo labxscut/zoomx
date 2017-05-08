@@ -68,8 +68,9 @@ option_list2 <- list(
 parser <- OptionParser(usage = "%prog [options] makeContig infoFile", option_list=option_list2)
 args <- commandArgs(trailingOnly = TRUE)
 cmd = parse_args(parser, args, print_help_and_exit = TRUE, positional_arguments = TRUE)
-if(length(cmd$args)!=1 & !debug){ print_help(parser); quit() }
+if(length(cmd$args)!=1 & !cmd$options$debug){ print_help(parser); quit() }
 message("-Info: invoking command:",commandArgs(),"\n")
+debug = cmd$options$debug
 infoFile = cmd$args[1]
 reference = cmd$options$reference
 workDir = cmd$options$workDir
@@ -78,8 +79,8 @@ padding = cmd$options$padding
 
 ####Debug####
 if(debug){
-  workDir="/Users/charlie/Box/01_InProgress/0110_manuscripts/011000_zoomx_analysis_lcx/SET-DPP10-Fusion/"
-  infoFile="chr2_116365000_116390000_chr9_131450000_131465000.mol"
+  workDir="~/ws/crcbrain/02_ZoomX/P05378_7175_mt.wg12.bam.tra.E10_P05378_7176_nt.wg12.bam.tra.E5.somatic.Plot_1"
+  infoFile="chr2_116355000_116400000_chr9_131450000_131465000.mol"
   outPrefix="none"
   reference="hg37"
   padding = "-"
