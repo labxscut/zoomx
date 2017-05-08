@@ -21,11 +21,11 @@
 QUICK LINKS
 -----------
 
-`Examples <Example>`__
+`Examples <https://bitbucket.org/charade/zoomx/wiki/Example>`__
 
-`Manuals <Manual>`__
+`Manuals <https://bitbucket.org/charade/zoomx/wiki/Manual>`__
 
-`FAQ <FAQ>`__
+`FAQ <https://bitbucket.org/charade/zoomx/wiki/FAQ>`__
 
 INTRODUCTION
 ------------
@@ -87,7 +87,7 @@ INSTALL
   *InstallationFree*:
 
     ZoomX can be used without installation as long as required commands are all in $PATH.
-    see `Examples <Example>`__ and `Manuals <Manual>`__ for more informations
+    see `Examples <https://bitbucket.org/charade/zoomx/wiki/Example>`__ and `Manuals <https://bitbucket.org/charade/zoomx/wiki/Manual>`__ for more informations
 
   *Installation*
     
