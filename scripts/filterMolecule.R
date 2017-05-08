@@ -48,8 +48,9 @@ findAneuploid = function(bv, y) {  #find windows in boolean vector bv with at le
   as.vector(unlist(sapply(seq_along(startPos),FUN=function(x){ startPos[x]:endPos[x] })))
 }
 
-for(p in c("optparse", "IRanges")) myrequire(p)
-for(p in c("GenomicRanges")) myrequire(p, repo="bioC")
+#for(p in c("optparse", "IRanges")) myrequire(p)
+#for(p in c("GenomicRanges")) myrequire(p, repo="bioC")
+for(p in c("optparse", "IRanges","GenomicRanges")) require(p)
 
 ####Options####
 option_list2 <- list(
