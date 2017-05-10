@@ -63,13 +63,13 @@ TRYOUT
     ZoomX is available for tryout in a live Amazon EC2 instance.
     Simply log on with SSH and find the package located in ~/setup/zoomx .
     
-    .. code:
+    .. code::
     
       ssh bkd@ec2-54-190-36-93.us-west-2.compute.amazonaws.com # secret is the same as user
     
     Testing data and scripts are available in ~/setup/zoomx/test . Run ./clean to clean up the directory first. Examples are offered as germline3.run and somatic7.run, as explained in `Examples <https://bitbucket.org/charade/zoomx/wiki/Example>`__ .
 
-    .. code:
+    .. code::
    
       cd  ~/setup/zoomx/test 
       ./clean
@@ -77,7 +77,7 @@ TRYOUT
   *VirtualMachine*:
 
     The Amazon Machine Image (ami) of the above EC2 instance is downloadable from Amazon S3 bucket.
-    https://s3-us-west-2.amazonaws.com/lixiabucket/zoomxDemo.ova
+    https://s3-us-west-2.amazonaws.com/lixiabucket/zoomxDemo.ova . The usage is the same as above.
 
 INSTALL
 ------------
