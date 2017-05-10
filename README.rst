@@ -73,6 +73,8 @@ TRYOUT
    
       cd  ~/setup/zoomx/test 
       ./clean
+      ./germline3.run # see more notes inline within this bash script
+      ./somatic7.run  # see more notes inline within this bash script
 
   *VirtualMachine*:
 
