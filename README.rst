@@ -83,7 +83,9 @@ TRYOUT
 
 INSTALL
 ------------
-    
+  
+  ZoomX is available on bitbucket: bitbucket.org:charade/zoomx.git
+
   *Dependencies*:
 
     Python2(>=2.7)  http://www.python.org/
