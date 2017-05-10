@@ -48,8 +48,9 @@ findAneuploid = function(bv, y) {  #find windows in boolean vector bv with at le
   as.vector(unlist(sapply(seq_along(startPos),FUN=function(x){ startPos[x]:endPos[x] })))
 }
 
-for(p in c("optparse", "IRanges")) myrequire(p)
-for(p in c("GenomicRanges")) myrequire(p, repo="bioC")
+#for(p in c("optparse", "IRanges")) myrequire(p)
+#for(p in c("GenomicRanges")) myrequire(p, repo="bioC")
+for(p in c("optparse", "IRanges","GenomicRanges")) require(p,character.only=T)
 
 ####Options####
 option_list2 <- list(
@@ -89,6 +90,7 @@ moleFile=cmd$args[2]
 ####Debug####
 if(debug){ 
   #options(warn=2)
+  setwd("~/ws/gcovary/02_ZoomX")
   outPrefix = "none"
   xMadExclude = 7     
   yMedianInclude = 6

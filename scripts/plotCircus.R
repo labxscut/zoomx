@@ -32,8 +32,9 @@ myrequire = function(pkg, repo="CRAN", lib=Sys.getenv("R_LIBS_USER"), ...){
   })
 }
 
-for(p in c("optparse", "rjson", "ggplot2", "RColorBrewer","cowplot")) myrequire(p)
-for(p in c("GenomicRanges", "ggbio", "GenomeInfoDb")) myrequire(p, repo="bioC")
+#for(p in c("optparse", "rjson", "ggplot2", "RColorBrewer","cowplot")) myrequire(p)
+#for(p in c("GenomicRanges", "ggbio", "GenomeInfoDb")) myrequire(p, repo="bioC")
+for(p in c("optparse", "rjson", "ggplot2", "RColorBrewer","cowplot","GenomicRanges", "ggbio", "GenomeInfoDb")) require(p,character.only=T)
 
 option_list2 <- list(
   make_option(c("-o", "--outPrefix"), default="none",

@@ -32,7 +32,8 @@ myrequire = function(pkg, repo="CRAN", lib=Sys.getenv("R_LIBS_USER"), ...){
   })
 }
 
-for(p in c("optparse","ggplot2","rjson","fitdistrplus","car","RColorBrewer")) myrequire(p)
+#for(p in c("optparse","ggplot2","rjson","fitdistrplus","car","RColorBrewer")) myrequire(p)
+for(p in c("optparse","ggplot2","rjson","fitdistrplus","car","RColorBrewer")) require(p,character.only=T)
 
 option_list2 <- list(
   make_option(c("-p", "--outPrefix"), default="none",
@@ -78,7 +79,7 @@ if(outPrefix=="none") outPrefix=mcvFiles
 if(label=="none") label=""
 
 if(debug){
-  setwd("~/ws/10x6")
+  setwd("~/ws/zoomx/03_Stats")
   mcvFiles = c("NA12878_WGS_phased_possorted_bam.bam.w100Ks50K.mcv","NA12878_WGS_phased_possorted_bam.bam.w100Ms50M.mcv",
                "NA12878_WGS_phased_possorted_bam.bam.w10Ks5K.mcv","NA12878_WGS_phased_possorted_bam.bam.w10Ms5M.mcv",
                "NA12878_WGS_phased_possorted_bam.bam.w1Ms500K.mcv")
@@ -142,13 +143,13 @@ plotDenCov = function(i, cov, outPrefix, coveragePerBlock, cols, tickFactor, plo
     theme(plot.title = element_text(hjust=0.5, size=as.integer(mainTextSize), face="bold")) #+
   #ggsave(filename=paste(prefix, format, sep="."),plot=p0,w=5.6, h=5.6,units="in",dpi=72*plotScale,
   #       type="Xlib", compression="lzw")
-  tiff(filename=paste(prefix, "density", format,  sep="."),w=5.6*72*plotScale,h=5.6*72*plotScale,units="px",res=72*plotScale, type="Xlib", compression="lzw")
+  tiff(filename=paste(prefix, "density", format,  sep="."),w=5.6*72*plotScale,h=5.6*72*plotScale,units="px",res=72*plotScale, type="cairo", compression="lzw")
   print(p0)
   dev.off()
   
   message("plotFile2=",paste(prefix, "qqpois", format, sep="."))
   tiff(filename=paste(prefix, "qqpois", format,  sep="."),w=5.6*72*plotScale,h=5.6*72*plotScale,units="px",res=72*plotScale,
-       type="Xlib", compression="lzw")
+       type="cairo", compression="lzw")
 
   cv = sample(cov[[i]],min(10000,length(cov[[i]])))
   qqplot(y=cv, x=qpois(ppoints(length(cv)), lambda=pois.fit$estimate),

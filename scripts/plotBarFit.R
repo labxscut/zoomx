@@ -37,9 +37,9 @@ myrequire = function(pkg, repo="CRAN", version=NULL, lib=Sys.getenv("R_LIBS_USER
   })
 }
 
-for(p in c("optparse","devtools","fitdistrplus","ggplot2")) myrequire(p)
-for(p in c("GenomicRanges","rtracklayer")) myrequire(p, repo="Bioc")
-
+#for(p in c("optparse","devtools","fitdistrplus","ggplot2")) myrequire(p)
+#for(p in c("GenomicRanges","rtracklayer")) myrequire(p, repo="Bioc")
+for(p in c("optparse","devtools","fitdistrplus","ggplot2","GenomicRanges","rtracklayer")) require(p,character.only=T)
 
 option_list2 <- list(
   make_option(c("-p", "--outPrefix"), default="none",
@@ -65,7 +65,7 @@ noQuiet=cmd$options$noQuiet
 if(outPrefix=="none") outPrefix=moleFiles
 
 if(debug){
-  setwd("~/ws/10x6")
+  setwd("~/ws/zoomx/03_Stats/")
   moleFiles = c("NA12878_from10X.wg12.bam.multiFragBar.bed.a0")
   gridFiles = c("~/ws/hg/hg19/human_g1k_v37.ucsc.fasta.bed.w10Ks10K")
   outPrefix = moleFiles

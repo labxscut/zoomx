@@ -67,22 +67,26 @@ INSTALL
 
     Python2(>=2.7)  http://www.python.org/
 
-      Pysam  http://pysam.readthedocs.org/en/latest/
+      pybedtools, pysam, pandas, tables, scipy
 
     R(>=3.3)  http://r-project.org
       
-      optparse, IRanges, GenmicRanges, ggplot2, ggbio, rjson, RColorBrewer 
+      optparse, GenmicRanges, ggbio, rjson, RColorBrewer 
       
     Samtools (>0.19) http://samtools.org
       executables have to be in $PATH and within the sve_py virtual env
       there is samtools api comes with Pysam, however it has to be able to compile on your system with dafault setting. otherwise expect the "csamtools.c" not found error. e.g. libcurse is required for build samtools but often missing in some Linux.
       
     Bedtools (>2.20) http://bedtools.org
+
+    An example install dependency install script for Ubuntu 16 is here:
+
+      https://bitbucket.org/charade/zoomx/raw/master/test/ubuntu.install
     
   *InstallationFree*:
 
     ZoomX can be used without installation as long as required commands are all in $PATH.
-    see manual for more informations
+    see `Examples <Example>`__ and `Manuals <Manual>`__ for more informations
 
   *Installation*
     
