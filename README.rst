@@ -165,6 +165,8 @@ INSTALL
 EXECUTABLES      
 -----------
 
+  zoomxRun      --  a meta pipeline script runs ZoomX's other scripts given a configure file. see `Examples <https://bitbucket.org/charade/zoomx/wiki/Example>`__ .   
+
   parse10x      --  parsing 10X genomics (Chromium) bam
     
   gridScan      --  scalable Poisson grid whole genome scan 
