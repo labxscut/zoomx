@@ -169,7 +169,7 @@ EXECUTABLES
 
   zoomxRun      --  a meta pipeline script runs ZoomX's other scripts given a configure file. see `Examples <https://bitbucket.org/charade/zoomx/wiki/Example>`__ .   
 
-  parse10x      --  parsing 10X genomics (Chromium) bam
+  parse10x      --  parsing 10X genomics (Chromium) bam. X.bam.bai has to be in place for X.bam.
     
   gridScan      --  scalable Poisson grid whole genome scan 
     
