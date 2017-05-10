@@ -32,13 +32,21 @@ INTRODUCTION
     
   ZoomX (Single Molecule Based Rearrangement Analysis with Linked Read Sequencing)
 
-  |Rationale|
+  - ZoomX analyzes single molecule whole genome sequencing data sets to identify long-range rearrangements.
+
+  - ZoomX currently supports linked read sequencing data from 10X Genomics Chromium preparation.
+
+  - ZoomX takes as input the BAM file output of LongRanger aligner and outputs a list of genomic junction sites in BEDPE format.
+
+  - ZoomX's modeling and pipeline are illustrated in Figures 1 and 2.
 
   Figure 1. The principle and workflow of ZoomX.
-  
-  |Pipeline|
+
+  |Rationale|
 
   Figure 2. The bioinformatics pipeline of ZoomX.
+  
+  |Pipeline|
     
   Currently the package works for Linux (tested with Ubuntu). 
   It might also work for Mac with Brew/Ports or Windows with Cygwin (not tested).
@@ -73,8 +81,10 @@ INSTALL
 
     R(>=3.3)  http://r-project.org
       
-      CRAN: optparse, rjson, RColorBrewer, 
+      CRAN: optparse, rjson, RColorBrewer
+ 
       Bioconductor: GenomicRanges, ggbio, GenomeInfoDb
+
       NOTE: using non-essential R scripts not listed in the EXECUTABLES section of this README file may incurr more dependencies, such as rhdf5, BSgenome.Hsapiens.UCSC.hg38, BSgenome.Hsapiens.UCSC.hg19, cowplot. 
       
     Samtools (>0.19) http://samtools.org
