@@ -122,10 +122,9 @@ INSTALL
 
   *Installation*
     
-    You can install ZoomX as a standard package to your site python without virtualenv, in particular when all python dependencies are already met.
-    The other option is to use virtualenv based non-root installation, which separates zoomx from site python. 
-    virtualenv command is standard with Python 2.7 or later. see: http://python-guide-pt-br.readthedocs.io/en/latest/dev/virtualenvs/.
-    If it is not present, please see https://virtualenv.pypa.io for details to install virtualenv for your python. Possibly as simple as:
+    You can install ZoomX as a standard package to your site python without virtualenv, in particular when all python dependencies are already met. If you take this approach, please adapt following virtualenv based installation to your need.
+
+    The other option is to use virtualenv based non-root installation, which separates zoomx from site python. virtualenv command is standard with Python 2.7 or later. see: http://python-guide-pt-br.readthedocs.io/en/latest/dev/virtualenvs/. If it is not present, please see https://virtualenv.pypa.io for details to install virtualenv for your python. Possibly as simple as:
     
     .. code::
 
@@ -153,7 +152,7 @@ INSTALL
       pip install pysam
       pip install pybedtools
 
-    Optionally, on most platforms, the python dependencies will be automatically setup by ZoomX:
+    Then install zoomx as an standard python package:
     
     .. code::
 
