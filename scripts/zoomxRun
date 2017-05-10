@@ -106,10 +106,12 @@ if [[ ! -z $( testSubstring "control" $ZoomXRunOp ) ]]; then # define common con
 fi
 
 if [[ ! -z $( testSubstring "controlCov" $ZoomXRunOp ) ]]; then
-  if [[ $caseCovFile == "none" ]]; then
+  if [[ ! -f $covGrid ]]; then
+    controlCovCMD="Error: need to provide the covGrid file as specified in $ZoomxCfgFile!" 
+  elif [[ $controlCovFile == "none" ]]; then
     controlCovCMD="Error: need to specify a controlCovFile other than none in $ZoomxCfgFile!"
   else
-    controlCovCMD="samtools bedcov $ref.bed.w100s100 $controlPf/$controlBam >$controlCovFile"
+    controlCovCMD="samtools bedcov $covGrid $controlPf/$controlBam >$controlCovFile"
   fi
   if [[ -z $dryMode ]]; then echo $controlCovCMD | bash; fi
   echo "    controlCovCMD': '$controlCovCMD',"
@@ -187,10 +189,12 @@ if [[ ! -z $( testSubstring "case" $ZoomXRunOp ) ]]; then # define common case v
 fi
 
 if [[ ! -z $( testSubstring "caseCov" $ZoomXRunOp ) ]]; then
-  if [[ $caseCovFile == "none" ]]; then
+  if [[ ! -f $covGrid ]]; then
+    caseCovCMD="Error: need to provide the covGrid file as specified in $ZoomxCfgFile!"
+  elif [[ $caseCovFile == "none" ]]; then
     caseCovCMD="Error: need to specify a caseCovFile other than none in $ZoomxCfgFile!"
   else
-    caseCovCMD="samtools bedcov $ref.bed.w100s100 $casePf/$caseBam >$caseCovFile"
+    caseCovCMD="samtools bedcov $covGrid $casePf/$caseBam >$caseCovFile"
   fi
   if [[ -z $dryMode ]]; then echo $caseCovCMD | bash; fi
   echo "    caseCovCMD': '$caseCovCMD',"
