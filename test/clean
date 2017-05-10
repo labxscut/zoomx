@@ -1,5 +1,6 @@
 #!/bin/bash
-echo -e "cleaning test files ..."
+echo -e "cleaning previous test files ..."
+rm -rf ~/zoomx_*
 rm -f *.tagidx *.json *.a0
 rm -f *.gz
 rm -f *bedpe*
