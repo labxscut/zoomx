@@ -115,7 +115,7 @@ INSTALL
       https://bitbucket.org/charade/zoomx/raw/master/test/ubuntu.install   
 
     
-  *InstallationFree*:
+  *Installation Free*:
 
     ZoomX can be used without installation as long as required commands are all in $PATH.
     see `Examples <https://bitbucket.org/charade/zoomx/wiki/Example>`__ and `Manuals <https://bitbucket.org/charade/zoomx/wiki/Manual>`__ for more informations
