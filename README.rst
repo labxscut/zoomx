@@ -122,8 +122,9 @@ INSTALL
 
   *Installation*
     
-    virtualenv based non-root installation with python site separation. 
-    virtualenv command is standard with Python 2.7 or later. 
+    You can install ZoomX as a standard package to your site python without virtualenv, in particular when all python dependencies are already met.
+    The other option is to use virtualenv based non-root installation, which separates zoomx from site python. 
+    virtualenv command is standard with Python 2.7 or later. see: http://python-guide-pt-br.readthedocs.io/en/latest/dev/virtualenvs/.
     If it is not present, please see https://virtualenv.pypa.io for details to install virtualenv for your python. Possibly as simple as:
     
     .. code::
