@@ -16,15 +16,17 @@ pip install -U pybedtools
 #please use 33.1.1: 
 #pip install setuptools==33.1.1
 ### install R packages ###
-#optparse, GenomicRanges, ggbio, rjson, RColorBrewer
 mkdir -p $(Rscript -e 'cat(Sys.getenv("R_LIBS_USER"))')
+#CRAN: optparse, rjson, RColorBrewer
 R> install.packages("optparse")
 R> install.packages("rjson")
 R> install.packages("RColorBrewer")
+#Bioconductor: GenomicRanges, ggbio, GenomeInfoDb
 R> source("http://bioconductor.org/biocLite.R")
 R> biocLite("GenomicRanges")
 R> biocLite("ggbio")
 R> biocLite("GenomeInfoDb")
+#Bioconductor Recommended: rhdf5, BSgenome.Hsapiens.UCSC.hg19, BSgenome.Hsapiens.UCSC.hg38, Rsamtools, Biostrings
 R> biocLite("rhdf5")
 R> biocLite("BSgenome.Hsapiens.UCSC.hg19")
 R> biocLite("BSgenome.Hsapiens.UCSC.hg38")
