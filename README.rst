@@ -94,7 +94,7 @@ INSTALL
 
     R(>=3.3)  http://r-project.org
       
-      CRAN: optparse, rjson, RColorBrewer
+      CRAN: optparse, rjson, RColorBrewer, IRanges
  
       Bioconductor: GenomicRanges, ggbio, GenomeInfoDb
 
@@ -107,7 +107,11 @@ INSTALL
       
     Bedtools (>2.20) http://bedtools.org
       bedtools executables have to be in $PATH and within the sve_py virtual env
-      
+   
+    A script to confirm all dependencies are met is here:
+
+      https://bitbucket.org/charade/zoomx/raw/master/test/testDependency.sh   
+   
     An example dependency install script for Ubuntu is here:
 
       https://bitbucket.org/charade/zoomx/raw/master/test/ubuntu.install   
