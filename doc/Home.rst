@@ -21,24 +21,32 @@
 QUICK LINKS
 -----------
 
-`Examples <Example>`__
+`Examples <https://bitbucket.org/charade/zoomx/wiki/Example>`__
 
-`Manuals <Manual>`__
+`Manuals <https://bitbucket.org/charade/zoomx/wiki/Manual>`__
 
-`FAQ <FAQ>`__
+`FAQ <https://bitbucket.org/charade/zoomx/wiki/FAQ>`__
 
 INTRODUCTION
 ------------
     
   ZoomX (Single Molecule Based Rearrangement Analysis with Linked Read Sequencing)
 
-  |Rationale|
+  - ZoomX analyzes single molecule whole genome sequencing data sets to identify long-range rearrangements.
+
+  - ZoomX currently supports linked read sequencing data from 10X Genomics Chromium preparation.
+
+  - ZoomX takes as input the BAM file output of LongRanger aligner and outputs a list of genomic junction sites in BEDPE format.
+
+  - ZoomX's modeling and pipeline are illustrated in Figures 1 and 2.
 
   Figure 1. The principle and workflow of ZoomX.
-  
-  |Pipeline|
+
+  |Rationale|
 
   Figure 2. The bioinformatics pipeline of ZoomX.
+  
+  |Pipeline|
     
   Currently the package works for Linux (tested with Ubuntu). 
   It might also work for Mac with Brew/Ports or Windows with Cygwin (not tested).
@@ -48,51 +56,75 @@ INTRODUCTION
 TRYOUT
 ------------
 
+  An AWS EC2 instance and a preconfigured virtual machine are available for trying out ZoomX without installation efforts.
+
   *AWS*:
 
     ZoomX is available for tryout in a live Amazon EC2 instance.
     Simply log on with SSH and find the package located in ~/setup/zoomx .
-    ssh bkd@ec2-54-190-36-93.us-west-2.compute.amazonaws.com # secret is the same as user
-    Testing data and scripts are available in ~/setup/zoomx/test .
+    
+    .. code::
+    
+      ssh bkd@ec2-54-190-36-93.us-west-2.compute.amazonaws.com # secret is the same as user
+    
+    Testing data and scripts are available in ~/setup/zoomx/test . Run ./clean to clean up the directory first. Examples are offered as germline3.run and somatic7.run, as explained in `Examples <https://bitbucket.org/charade/zoomx/wiki/Example>`__ .
+
+    .. code::
+   
+      cd  ~/setup/zoomx/test 
+      ./clean
+      ./germline3.run # see more notes inline within this bash script
+      ./somatic7.run  # see more notes inline within this bash script
 
   *VirtualMachine*:
 
-    The Amazon Machine Image (ami) of the same EC2 instance is downloadable from Amazon S3 bucket.
-    https://s3-us-west-2.amazonaws.com/lixiabucket/zoomxDemo.ova
+    The Amazon Machine Image (ami) of the above EC2 instance is downloadable from Amazon S3 bucket.
+    https://s3-us-west-2.amazonaws.com/lixiabucket/zoomxDemo.ova . The usage is the same as above.
 
 INSTALL
 ------------
-    
+  
+  ZoomX is available on bitbucket: bitbucket.org:charade/zoomx.git
+
   *Dependencies*:
 
     Python2(>=2.7)  http://www.python.org/
 
       pybedtools, pysam, pandas, tables, scipy
+      However, to install pysam, that api has also to be able to compile on your system with dafault setting. 
+      Otherwise expect the "csamtools.c" not found error, sometimes because of libcurse is required for build samtools but often missing in Linux distros.
 
     R(>=3.3)  http://r-project.org
       
-      optparse, GenmicRanges, ggbio, rjson, RColorBrewer 
+      CRAN: optparse, rjson, RColorBrewer
+ 
+      Bioconductor: GenomicRanges, ggbio, GenomeInfoDb
+
+      NOTE: using non-essential R scripts not listed in the EXECUTABLES section of this README file may incurr more dependencies, such as rhdf5, BSgenome.Hsapiens.UCSC.hg38, BSgenome.Hsapiens.UCSC.hg19, cowplot. 
       
     Samtools (>0.19) http://samtools.org
-      executables have to be in $PATH and within the sve_py virtual env
-      there is samtools api comes with Pysam, however it has to be able to compile on your system with dafault setting. otherwise expect the "csamtools.c" not found error. e.g. libcurse is required for build samtools but often missing in some Linux.
+      samtools executables have to be in $PATH and within the sve_py virtual env
+      NOTE: this is independent of the samtools api comes with Pysam. 
+      
       
     Bedtools (>2.20) http://bedtools.org
+      bedtools executables have to be in $PATH and within the sve_py virtual env
+      
+    An example dependency install script for Ubuntu is here:
 
-    An example install dependency install script for Ubuntu 16 is here:
+      https://bitbucket.org/charade/zoomx/raw/master/test/ubuntu.install   
 
-      https://bitbucket.org/charade/zoomx/raw/master/test/ubuntu.install
     
-  *InstallationFree*:
+  *Installation Free*:
 
     ZoomX can be used without installation as long as required commands are all in $PATH.
-    see `Examples <Example>`__ and `Manuals <Manual>`__ for more informations
+    see `Examples <https://bitbucket.org/charade/zoomx/wiki/Example>`__ and `Manuals <https://bitbucket.org/charade/zoomx/wiki/Manual>`__ for more informations
 
   *Installation*
     
-    virtualenv based non-root installation with python site separation. 
-    virtualenv command is standard with Python 2.7 or later. 
-    If it is not present, please see https://virtualenv.pypa.io for details to install virtualenv for your python. Possibly as simple as:
+    You can install ZoomX as a standard package to your site python without virtualenv, in particular when all python dependencies are already met. If you take this approach, please adapt following virtualenv based installation to your need.
+
+    The other option is to use virtualenv based non-root installation, which separates zoomx from site python. virtualenv command is standard with Python 2.7 or later. see: http://python-guide-pt-br.readthedocs.io/en/latest/dev/virtualenvs/. If it is not present, please see https://virtualenv.pypa.io for details to install virtualenv for your python. Possibly as simple as:
     
     .. code::
 
@@ -120,7 +152,7 @@ INSTALL
       pip install pysam
       pip install pybedtools
 
-    Optionally, on most platforms, the python dependencies will be automatically setup by ZoomX:
+    Then install zoomx as an standard python package:
     
     .. code::
 
@@ -137,7 +169,9 @@ INSTALL
 EXECUTABLES      
 -----------
 
-  parse10x      --  parsing 10X genomics (Chromium) bam
+  zoomxRun      --  a meta pipeline script runs ZoomX's other scripts given a configure file. see `Examples <https://bitbucket.org/charade/zoomx/wiki/Example>`__ .   
+
+  parse10x      --  parsing 10X genomics (Chromium) bam. X.bam.bai has to be in place for X.bam.
     
   gridScan      --  scalable Poisson grid whole genome scan 
     
