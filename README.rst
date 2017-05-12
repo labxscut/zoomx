@@ -91,8 +91,6 @@ INSTALL
     Python2(>=2.7)  http://www.python.org/
 
       pybedtools, pysam, pandas, tables, scipy
-      However, to install pysam, that api has also to be able to compile on your system with dafault setting. 
-      Otherwise expect the "csamtools.c" not found error, sometimes because of libcurse is required for build samtools but often missing in Linux distros.
 
     R(>=3.3)  http://r-project.org
       
