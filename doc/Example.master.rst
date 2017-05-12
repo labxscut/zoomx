@@ -3,10 +3,16 @@
 Examples
 ========
 
-Download and unzip ZoomX package or clone the source repository to $ZOOMXPKG.
 ZoomX are most versatile if used from Python and R scripts directly.
 To easy the initial learning, we also include a BASH script zoomxRun.
 The script stages common analysis tasks with easily editable configure files. 
+
+To run following examples:
+
+  - Download and unzip ZoomX package or clone the source repository to $ZOOMXPKG.
+  - Download and unzip the full test data set `zoomx.test.full.tgz: <REPLACE_WITH_DOWNLOADLINK>`__ and place the data into $ZOOMXPKG/test
+  - Configure the 'germline3.cfg' and 'somatic7.cfg' files to reflect your reality
+  - Run the 'germline3.run' and 'somatic7.run' testing scripts
 
 An example ZoomX germline analysis
 --------------------------------------------------
