@@ -66,6 +66,12 @@ Installation Related
 
   With the provided test data, the program should just take minutes.
 
+2-3. Q: "csamtools.c" not found error when install pysam
+
+  A: To install pysam, the samtools api has also to be able to compile on your system with dafault setting. 
+  If you see above error in that process, this is because of libcurse is required for build samtools but often missing in Linux distros.
+  Install libcurse and retry.
+
 Development Related
 ====================
 
