@@ -11,8 +11,8 @@ To run following examples:
 
   - Download and unzip ZoomX package or clone the source repository to $ZOOMXPKG.
   - Download and unzip the full test data set `zoomx.test.full.tgz: <REPLACE_WITH_DOWNLOADLINK>`__ and place the data into $ZOOMXPKG/test
-  - Configure the 'germline3.cfg' and 'somatic7.cfg' files to reflect your reality
-  - Run the 'germline3.run' and 'somatic7.run' testing scripts
+  - Configure the $ZOOMXPKG/test/germline3.cfg and $ZOOMXPKG/test/somatic7.cfg files to reflect your $ZOOMXPKG
+  - Change into $ZOOMXPKG/test and run the germline3.run and somatic7.run testing scripts
 
 An example ZoomX germline analysis
 --------------------------------------------------
