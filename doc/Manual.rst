@@ -84,7 +84,7 @@ $ZOOMXPKG/zoomx/gridScan.py
       -a, --debug           in debug mode (default: False)
       -d TEMPDIR, --tempdir TEMPDIR
                             root dir for keeping temporary files, default (last 4
-                            digits random): /home/lixia/zoomx_jcXq
+                            digits random): /home/lixia/zoomx_fyFK
 
 $ZOOMXPKG/zoomx/gridScan.py
 
@@ -127,7 +127,7 @@ $ZOOMXPKG/zoomx/gridScan.py
                             number of parallele process
       -d TEMPDIR, --tempdir TEMPDIR
                             root dir for keeping temporary files, default (last 4
-                            digits random): /home/lixia/zoomx_FiEn
+                            digits random): /home/lixia/zoomx_KFAB
 
 $ZOOMXPKG/scripts/filterMolecule.R
 
