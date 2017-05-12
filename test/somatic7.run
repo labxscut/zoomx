@@ -1,54 +1,52 @@
-#!/bin/bash
+#!/usr/bin/env bash
 if [[ -z $1 ]]; then
   cfgfile="somatic7.cfg"
 else
   cfgfile=$1
 fi
 
-source $cfgfile &&
-zoomxRun controlCov $cfgfile >$cfgfile.controlCov.json.$mydate &&
-echo $cfgfile.controlCov.json.$mydate &&
-zoomxRun caseCov $cfgfile >$cfgfile.caseCov.json.$mydate &&
-echo $cfgfile.caseCov.json.$mydate &&
-zoomxRun controlParse $cfgfile >$cfgfile.controlParse.json.$mydate &&
-echo $cfgfile.controlParse.json.$mydate &&
-zoomxRun caseParse $cfgfile >$cfgfile.caseParse.json.$mydate &&
-echo $cfgfile.caseParse.json.$mydate &&
-zoomxRun controlScan $cfgfile >$cfgfile.controlScan.json.$mydate &&
-echo $cfgfile.controlScan.json.$mydate &&
-zoomxRun caseScan $cfgfile >$cfgfile.caseScan.json.$mydate &&
-echo $cfgfile.caseScan.json.$mydate &&
-zoomxRun controlCisRef $cfgfile >$cfgfile.controlCisRef.json.$mydate &&
-echo $cfgfile.controlCisRef.json.$mydate &&
-zoomxRun controlDistRef $cfgfile >$cfgfile.controlDistRef.json.$mydate &&
-echo $cfgfile.controlDistRef.json.$mydate &&
-zoomxRun controlTransRef $cfgfile >$cfgfile.controlTransRef.json.$mydate &&
-echo $cfgfile.controlTransRef.json.$mydate &&
-zoomxRun caseCisRef $cfgfile >$cfgfile.caseCisRef.json.$mydate &&
-echo $cfgfile.caseCisRef.json.$mydate &&
-zoomxRun caseDistRef $cfgfile >$cfgfile.caseDistRef.json.$mydate &&
-echo $cfgfile.caseDistRef.json.$mydate &&
-zoomxRun caseTransRef $cfgfile >$cfgfile.caseTransRef.json.$mydate &&
-echo $cfgfile.caseTransRef.json.$mydate &&
+echo "zoomx somatic example version 7"
+echo "sourcing $cfgfile ..."
+source $cfgfile
+logfile=$cfgfile.log.$mydate
+echo "logfile: $logfile"
+echo -n "essential stages overview:"
+stages=(caseCov caseParse caseScan caseDistRef caseTransRef caseCisRef caseDistPlot caseTransPlot caseCisPlot)
+echo ${stages[*]}
+
+stages=(controlCov caseCov controlParse controlScan caseParse caseScan controlCisRef controlDistRef controlTransRef caseDistRef caseTransRef caseCisRef caseDistPlot caseTransPlot caseCisPlot)
+for s in ${stages[*]}; do
+  echo -n "$s:"
+  cmd="zoomxRun $s $cfgfile >$cfgfile.$s.json.$mydate 2>$logfile"
+  echo -n $cmd
+  echo $cmd | bash
+  if [[ ! $? -eq 0 ]]; then
+    echo "[ERROR]"
+    echo "Failed Stage Command:" $cmd
+    exit
+  fi
+  echo "[OK]"
+done
+
+echo -n "extended stages overview:"
+stages=(distDiffMix cisDiffMixt ransDiffMix distDiffPure cisDiffPure transDiffPure distShare cisShare transShare)
+echo ${stages[*]}
 echo "-----------------------------------------" &&
-echo "NOTE: it is OK to see Errors below, resulting from bedtools complaining bed file cannot be opened. 
+echo "NOTE: it is OK to see Errors in extended stages above, resulting from bedtools complaining bed file cannot be opened.
 It is because the file is zero sized as a result of no junction found in previous steps" &&
 echo "-----------------------------------------" &&
-zoomxRun distDiffMix $cfgfile >$cfgfile.distDiffMix.json.$mydate &&
-echo $cfgfile.distDiffMix.json.$mydate &&
-zoomxRun cisDiffMix $cfgfile >$cfgfile.cisDiffMix.json.$mydate &&
-echo $cfgfile.cisDiffMix.json.$mydate &&
-zoomxRun transDiffMix $cfgfile >$cfgfile.transDiffMix.json.$mydate &&
-echo $cfgfile.transDiffMix.json.$mydate &&
-zoomxRun distDiffPure $cfgfile >$cfgfile.distDiffPure.json.$mydate &&
-echo $cfgfile.distDiffPure.json.$mydate &&
-zoomxRun cisDiffPure $cfgfile >$cfgfile.cisDiffPure.json.$mydate &&
-echo $cfgfile.cisDiffPure.json.$mydate &&
-zoomxRun transDiffPure $cfgfile >$cfgfile.transDiffPure.json.$mydate &&
-echo $cfgfile.transDiffPure.json.$mydate &&
-zoomxRun distShare $cfgfile >$cfgfile.distShare.json.$mydate &&
-echo $cfgfile.distShare.json.$mydate &&
-zoomxRun cisShare $cfgfile >$cfgfile.cisShare.json.$mydate &&
-echo $cfgfile.cisShare.json.$mydate &&
-zoomxRun transShare $cfgfile >$cfgfile.transShare.json.$mydate &&
-echo $cfgfile.transShare.json.$mydate
+
+for s in ${stages[*]}; do
+  echo -n "$s:"
+  cmd="zoomxRun $s $cfgfile >$cfgfile.$s.json.$mydate 2>$logfile"
+  echo -n $cmd
+  echo $cmd | bash
+  if [[ ! $? -eq 0 ]]; then
+    echo "[WARNING]"
+    echo "Warning Stage Command:" $cmd
+  else
+    echo "[OK]"
+  fi
+done
+
+echo "all done"
