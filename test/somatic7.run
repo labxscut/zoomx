@@ -8,6 +8,7 @@ fi
 echo "zoomx somatic example version 7"
 echo "sourcing $cfgfile ..."
 source $cfgfile
+if [[ ! $? -eq 0 ]]; then exit; fi
 logfile=$cfgfile.log.$mydate
 echo "logfile: $logfile"
 echo -n "essential stages overview:"
