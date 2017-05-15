@@ -224,7 +224,7 @@ cat("gr...\n")
 #print(convertedAll[convertedAll$end1>convertedAll$start2,c(1,2,3,4,5,6)])
 #print(mergedAll[convertedAll$end1>convertedAll$start2,c(1,2,3,4,5,6)])
 gr <- GRanges(seqnames = c(convertedAll$chrom1, convertedAll$chrom2), 
-              ranges = IRanges(start = c(convertedAll$start1, convertedAll$start2), 
+              ranges = IRanges::IRanges(start = c(convertedAll$start1, convertedAll$start2), 
                                end = c(convertedAll$end1, convertedAll$end2)),
               #strand = factor(c(as.character(convertedAll$strand1),as.character(convertedAll$strand2)), levels=strandGR),
               strand = c(convertedAll$strand1,convertedAll$strand2),
@@ -233,9 +233,9 @@ gr <- GRanges(seqnames = c(convertedAll$chrom1, convertedAll$chrom2),
               supportType = c(convertedAll$supportType, convertedAll$supportType), 
               pair = c(convertedAll$name, convertedAll$name))
 cat("grComp...\n")
-print(convertedAll)
+#print(convertedAll)
 grComp <- GRanges(seqnames = convertedAll$chrom1,
-                  ranges = IRanges(start = convertedAll$end1, end=convertedAll$start2),
+                  ranges = IRanges::IRanges(start = convertedAll$end1, end=pmax(convertedAll$end1,convertedAll$start2)+1),
                   strand = rep(NA,nrow(convertedAll)),
                   value = rep(0,nrow(convertedAll)),
                   score = rep(0,nrow(convertedAll)),
@@ -247,6 +247,7 @@ tickLab1 = c(boundaryReg12[1]+gapSize/2, boundaryReg12[2]-gapSize/2, boundaryReg
 tickLab2 = c(boundaryReg12[3]+gapSize/2, boundaryReg12[4]-gapSize/2, boundaryReg12[3]+breakReg2-shiftReg12[2])
 tickLab1 = paste(c(chr1,"",""),tickLab1,sep=":")
 tickLab2 = paste(c(chr2,"",""),tickLab2,sep=":")
+cat("plotting...\n")
 
 ####WriteOutput####
 plotPrefix=paste(refined[1:6],collapse="_")

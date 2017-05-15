@@ -287,7 +287,7 @@ if [[ ! -z $(testSubstring "Plot" $ZoomXRunOp) ]]; then
     moleFile=$( echo "$outputPf/$caseBam.dist.E$caseExp.refined" )
   fi 
   if [[ ! -z $(testSubstring "case" $ZoomXRunOp) && ! -z $(testSubstring "Trans" $ZoomXRunOp) ]]; then
-    moleFile=$( echo "$outputPf/$caseBam.trans.E$caseExp.refined" )
+    moleFile=$( echo "$outputPf/$caseBam.tra.E$caseExp.refined" )
   fi 
   if [[ ! -z $(testSubstring "case" $ZoomXRunOp) && ! -z $(testSubstring "Cis" $ZoomXRunOp) ]]; then
     moleFile=$( echo "$outputPf/$caseBam.cis.E$caseExp.refined" )
@@ -296,11 +296,12 @@ if [[ ! -z $(testSubstring "Plot" $ZoomXRunOp) ]]; then
     moleFile=$( echo "$outputPf/$controlBam.dist.E$controlExp.refined" )
   fi 
   if [[ ! -z $(testSubstring "control" $ZoomXRunOp) && ! -z $(testSubstring "Trans" $ZoomXRunOp) ]]; then
-    moleFile=$( echo "$outputPf/$controlBam.trans.E$controlExp.refined" )
+    moleFile=$( echo "$outputPf/$controlBam.tra.E$controlExp.refined" )
   fi 
   if [[ ! -z $(testSubstring "control" $ZoomXRunOp) && ! -z $(testSubstring "Cis" $ZoomXRunOp) ]]; then
     moleFile=$( echo "$outputPf/$controlBam.cis.E$controlExp.refined" )
   fi 
+  echo "  'moleFile':'$moleFile',"
   echo "  'getAndPlotCMD':["
   if [[ -e $moleFile ]]; then
     log="$moleFile.log.$ZoomXRunOp.$mydate"
@@ -418,6 +419,7 @@ fi
 
 #plotting of Diff or Share Molecules, moleFile is predefined in previous Diff and Share stages
 if [[ ! -z $(testSubstring "Diff" $ZoomXRunOp) || ! -z $(testSubstring "Share" $ZoomXRunOp) ]]; then 
+  echo "  'moleFile': '$moleFile',"
   echo "  'getAndPlotCMD':["
   if [[ -e $moleFile ]]; then
     log="$moleFile.log.$ZoomXRunOp.$mydate"

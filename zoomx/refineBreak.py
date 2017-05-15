@@ -254,7 +254,7 @@ def main(args):
   sys.stderr.write("attaching short read support\n")
   sys.stderr.write("merging IM rdp\n")
   imSupport = lib10x.ParallelIdentifySupportRDP(mergeBedpe, imBedpeFile, callLabels, callTypes, numprocs, debug)
-  print "imSupport=", imSupport
+  #print >>"imSupport=", imSupport
   #if imSupport == [ None ]: imSupport = [ [] ]
   end_time=time.time()
   sys.stderr.write("merging IM done:{}s\n".format(end_time-start_time))
