@@ -11,9 +11,11 @@ source $cfgfile
 if [[ ! $? -eq 0 ]]; then exit; fi
 logfile=$cfgfile.log.$mydate
 echo "logfile: $logfile"
-echo -n "stages overview:" 
+echo "------------------------------------------------------"
+echo -n "zoomxRun stages overview:" 
 stages=(caseCov caseParse caseScan caseDistRef caseTransRef caseCisRef caseDistPlot caseTransPlot caseCisPlot)
 echo ${stages[*]}
+echo "------------------------------------------------------"
 
 for s in ${stages[*]}; do
   echo -n "$s:"
@@ -27,4 +29,5 @@ for s in ${stages[*]}; do
   fi
   echo "[OK]"
 done
-echo "all done"
+echo "------------------------------------------------------"
+echo "all done successfully"

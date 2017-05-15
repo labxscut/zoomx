@@ -11,9 +11,11 @@ source $cfgfile
 if [[ ! $? -eq 0 ]]; then exit; fi
 logfile=$cfgfile.log.$mydate
 echo "logfile: $logfile"
-echo -n "essential stages overview:"
+echo "---------------------------------------------------------------"
+echo -n "essential zoomxRun stages overview:"
 stages=(caseCov caseParse caseScan caseDistRef caseTransRef caseCisRef caseDistPlot caseTransPlot caseCisPlot)
 echo ${stages[*]}
+echo "---------------------------------------------------------------"
 
 stages=(controlCov caseCov controlParse controlScan caseParse caseScan controlCisRef controlDistRef controlTransRef caseDistRef caseTransRef caseCisRef caseDistPlot caseTransPlot caseCisPlot)
 for s in ${stages[*]}; do
@@ -29,13 +31,16 @@ for s in ${stages[*]}; do
   echo "[OK]"
 done
 
-echo -n "extended stages overview:"
-stages=(distDiffMix cisDiffMixt ransDiffMix distDiffPure cisDiffPure transDiffPure distShare cisShare transShare)
+echo "---------------------------------------------------------------"
+echo -n "extended zoomxRun stages overview:"
+stages=(distDiffMix cisDiffMix ransDiffMix distShare cisShare transShare)
+#stages=(distDiffMix cisDiffMixt ransDiffMix distDiffPure cisDiffPure transDiffPure distShare cisShare transShare)
 echo ${stages[*]}
-echo "-----------------------------------------" &&
-echo "NOTE: it is OK to see Errors in extended stages above, resulting from bedtools complaining bed file cannot be opened.
-It is because the file is zero sized as a result of no junction found in previous steps" &&
-echo "-----------------------------------------" &&
+echo "---------------------------------------------------------------"
+#echo "-----------------------------------------" &&
+#echo "NOTE: it is OK to see Errors in extended stages above, resulting from bedtools complaining bed file cannot be opened.
+#It is because the file is zero sized as a result of no junction found in previous steps" &&
+#echo "-----------------------------------------" &&
 
 for s in ${stages[*]}; do
   echo -n "$s:"
@@ -50,4 +55,5 @@ for s in ${stages[*]}; do
   fi
 done
 
-echo "all done"
+echo "---------------------------------------------------------------"
+echo "all done successfully"
