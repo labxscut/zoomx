@@ -91,12 +91,10 @@ INSTALL
     Python2(>=2.7)  http://www.python.org/
 
       pybedtools, pysam, pandas, tables, scipy
-      However, to install pysam, that api has also to be able to compile on your system with dafault setting. 
-      Otherwise expect the "csamtools.c" not found error, sometimes because of libcurse is required for build samtools but often missing in Linux distros.
 
     R(>=3.3)  http://r-project.org
       
-      CRAN: optparse, rjson, RColorBrewer
+      CRAN: optparse, rjson, RColorBrewer, IRanges
  
       Bioconductor: GenomicRanges, ggbio, GenomeInfoDb
 
@@ -109,7 +107,11 @@ INSTALL
       
     Bedtools (>2.20) http://bedtools.org
       bedtools executables have to be in $PATH and within the sve_py virtual env
-      
+   
+    A script to confirm all dependencies are met is here:
+
+      https://bitbucket.org/charade/zoomx/raw/master/test/testDependency.sh   
+   
     An example dependency install script for Ubuntu is here:
 
       https://bitbucket.org/charade/zoomx/raw/master/test/ubuntu.install   
