@@ -49,8 +49,8 @@ for(p in c("primerTree")) myrequire(p,repo="https://github.com/chaelir/primerTre
 
 ####Options####
 option_list2 <- list(
-  make_option(c("-d", "--workDir"), default=".",
-              help="working directory [default %default]"),
+  #make_option(c("-d", "--workDir"), default=".",
+  #            help="working directory [default %default]"),
   make_option(c("-o", "--outPrefix"), default="none",
               help="output prefix [default %default]"),
   make_option(c("-r", "--reference"), default="hg37",
@@ -65,22 +65,21 @@ option_list2 <- list(
               help="save debug, [default %default]")
 )
 
-parser <- OptionParser(usage = "%prog [options] makeContig infoFile", option_list=option_list2)
+parser <- OptionParser(usage = "%prog [options] workDir", option_list=option_list2)
 args <- commandArgs(trailingOnly = TRUE)
 cmd = parse_args(parser, args, print_help_and_exit = TRUE, positional_arguments = TRUE)
 if(length(cmd$args)!=1 & !cmd$options$debug){ print_help(parser); quit() }
 message("-Info: invoking command:",commandArgs(),"\n")
 debug = cmd$options$debug
-infoFile = cmd$args[1]
+workDir = cmd$args[1]
 reference = cmd$options$reference
-workDir = cmd$options$workDir
 slopSize = cmd$options$slopSize
 padding = cmd$options$padding
 
 ####Debug####
 if(debug){
   workDir="~/ws/crcbrain/02_ZoomX/P05378_7175_mt.wg12.bam.tra.E10_P05378_7176_nt.wg12.bam.tra.E5.somatic.Plot_1"
-  infoFile="chr2_116355000_116400000_chr9_131450000_131465000.mol"
+  moleFile="chr2_116355000_116400000_chr9_131450000_131465000.mol"
   outPrefix="none"
   reference="hg37"
   padding = "-"
@@ -91,12 +90,12 @@ if(debug){
 }
 
 setwd(workDir)
-if(outPrefix=="none") outPrefix=infoFile
+if(outPrefix=="none") outPrefix=moleFile
 colScheme="Dark2"
 supportTypes=c("rdpFF","rdpRR","rdpIM","molecule")
 colors=brewer.pal(length(supportTypes), colScheme)
 names(colors)=supportTypes
-info=read.table(infoFile, header=T, stringsAsFactors = F)
+info=read.table(moleFile, header=T, stringsAsFactors = F)
 #retrieve sequences from reference
 if(reference=="hg38") {
   refSeq = BSgenome.Hsapiens.UCSC.hg38
