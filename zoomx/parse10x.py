@@ -164,6 +164,7 @@ def main(args):
   if longRangerVersion < 1.2: #use nearest neighbor clustering
   
     print >>sys.stderr, "using manual nearest neighbour clustering (distance<alpha) to infer molecule..."
+    print >>sys.stderr, "for longranger v<1.2 only, going to be obsolete..."
   
     numAlpha = len(setAlpha)
     barfragdata = dict(zip(setAlpha,[ dict() for x in xrange(numAlpha)])) #NOTE: * doesn't create independent dictionaries 
@@ -196,7 +197,6 @@ def main(args):
          ps = -1
     
       #output imBedpe/ffBedpe/rrBedpe
-      #TODO: output split into ff, rr, im(1st=+,2nd=-) and mi(
       if ( not rd.is_reverse ) and rd.mate_is_reverse and ( not rd.is_proper_pair ) : #IM
         imBedpeFile.write('\t'.join([rd.reference_name, str(rd.reference_start), str(rd.reference_start+100), \
                          rd.next_reference_name, str(rd.next_reference_start), str(rd.next_reference_start+100), str(hp)])+'\n' )
@@ -272,7 +272,7 @@ def main(args):
         #cp2 = lib10x.g2cp(fragdata[alpha][N_f[alpha]-1][-1][-1],C,acclen_C,chrname)
         #assert cp1[0] == cp2[0] and cp1[1] <= cp2[1], "incorrect frag gip tip %d (%s,%d) and end %d (%s,%d) of %s" % (fragdata[alpha][frag][-1][0],cp1[0],cp1[1],fragdata[alpha][frag][-1][-1],cp2[0],cp2[1],str(fragdata[alpha][frag]))
     
-  else:  #end of longRangerVersion
+  else:  #end of longRangerVersion < 1.2 and begin of newer versions
   
     print >>sys.stderr, "using 10x longranger inferred molecule..."
     # need to merging in parsing for older longRangerVersion to this one
@@ -309,6 +309,7 @@ def main(args):
       if rd.mapq<30:
         continue
   
+      #read the phase block and hap type info
       try:
          hp = int(dict(rd.tags)['HP'])
          ps = int(dict(rd.tags)['PS'])
@@ -317,8 +318,8 @@ def main(args):
          ps = -1
     
       #output imBedpe/ffBedpe/rrBedpe
-
-      #include only one ordered pair from two reads
+      #include only one coordinate ordered pair from two reads
+      #define IM as +/- pair, FF and +/+ pair, RR as -- pair and MI as -/+ pair
       reference_name, reference_start, next_reference_name, next_reference_start, ordered = lib10x.orderedPair(rd)
       if ( not rd.is_reverse ) and rd.mate_is_reverse and ( not rd.is_proper_pair ) : #IM
         imBedpeFile.write('\t'.join([reference_name, str(reference_start), str(reference_start+100), \
@@ -692,7 +693,7 @@ def run():
   parser.add_argument("bam",help="sorted 10x bamfile")
   parser.add_argument("-c","--covFile", default="none",help="100bp window coverage file")
   parser.add_argument("-l","--longRangerVersion", type=float, default=1.2,
-    help="v>1.2 will use 10X's MI tag to infer molecules if specified and available")
+    help="v>=1.2 will use 10X's MI tag to infer molecules if available")
   parser.add_argument("-f","--setAlpha",default="30000,50000,70000",
     help="alpha i.e. max molecule extension basepair, override by 0 in case of using MI tag")
   parser.add_argument("-b","--maxRead",type=int,default=numpy.iinfo(numpy.int64).max,help="max number of read to process")
