@@ -94,9 +94,9 @@ INSTALL
 
     R(>=3.3)  http://r-project.org
       
-      CRAN: optparse, rjson, RColorBrewer, IRanges
+      CRAN: optparse, rjson, RColorBrewer
  
-      Bioconductor: GenomicRanges, ggbio, GenomeInfoDb
+      Bioconductor: IRanges, GenomicRanges, ggbio, GenomeInfoDb
 
       NOTE: using non-essential R scripts not listed in the EXECUTABLES section of this README file may incurr more dependencies, such as rhdf5, BSgenome.Hsapiens.UCSC.hg38, BSgenome.Hsapiens.UCSC.hg19, cowplot. 
       
