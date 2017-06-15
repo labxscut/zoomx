@@ -1,5 +1,15 @@
 #!/bin/bash
 #to use this script need to set $cfgfile and $moleFile
+if [[ -z $1 ]]; then
+  cfgfile=$cfgfile
+else
+  cfgfile=$1
+fi
+if [[ -z $2 ]]; then
+  moleFile=$moleFile
+else
+  moleFile=$2
+fi
 source $cfgfile
 log=$moleFile.log.plotMoleFile.$mydate
 cfg=$outputPf/$caseBam.gridScan.cfg.json        #output of gridScan configuraiton

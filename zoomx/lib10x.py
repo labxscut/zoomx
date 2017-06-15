@@ -112,7 +112,7 @@ def empirical_density(v):
 #v=np.random.exponential(100,100)
 #empirical_density(v)
 
-#disregarding second in pair
+#disregarding second read in pair
 #TODO: need to expand to include strand, FR or RF
 def orderedPair(rd): 
   reference_name = rd.reference_name

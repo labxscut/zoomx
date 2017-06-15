@@ -63,7 +63,7 @@ if(length(cmd$args)!=1 & !cmd$options$debug){ print_help(parser); quit() }
 moleFiles=strsplit(unlist(strsplit(cmd$args[1],";")),",")
 
 outPrefix=cmd$options$outPrefix
-labels=strsplit(cmd$options$labels,",")[[1]]
+labels=strsplit(cmd$options$labels,";")[[1]]
 maxCnt=cmd$options$maxCnt
 isMale=cmd$options$isMale
 titleText=cmd$options$titleText
@@ -71,7 +71,9 @@ debug=cmd$options$debug
 noQuiet=cmd$options$noQuiet
 
 if(outPrefix=="none") outPrefix="zoomx.circus.plot"
-if(titleText=="none") titleText=lapply(moleFiles,"[[",1)
+if(titleText=="none") { titleText=lapply(moleFiles,"[[",1) } else { titleText=list(strsplit(cmd$options$titleText,";")[[1]]) }
+if(labels=="none") labels = c("IntraChr","InterChr")
+  
 if(debug){ 
   setwd("~/ws/crcbrain/02_ZoomX")
   outPrefix = list("zoomx-Figure4")
@@ -94,7 +96,6 @@ circleTextSize=3.5
 circleLineSize=1
 mainTextSize=10
 circleScaleSize=2
-isMale=FALSE
 processedArgs=list("outPrefix"=outPrefix,"moleFiles"=moleFiles,"labels"=labels,"maxCnt"=maxCnt,"isMale"=isMale,"colScheme"=colScheme)
 #handle both 10 and 11 columns input and convert as 9 column input
 regCols10=c("chrom1","start1","end1","chrom2","start2","end2","molcnt","IM","FF","RR") # in refined
@@ -114,6 +115,7 @@ names(colors)=labels
 
 #p=plotCircus(1,moleFiles,labels)
 plotCircus = function(idx, moleFiles, labels) {
+  message("processing fileSet",idx,":",moleFiles)
   raw=lapply(seq_along(moleFiles[[idx]]), FUN=function(x) { 
     tmp=read.table(moleFiles[[idx]][x], header=T, sep="\t")
     if(nrow(tmp)>0){
@@ -133,13 +135,16 @@ plotCircus = function(idx, moleFiles, labels) {
   })
   rawCombined=do.call("rbind",raw)
 
+  if(is.null(rawCombined)) return(ggbio())
+
   convertedAll=rawCombined
   convertedAll$start1=pmax(1,convertedAll$start1)
   convertedAll$start2=pmax(1,convertedAll$start2)
   convertedAll$molcnt=pmin(convertedAll$molcnt,maxCnt)
   #convertedAll$rdpcnt=pmin(convertedAll$rdpcnt,maxCnt)
-  if(!isMale) convertedAll=convertedAll[ !(convertedAll$chrom1 %in% c("Y","chrY") | convertedAll$chrom2 %in% c("Y","chrY")), ]
+  if(!isMale) convertedAll=convertedAll[ !( convertedAll$chrom1 %in% c("Y","chrY") | convertedAll$chrom2 %in% c("Y","chrY") ), ]
   
+  if(nrow(convertedAll)==0) return(ggbio())
   print(convertedAll)
 
   gr <- GRanges(seqnames = convertedAll$chrom1, 

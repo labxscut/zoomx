@@ -67,18 +67,19 @@ def main(args):
     covFile = args.covFile
     maxRead = args.maxRead
     setAlpha = [int(x) for x in args.setAlpha.split(',')]
+    outputAllMolecules = args.outputAllMolecules
     debug = args.debug
   else:
-    bamfile="LS411N_CR1.wg12.bam"
+    bamfile="NA12878.wg12.chr22-22M-24M.bam"
     if not os.path.isfile(bamfile): quit() # quit if not in test directory
     print >>sys.stderr, "fall back to run program tests..."
     longRangerVersion = 1.2
     outPrefix = bamfile
-    covFile="none"
-    setAlpha=[0]
-    maxRead=numpy.inf
-    debug = False
-    #maxRead=200000
+    covFile = "none"
+    setAlpha = [0]
+    maxRead = numpy.inf
+    outputAllMolecules = True
+    debug = True
 
   sys.stderr.write("parse10x.py -b {} {}\n".format(maxRead,bamfile))
   sys.stderr.write("args="+str(args)+"\n")
@@ -111,6 +112,7 @@ def main(args):
     print >>sys.stderr, "acclen_C=", acclen_C
   
   #1. calculate the coverage 
+  #TODO: this is to be removed
   covVec=numpy.array([0]*int(acclen_A[-1]/100),dtype='float') 
   print >>sys.stderr, "allocated covVec:", len(covVec)
   cov_cut=numpy.inf
@@ -141,11 +143,9 @@ def main(args):
     print >>sys.stderr, "cov_mad=", cov_mad
     print >>sys.stderr, "cov_mean=", cov_mean
     print >>sys.stderr, "cov_sd=", cov_sd
-  
   print >>sys.stderr, "cov_cut=", cov_cut
   print >>sys.stderr, "cov_cut2=", cov_cut2
-  
-  #
+  #END TODO
   
   #2. define a python dict structure to cluster and hold the { b: (f11_idx, f12_idx, ...) } structure
   #3. define a python vector structure to hold [ (g(s11),b1,g(s11),g(s12),g(s1M)) ]
@@ -164,6 +164,7 @@ def main(args):
   if longRangerVersion < 1.2: #use nearest neighbor clustering
   
     print >>sys.stderr, "using manual nearest neighbour clustering (distance<alpha) to infer molecule..."
+    print >>sys.stderr, "for longranger v<1.2 only, going to be obsolete..."
   
     numAlpha = len(setAlpha)
     barfragdata = dict(zip(setAlpha,[ dict() for x in xrange(numAlpha)])) #NOTE: * doesn't create independent dictionaries 
@@ -196,7 +197,6 @@ def main(args):
          ps = -1
     
       #output imBedpe/ffBedpe/rrBedpe
-      #TODO: output split into ff, rr, im(1st=+,2nd=-) and mi(
       if ( not rd.is_reverse ) and rd.mate_is_reverse and ( not rd.is_proper_pair ) : #IM
         imBedpeFile.write('\t'.join([rd.reference_name, str(rd.reference_start), str(rd.reference_start+100), \
                          rd.next_reference_name, str(rd.next_reference_start), str(rd.next_reference_start+100), str(hp)])+'\n' )
@@ -272,7 +272,7 @@ def main(args):
         #cp2 = lib10x.g2cp(fragdata[alpha][N_f[alpha]-1][-1][-1],C,acclen_C,chrname)
         #assert cp1[0] == cp2[0] and cp1[1] <= cp2[1], "incorrect frag gip tip %d (%s,%d) and end %d (%s,%d) of %s" % (fragdata[alpha][frag][-1][0],cp1[0],cp1[1],fragdata[alpha][frag][-1][-1],cp2[0],cp2[1],str(fragdata[alpha][frag]))
     
-  else:  #end of longRangerVersion
+  else:  #end of longRangerVersion < 1.2 and begin of newer versions
   
     print >>sys.stderr, "using 10x longranger inferred molecule..."
     # need to merging in parsing for older longRangerVersion to this one
@@ -309,6 +309,7 @@ def main(args):
       if rd.mapq<30:
         continue
   
+      #read the phase block and hap type info
       try:
          hp = int(dict(rd.tags)['HP'])
          ps = int(dict(rd.tags)['PS'])
@@ -317,8 +318,8 @@ def main(args):
          ps = -1
     
       #output imBedpe/ffBedpe/rrBedpe
-
-      #include only one ordered pair from two reads
+      #include only one coordinate ordered pair from two reads
+      #define IM as +/- pair, FF and +/+ pair, RR as -- pair and MI as -/+ pair
       reference_name, reference_start, next_reference_name, next_reference_start, ordered = lib10x.orderedPair(rd)
       if ( not rd.is_reverse ) and rd.mate_is_reverse and ( not rd.is_proper_pair ) : #IM
         imBedpeFile.write('\t'.join([reference_name, str(reference_start), str(reference_start+100), \
@@ -349,6 +350,7 @@ def main(args):
   
       gip_GoodReadLeft = lib10x.cp2g(samfile.get_reference_name(rd.reference_id),rd.pos+1,C) #self
     
+      #NOTE: this part is now obsolete and replaced by filterMolecule.R
       try:
         if covVec[int(gip_GoodReadLeft/100)] > cov_cut \
           or covVec[int(gip_GoodReadLeft/100)-1] > cov_cut \
@@ -363,7 +365,7 @@ def main(args):
         rpinsert.append(rd.template_length)
         readlen.append(rd.infer_query_length())
   
-      # relie on MI
+      # relie on MI to identify molecule
       for alpha in setAlpha: #barfragdata[alpha]=dict(b:{fb1,fb2,...}),fragdata[alpha]=[f1,f2,...],N_f[alpha]=counter
         if not barfragdata[alpha].has_key(bar): #barcode is new
           barfragdata[alpha][bar]=[N_f[alpha]] #add this molecule to the first of bardcoded molecule list
@@ -385,12 +387,12 @@ def main(args):
             barfragdata[alpha][bar].append(N_f[alpha]) #add this molecule to the list of bardcoded molecule
             N_f[alpha] += 1;  #move molecule counter next
         assert N_f[alpha] == len(fragdata[alpha]) #making sure counting and expanding is consistent
+  #DEBUG:
   #      if mol == 1196356 and debug:
           #print(bar)
           #print(barfragdata[alpha][bar])
           #print(frag2mol[alpha])
   #        print("rd.pos+1=", rd.pos+1, " gip=", gip_GoodReadLeft)
-          
           #print(fragdata[alpha][barfragdata[alpha][bar][-1]]) #newly added mol
   
   samfile.close()
@@ -417,12 +419,11 @@ def main(args):
   #DEBUG
   #for f in barfragdata[50000]['AACACCTCAATCTA-1']:
   #  print >>sys.stderr, fragdata[50000][f] 
-  
-  #  print >>sys.stderr
     print >>sys.stderr, maxRead, "reads analyzed"
     print >>sys.stderr, "medianInsert=", numpy.median(rpinsert)
     print >>sys.stderr, "madInsert=", lib10x.mad(rpinsert)
     print >>sys.stderr, "medianReadLength=", numpy.median(readlen)
+
   print >>sys.stderr, N_qc, "of", N_all, "reads passed qc and have BX field"
   print >>sys.stderr, N_goodLeftRead,"read pairs of", N_qc, "reads are good read one with barcodes"
   #print >>sys.stderr, "found", N_b, "total barcodes"
@@ -441,76 +442,58 @@ def main(args):
   if True:
     #print >>sys.stderr
     print >>sys.stderr, "performing barcode-molecule analysis..."
-    #fragBarBedfile = dict(zip(setAlpha,[re.sub("$",".fragBar.bed",outPrefix)]*numAlpha))
-    #for alpha in setAlpha: fragBarBedfile[alpha]=open(".".join([fragBarBedfile[alpha],"a"+str(alpha)]),'w')
-    #fragBarTagfile = dict(zip(setAlpha,[re.sub("$",".fragBar.tag",outPrefix)]*numAlpha))
-    #for alpha in setAlpha: fragBarTagfile[alpha]=open(".".join([fragBarTagfile[alpha],"a"+str(alpha)]),'w')
+
+    #optionally, output fragBar for all barcoded molecules, used for haploid
+    if outputAllMolecules:
+      fragBar = dict(zip(setAlpha,[ [] for x in xrange(numAlpha)]))
+      fragBarMap = dict(zip(setAlpha,[ dict() for x in xrange(numAlpha)]))
+      fragBarBedfile = dict(zip(setAlpha,[re.sub("$",".fragBar.bed",outPrefix)]*numAlpha))
+      for alpha in setAlpha: fragBarBedfile[alpha]=open(".".join([fragBarBedfile[alpha],"a"+str(alpha)]),'w')
+      for alpha in setAlpha: 
+        fragBar[alpha] = list(set([ b for b in barfragdata[alpha] ])) #total barcode space, ordered
+        fragBarMap[alpha] = dict(zip(fragBar[alpha],xrange(1,len(fragBar[alpha])+1))) #barcode to barcode-index
+        for bar in fragBar[alpha]: 
+          for frag in barfragdata[alpha][bar]:
+            cp1 = lib10x.g2cp(fragdata[alpha][frag][-1][0],C,acclen_C,chrname)
+            cp2 = lib10x.g2cp(fragdata[alpha][frag][-1][-1],C,acclen_C,chrname)
+            #DEBUG: testing assertion
+            #assert cp1[0] == cp2[0] and cp1[1] <= cp2[1], "incorrect frag gip tip %d (%s,%d) and end %d (%s,%d) of %s" % (fragdata[alpha][frag][-1][0],cp1[0],cp1[1],fragdata[alpha][frag][-1][-1],cp2[0],cp2[1],str(fragdata[alpha][frag]))
+            if cp1[0] == cp2[0] and cp1[1] <= cp2[1]: #molecule data is consistent if this is satisfied
+              print >>fragBarBedfile[alpha], "\t".join([str(cp1[0]), str(cp1[1]), str(cp2[1]), str(fragBarMap[alpha][bar]), str(len(fragdata[alpha][frag][-1])), str(cp2[1]-cp1[1]), str(len(barfragdata[alpha][bar])), str(frag2mol[alpha][frag]), str(frag2hp[alpha][frag]), str(frag2ps[alpha][frag]), str(frag2bar[alpha][frag]) ])
   
-    multiFragBarBedfile = dict(zip(setAlpha,[re.sub("$",".multiFragBar.bed",outPrefix)]*numAlpha))
-    for alpha in setAlpha: multiFragBarBedfile[alpha]=open(".".join([multiFragBarBedfile[alpha],"a"+str(alpha)]),'w')
-    multiFragBarTagfile = dict(zip(setAlpha,[re.sub("$",".multiFragBar.tag",outPrefix)]*numAlpha))
-    for alpha in setAlpha: multiFragBarTagfile[alpha]=open(".".join([multiFragBarTagfile[alpha],"a"+str(alpha)]),'w')
+    #always output multiFragBar for all barcoded molecules whose barcode present in >=2 molecules, used for SV detection
+    if True:
+      print >>sys.stderr, "chosen alpha=", setAlpha
+      multiFragBar = dict(zip(setAlpha,[ [] for x in xrange(numAlpha)]))
+      multiFragBarMap = dict(zip(setAlpha,[ dict() for x in xrange(numAlpha)]))
+      fragCountMultiFragBar = dict(zip(setAlpha,[ [] for x in xrange(numAlpha)]))
+      fragLengthMultiFragBar = dict(zip(setAlpha,[ [] for x in xrange(numAlpha)]))
+      
+      for alpha in setAlpha: 
+        multiFragBar[alpha] = list(set([ b for b in barfragdata[alpha] if len(barfragdata[alpha][b])>1 ])) #reduce to barcode having >=2 molecules
+        multiFragBarMap[alpha] = dict(zip(multiFragBar[alpha],xrange(0,len(multiFragBar[alpha])))) #0-based index of tags within multiFragBar 
+      print >>sys.stderr, "given alpha, found", dict(zip(setAlpha, [ len(multiFragBar[alpha]) for alpha in setAlpha ])), "total barcodes (multiFragBar)"
   
-    #print >>sys.stderr, "bardatafile=", bardatafile
-    #print >>sys.stderr, "mbardatafile=", mbardatafile
-    #print >>sys.stderr, "fragdatafile=", fragdatafile
-    #print >>sys.stderr, "multiFragdatafile=", multiFragdatafile
+      for alpha in setAlpha: 
+        fragCountMultiFragBar[alpha] = [ len(barfragdata[alpha][b]) for b in multiFragBar[alpha] ]
+      print >>sys.stderr, "given alpha, found", dict(zip(setAlpha, [ sum(fragCountMultiFragBar[alpha]) for alpha in setAlpha ])), "total molecules (multiFragBar)"
   
-    print >>sys.stderr, "chosen alpha=", setAlpha
-    #initialize empty dicts
-    #fragBar = dict(zip(setAlpha,[ [] for x in xrange(numAlpha)]))
-    multiFragBar = dict(zip(setAlpha,[ [] for x in xrange(numAlpha)]))
-    #fragBarMap = dict(zip(setAlpha,[ dict() for x in xrange(numAlpha)]))
-    multiFragBarMap = dict(zip(setAlpha,[ dict() for x in xrange(numAlpha)]))
-    #fragCountFragBar = dict(zip(setAlpha,[ [] for x in xrange(numAlpha)]))
-    fragCountMultiFragBar = dict(zip(setAlpha,[ [] for x in xrange(numAlpha)]))
-    #fragLengthFragBar = dict(zip(setAlpha,[ [] for x in xrange(numAlpha)]))
-    fragLengthMultiFragBar = dict(zip(setAlpha,[ [] for x in xrange(numAlpha)]))
-    
-    #for alpha in setAlpha: 
-    #  fragBar[alpha] = list(set([ b for b in barfragdata[alpha] ])) #total barcode space, ordered
-    #  fragBarMap[alpha] = dict(zip(fragBar[alpha],xrange(1,len(fragBar[alpha])+1))) #barcode to barcode index
-    #print >>sys.stderr, "given alpha, found", dict(zip(setAlpha, [ len(fragBar[alpha]) for alpha in setAlpha ])), "total barcodes (fragBar)"
-  
-    for alpha in setAlpha: 
-      multiFragBar[alpha] = list(set([ b for b in barfragdata[alpha] if len(barfragdata[alpha][b])>1 ])) #reduce to barcode having >=2 molecules
-      multiFragBarMap[alpha] = dict(zip(multiFragBar[alpha],xrange(0,len(multiFragBar[alpha])))) #0-based index of tags within multiFragBar 
-    print >>sys.stderr, "given alpha, found", dict(zip(setAlpha, [ len(multiFragBar[alpha]) for alpha in setAlpha ])), "total barcodes (multiFragBar)"
-  
-    #for alpha in setAlpha: 
-    #  fragCountFragBar[alpha] = [ len(barfragdata[alpha][b]) for b in fragBar[alpha] ]
-    #print >>sys.stderr, "given alpha, found", dict(zip(setAlpha, [ sum(fragCountFragBar[alpha]) for alpha in setAlpha ])), "total molecules (fragBar)"
-  
-    for alpha in setAlpha: 
-      fragCountMultiFragBar[alpha] = [ len(barfragdata[alpha][b]) for b in multiFragBar[alpha] ]
-    print >>sys.stderr, "given alpha, found", dict(zip(setAlpha, [ sum(fragCountMultiFragBar[alpha]) for alpha in setAlpha ])), "total molecules (multiFragBar)"
-  
-    #for alpha in setAlpha:
-    #  for bar in fragBar[alpha]: 
-    #    for frag in barfragdata[alpha][bar]:
-    #      cp1 = lib10x.g2cp(fragdata[alpha][frag][-1][0],C,acclen_C,chrname)
-    #      cp2 = lib10x.g2cp(fragdata[alpha][frag][-1][-1],C,acclen_C,chrname)
-    #      #DEBUG: testing assertion
-    #      #assert cp1[0] == cp2[0] and cp1[1] <= cp2[1], "incorrect frag gip tip %d (%s,%d) and end %d (%s,%d) of %s" % (fragdata[alpha][frag][-1][0],cp1[0],cp1[1],fragdata[alpha][frag][-1][-1],cp2[0],cp2[1],str(fragdata[alpha][frag]))
-    #      if cp1[0] == cp2[0] and cp1[1] <= cp2[1]:
-    #        print >>fragBarBedfile[alpha], "\t".join([str(cp1[0]), str(cp1[1]), str(cp2[1]), str(fragBarMap[alpha][bar]), str(len(fragdata[alpha][frag][-1])), str(cp2[1]-cp1[1]), str(len(barfragdata[alpha][bar])), str(frag2mol[alpha][frag]), str(frag2hp[alpha][frag]), str(frag2ps[alpha][frag]) ])
-    ##chr, start, end, barcode_index(0-based), molecule_size(# of reads), molecule_len(base pairs), barcode_duplicates, mi, hp, ps
-    #        fragLengthFragBar[alpha].append(cp2[1]-cp1[1])
-    #    print >>fragBarTagfile[alpha], bar, len(barfragdata[alpha][bar])
-    #    #outputs inferred molecules and its barcode
-  
-    for alpha in setAlpha:
-      for bar in multiFragBar[alpha]: 
-        for frag in barfragdata[alpha][bar]:
-          cp1 = lib10x.g2cp(fragdata[alpha][frag][-1][0],C,acclen_C,chrname)
-          cp2 = lib10x.g2cp(fragdata[alpha][frag][-1][-1],C,acclen_C,chrname)
-          #DEBUG: testing assertion
-          #assert cp1[0] == cp2[0] and cp1[1] <= cp2[1], "incorrect frag gip tip %d (%s,%d) and end %d (%s,%d) of %s" % (fragdata[alpha][frag][-1][0],cp1[0],cp1[1],fragdata[alpha][frag][-1][-1],cp2[0],cp2[1],str(fragdata[alpha][frag]))
-          if cp1[0] == cp2[0] and cp1[1] <= cp2[1]:
-            print >>multiFragBarBedfile[alpha], "\t".join([str(cp1[0]), str(cp1[1]), str(cp2[1]), str(multiFragBarMap[alpha][bar]), str(len(fragdata[alpha][frag][-1])), str(cp2[1]-cp1[1]), str(len(barfragdata[alpha][bar])), str(frag2mol[alpha][frag]), str(frag2hp[alpha][frag]), str(frag2ps[alpha][frag]), str(frag2bar[alpha][frag]) ])
-            fragLengthMultiFragBar[alpha].append(cp2[1]-cp1[1])
-        print >>multiFragBarTagfile[alpha], bar, len(barfragdata[alpha][bar])
-        #outputs inferred molecules and its barcode
+      multiFragBarBedfile = dict(zip(setAlpha,[re.sub("$",".multiFragBar.bed",outPrefix)]*numAlpha))
+      for alpha in setAlpha: multiFragBarBedfile[alpha]=open(".".join([multiFragBarBedfile[alpha],"a"+str(alpha)]),'w')
+      multiFragBarTagfile = dict(zip(setAlpha,[re.sub("$",".multiFragBar.tag",outPrefix)]*numAlpha))
+      for alpha in setAlpha: multiFragBarTagfile[alpha]=open(".".join([multiFragBarTagfile[alpha],"a"+str(alpha)]),'w')
+      for alpha in setAlpha:
+        for bar in multiFragBar[alpha]: 
+          for frag in barfragdata[alpha][bar]:
+            cp1 = lib10x.g2cp(fragdata[alpha][frag][-1][0],C,acclen_C,chrname)
+            cp2 = lib10x.g2cp(fragdata[alpha][frag][-1][-1],C,acclen_C,chrname)
+            #DEBUG: testing assertion
+            #assert cp1[0] == cp2[0] and cp1[1] <= cp2[1], "incorrect frag gip tip %d (%s,%d) and end %d (%s,%d) of %s" % (fragdata[alpha][frag][-1][0],cp1[0],cp1[1],fragdata[alpha][frag][-1][-1],cp2[0],cp2[1],str(fragdata[alpha][frag]))
+            if cp1[0] == cp2[0] and cp1[1] <= cp2[1]:
+              print >>multiFragBarBedfile[alpha], "\t".join([str(cp1[0]), str(cp1[1]), str(cp2[1]), str(multiFragBarMap[alpha][bar]), str(len(fragdata[alpha][frag][-1])), str(cp2[1]-cp1[1]), str(len(barfragdata[alpha][bar])), str(frag2mol[alpha][frag]), str(frag2hp[alpha][frag]), str(frag2ps[alpha][frag]), str(frag2bar[alpha][frag]) ])
+              fragLengthMultiFragBar[alpha].append(cp2[1]-cp1[1])
+          print >>multiFragBarTagfile[alpha], bar, len(barfragdata[alpha][bar])
+          #outputs inferred molecules and its barcode
   
     #meanFragLengthFragBar=dict(zip(setAlpha, [ numpy.mean(fragLengthFragBar[alpha]) for alpha in setAlpha ]))
     #for alpha in setAlpha:
@@ -692,11 +675,12 @@ def run():
   parser.add_argument("bam",help="sorted 10x bamfile")
   parser.add_argument("-c","--covFile", default="none",help="100bp window coverage file")
   parser.add_argument("-l","--longRangerVersion", type=float, default=1.2,
-    help="v>1.2 will use 10X's MI tag to infer molecules if specified and available")
+    help="v>=1.2 will use 10X's MI tag to infer molecules if available")
   parser.add_argument("-f","--setAlpha",default="30000,50000,70000",
     help="alpha i.e. max molecule extension basepair, override by 0 in case of using MI tag")
   parser.add_argument("-b","--maxRead",type=int,default=numpy.iinfo(numpy.int64).max,help="max number of read to process")
   parser.add_argument("-o","--outPrefix",default="none",help="outputPrefix")
+  parser.add_argument("-x","--outputAllMolecules",default=False,action="store_true",help="outputAllMolecules")
   parser.add_argument("-a","--debug",default=False,action="store_true",help="in debug mode")
   try:
     args = parser.parse_args()
