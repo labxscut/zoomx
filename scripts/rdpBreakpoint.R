@@ -49,8 +49,7 @@ for(p in c("primerTree")) myrequire(p,repo="https://github.com/chaelir/primerTre
 
 ####Options####
 option_list2 <- list(
-  #make_option(c("-d", "--workDir"), default=".",
-  #            help="working directory [default %default]"),
+
   make_option(c("-o", "--outPrefix"), default="none",
               help="output prefix [default %default]"),
   make_option(c("-r", "--reference"), default="hg37",
@@ -59,6 +58,8 @@ option_list2 <- list(
               help="2 times the boundary padding bp [default %default]"),
   make_option(c("-p", "--padding"), default="-",
               help="signature pattern for breakpoint [default %default]"),
+  make_option(c("-m", "--plotMolecule"), action="store_true", default=FALSE,
+              help="including molecules in the plot [default %default]"),
   make_option(c("-q", "--noQuiet"), action="store_true", default=FALSE,
               help="show verbose, [default %default]"),
   make_option(c("-a", "--debug"), action="store_true", default=FALSE,
@@ -78,8 +79,9 @@ padding = cmd$options$padding
 
 ####Debug####
 if(debug){
-  workDir="~/ws/crcbrain/02_ZoomX/P05378_7175_mt.wg12.bam.tra.E10_P05378_7176_nt.wg12.bam.tra.E5.somatic.Plot_1"
+  workDir="~/ws/zoomx/02_ZoomX/NA12878_from10X_wg12.bam.cis.E40.refined.Plot_1"
   moleFile="chr2_116355000_116400000_chr9_131450000_131465000.mol"
+  plotMolecule=FALSE
   outPrefix="none"
   reference="hg37"
   padding = "-"
@@ -122,7 +124,9 @@ rd2GR=GenomicRanges::GRanges(seqnames=rdpInfo$chrom2,
                              strand=rdpInfo$strand2,
                              type=rdpInfo$supportType)
 
-#plot
+#plotting rdps only
+rd1GR=rd1GR
+
 g1=ggplot(rd1GR) + geom_arrowrect(aes(y=name,group=name,fill=type,group.selfish=TRUE),xlab=as.character(seqnames(rd1GR)[1])) + theme(legend.position="bottom", legend.box="vertical", legend.direction = "horizontal") #box-v, item-h
 g2=ggplot(rd2GR) + geom_arrowrect(aes(y=name,group=name,fill=type,group.selfish=TRUE),xlab=as.character(seqnames(rd2GR)[1]))
 legendHeight=0.3 #control legend area height
