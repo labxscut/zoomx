@@ -8,17 +8,44 @@ fi
 echo "zoomx somatic example version 8"
 echo "sourcing $cfgfile ..."
 source $cfgfile
-if [[ ! $? -eq 0 ]]; then exit; fi
-logfile=$cfgfile.log.$mydate
-echo "logfile: $logfile"
+if [[ ! $? -eq 0 ]]; then 
+  echo "configure file" $file "was not successfully sourced"
+  exit; 
+fi
 
 if [[ $mode == "somatic" ]]; then
   essentialStages=(controlCov caseCov controlParse controlScan caseParse caseScan controlCisRef controlDistRef controlTransRef caseDistRef caseTransRef caseCisRef caseDistPlot caseTransPlot caseCisPlot)
   extendedStages=(distDiffMix cisDiffMix transDiffMix distShare cisShare transShare)
-else
+elif [[ $mode == "somatic-nocov" ]]; then
+  essentialStages=(controlParse controlScan caseParse caseScan controlCisRef controlDistRef controlTransRef caseDistRef caseTransRef caseCisRef caseDistPlot caseTransPlot caseCisPlot)
+  extendedStages=(distDiffMix cisDiffMix transDiffMix distShare cisShare transShare)
+elif [[ $mode == "germline" ]]; then
   essentialStages=(caseCov caseParse caseScan caseDistRef caseTransRef caseCisRef caseDistPlot caseTransPlot caseCisPlot)
   extendedStages=()
+elif [[ $mode == "germline-nocov" ]]; then
+  essentialStages=(caseParse caseScan caseDistRef caseTransRef caseCisRef caseDistPlot caseTransPlot caseCisPlot)
+  extendedStages=()
+else
+  echo "stage collection" $mode "was not found!"
+  exit
 fi
+
+echo "---------------------------------------------------------------"
+echo "zoomxStage master settings:" 
+if [ ! -d $outputPf ]; then
+  echo "create output dir" $outputPf
+  mkdir $outputPf
+fi
+if [ ! -w $outputPf ] ; then 
+  echo 'cannot write to output dir' $outputPf; 
+  exit
+else
+  logDir="$outputPf/logs"
+  mkdir $logDir
+  zoomxStageLogFile="$logDir/$cfgfile.zoomxStage.$mydate.log"
+  echo "zoomxStageLogFile: $zoomxStageLogFile"
+fi
+echo "---------------------------------------------------------------"
 
 echo "---------------------------------------------------------------"
 echo -n "essential zoomxRun stages overview:"
@@ -27,7 +54,7 @@ echo "---------------------------------------------------------------"
 
 for s in ${essentialStages[*]}; do
   echo -n "$s:"
-  cmd="zoomxRun $s $cfgfile >$cfgfile.$s.json.$mydate 2>$logfile"
+  cmd="zoomxRun $s $cfgfile >$cfgfile.$s.json.$mydate 2>$zoomxStageLogFile"
   echo -n $cmd
   echo $cmd | bash
   if [[ ! $? -eq 0 ]]; then
@@ -50,7 +77,7 @@ echo "---------------------------------------------------------------"
 
 for s in ${extendedStages[*]}; do
   echo -n "$s:"
-  cmd="zoomxRun $s $cfgfile >$cfgfile.$s.json.$mydate 2>$logfile"
+  cmd="zoomxRun $s $cfgfile >$cfgfile.$s.json.$mydate 2>$zoomxStageLogFile"
   echo -n $cmd
   echo $cmd | bash
   if [[ ! $? -eq 0 ]]; then
