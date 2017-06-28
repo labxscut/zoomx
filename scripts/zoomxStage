@@ -14,10 +14,10 @@ echo "logfile: $logfile"
 
 if [[ $mode == "somatic" ]]; then
   essentialStages=(controlCov caseCov controlParse controlScan caseParse caseScan controlCisRef controlDistRef controlTransRef caseDistRef caseTransRef caseCisRef caseDistPlot caseTransPlot caseCisPlot)
-  extendedStages=()
+  extendedStages=(distDiffMix cisDiffMix transDiffMix distShare cisShare transShare)
 else
   essentialStages=(caseCov caseParse caseScan caseDistRef caseTransRef caseCisRef caseDistPlot caseTransPlot caseCisPlot)
-  extendedStages=(distDiffMix cisDiffMix transDiffMix distShare cisShare transShare)
+  extendedStages=()
 fi
 
 echo "---------------------------------------------------------------"
