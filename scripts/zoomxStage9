@@ -49,23 +49,23 @@ else
   mkdir $plotDir
   zoomxStageLogFile="$logDir/$cfgfile.zoomxStage.$mydate.log"
   zoomxStageReadmeFile="$outputPf/$cfgfile.zoomxStage.$mydate.readme"
-  zoomxStageReadme="The zoomxStage script are provided for easy manage of zoomxRun
-  Input ($cfgfile): 
-    a configure file in the format as specified in manual
-
-  Ouput ($outputPf): 
-    $zoomxStageReadmeFile : this readme file.
-    $logDir : keep logs of zoomxRun and zoomxStage
-    $cfgDir : keep json formatted configures of zoomxRun
-    $datDir : keep intermediatary results of zoomxRun, some may be useful to user
-    $resDir : keep main results of zoomxRun, mostly useful to user
-    $plotDir : keep plotting results of zoomxRun, also useful to user"
+  zoomxStageReadme="The zoomxStage script are provided for easy manage of zoomxRun\n
+  Input ($cfgfile):\n 
+    \t a configure file in the format as specified in manual\n
+  \n
+  Ouput ($outputPf):\n
+    \t $zoomxStageReadmeFile : this readme file. \n
+    \t $logDir : keep logs of zoomxRun and zoomxStage \n
+    \t $cfgDir : keep json formatted configures of zoomxRun \n
+    \t $datDir : keep intermediatary results of zoomxRun, some may be useful to user \n
+    \t $resDir : keep main results of zoomxRun, mostly useful to user \n
+    \t $plotDir : keep plotting results of zoomxRun, also useful to user \n"
     
   echo "zoomxStageLogFile: $zoomxStageLogFile"
   echo ""
-  echo "zoomxStageReadme: $zoomxStageReadme"
+  echo -e "zoomxStageReadme: $zoomxStageReadme"
   echo ""
-  echo $zoomxStageReadme >$zoomxStageReadmeFile
+  echo -e $zoomxStageReadme >$zoomxStageReadmeFile
 fi
 echo "---------------------------------------------------------------"
 

@@ -18,7 +18,9 @@ from itertools import chain
 #properly import zoomx modules
 try:
   import lib10x
-except ImportError:
+except ImportError as e:
+  print >>sys.stderr, e
+  print >>sys.stderr, "switching to site python zoomx"
   import zoomx.lib10x
 start_time=time.time()
 

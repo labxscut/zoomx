@@ -313,15 +313,17 @@ if [[ ! -z $(testSubstring "Plot" $ZoomXRunOp) ]]; then
     logFile="$logDir/$moleFile.$ZoomXRunOp.$mydate.log"
     maxSize=$(cat $resDir/$moleFile | wc -l)
     maxSize=$(expr $(($maxPlot>$maxSize?$maxSize:$maxPlot)) - 1)
-    for i in `seq 1 $maxSize`; do
-      getMolCMD="$ZOOMXPATH/../scripts/getMolecule.sh $resDir/$moleFile $datDir/$caseBam $i $plotDir/$moleFile.Plot >>$logFile"
-      if [[ -z $dryMode ]]; then echo $getMolCMD | bash; fi
-      if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
-      plotMolCMD="$ZOOMXPATH/../scripts/plotMolecule.R $isUCSC $plotDir/$moleFile.Plot_$i $datDir/$caseBam.gridScan.cfg.json >>$logFile" 
-      if [[ -z $dryMode ]]; then echo $plotMolCMD | bash; fi
-      if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
-      echo "    [ '$getMolCMD', '$plotMolCMD' ],"
-    done
+    if [[ $maxSize -ge 1 ]]; then
+      for i in `seq 1 $maxSize`; do
+        getMolCMD="$ZOOMXPATH/../scripts/getMolecule.sh $resDir/$moleFile $datDir/$caseBam $i $plotDir/$moleFile.Plot >>$logFile"
+        if [[ -z $dryMode ]]; then echo $getMolCMD | bash; fi
+        if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
+        plotMolCMD="$ZOOMXPATH/../scripts/plotMolecule.R $isUCSC $plotDir/$moleFile.Plot_$i $datDir/$caseBam.gridScan.cfg.json >>$logFile" 
+        if [[ -z $dryMode ]]; then echo $plotMolCMD | bash; fi
+        if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
+        echo "    [ '$getMolCMD', '$plotMolCMD' ],"
+      done
+    fi
   fi
   echo "  ]"
 fi
@@ -431,15 +433,17 @@ if [[ ! -z $(testSubstring "Diff" $ZoomXRunOp) || ! -z $(testSubstring "Share" $
     logFile="$logDir/$moleFile.$ZoomXRunOp.$mydate.log"
     maxSize=$(cat $resDir/$moleFile | wc -l)
     maxSize=$(expr $(($maxPlot>$maxSize?$maxSize:$maxPlot)) - 1)
-    for i in `seq 1 $maxSize`; do
-      getMolCMD="$ZOOMXPATH/../scripts/getMolecule.sh $resDir/$moleFile $datDir/$caseBam $i $plotDir/$moleFile.Plot >>$logFile"
-      if [[ -z $dryMode ]]; then echo $getMolCMD | bash; fi
-      if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
-      plotMolCMD="$ZOOMXPATH/../scripts/plotMolecule.R $isUCSC $plotDir/$moleFile.Plot_$i $datDir/$caseBam.gridScan.cfg.json >>$logFile" 
-      if [[ -z $dryMode ]]; then echo $plotMolCMD | bash; fi
-      if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
-      echo "    [ '$getMolCMD', '$plotMolCMD' ],"
-    done
+    if [[ $maxSize -ge 1 ]]; then
+      for i in `seq 1 $maxSize`; do
+        getMolCMD="$ZOOMXPATH/../scripts/getMolecule.sh $resDir/$moleFile $datDir/$caseBam $i $plotDir/$moleFile.Plot >>$logFile"
+        if [[ -z $dryMode ]]; then echo $getMolCMD | bash; fi
+        if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
+        plotMolCMD="$ZOOMXPATH/../scripts/plotMolecule.R $isUCSC $plotDir/$moleFile.Plot_$i $datDir/$caseBam.gridScan.cfg.json >>$logFile" 
+        if [[ -z $dryMode ]]; then echo $plotMolCMD | bash; fi
+        if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
+        echo "    [ '$getMolCMD', '$plotMolCMD' ],"
+      done
+    fi
   fi
   echo "  ]"
 fi
