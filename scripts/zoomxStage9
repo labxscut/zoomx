@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
-if [[ -z $1 ]]; then
+if [[ -z "$1" ]]; then
   cfgfile="somatic9.cfg"
 else
   cfgfile=$1
 fi
 
-echo "zoomx somatic example version 8"
+
+echo "zoomxStage and zoomxRun version 9"
 echo "sourcing $cfgfile ..."
 source $cfgfile
 if [[ ! $? -eq 0 ]]; then 
@@ -47,7 +48,24 @@ else
   mkdir $resDir
   mkdir $plotDir
   zoomxStageLogFile="$logDir/$cfgfile.zoomxStage.$mydate.log"
+  zoomxStageReadmeFile="$outputPf/$cfgfile.zoomxStage.$mydate.readme"
+  zoomxStageReadme="The zoomxStage script are provided for easy manage of zoomxRun
+  Input ($cfgfile): 
+    a configure file in the format as specified in manual
+
+  Ouput ($outputPf): 
+    $zoomxStageReadmeFile : this readme file.
+    $logDir : keep logs of zoomxRun and zoomxStage
+    $cfgDir : keep json formatted configures of zoomxRun
+    $datDir : keep intermediatary results of zoomxRun, some may be useful to user
+    $resDir : keep main results of zoomxRun, mostly useful to user
+    $plotDir : keep plotting results of zoomxRun, also useful to user"
+    
   echo "zoomxStageLogFile: $zoomxStageLogFile"
+  echo ""
+  echo "zoomxStageReadme: $zoomxStageReadme"
+  echo ""
+  echo $zoomxStageReadme >$zoomxStageReadmeFile
 fi
 echo "---------------------------------------------------------------"
 
