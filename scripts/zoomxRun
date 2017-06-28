@@ -99,7 +99,7 @@ if [[ ! -z $( testSubstring "control" $ZoomXRunOp ) ]]; then # define common con
   trans=$outputPf/$controlBam.jct.bedpe.tra   #output of inter chromosome junctions
   distal=$outputPf/$controlBam.jct.bedpe.dis  #output of distal (>200 KB) junctions
   cis=$outputPf/$controlBam.jct.bedpe.cis     #output of intra  (>50 KB) junctions
-  cfg=$outputPf/$controlBam.gridScan.cfg.json        #output of gridScan configuraiton
+  cfg=$outputPf/json/$controlBam.gridScan.cfg.json        #output of gridScan configuraiton
   echo "  'controlOption': {"
   echo "    'log': '$log', 'bed': '$bed', 'clean':'$clean', 'filter':'$filter', 'h5': '$h5', 'trans': '$trans', 'distal': '$distal', 'cis':'$cis', 'cfg':'$cfg' },"
   echo "  'controlCmd': {"
