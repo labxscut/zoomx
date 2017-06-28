@@ -1,0 +1,96 @@
+#!/usr/bin/env bash
+if [[ -z $1 ]]; then
+  cfgfile="somatic9.cfg"
+else
+  cfgfile=$1
+fi
+
+echo "zoomx somatic example version 8"
+echo "sourcing $cfgfile ..."
+source $cfgfile
+if [[ ! $? -eq 0 ]]; then 
+  echo "configure file" $file "was not successfully sourced"
+  exit; 
+fi
+
+if [[ $mode == "somatic" ]]; then
+  essentialStages=(controlCov caseCov controlParse controlScan caseParse caseScan controlCisRef controlDistRef controlTransRef caseDistRef caseTransRef caseCisRef caseDistPlot caseTransPlot caseCisPlot)
+  extendedStages=(distDiffMix cisDiffMix transDiffMix distShare cisShare transShare)
+elif [[ $mode == "somatic-nocov" ]]; then
+  essentialStages=(controlParse controlScan caseParse caseScan controlCisRef controlDistRef controlTransRef caseDistRef caseTransRef caseCisRef caseDistPlot caseTransPlot caseCisPlot)
+  extendedStages=(distDiffMix cisDiffMix transDiffMix distShare cisShare transShare)
+elif [[ $mode == "germline" ]]; then
+  essentialStages=(caseCov caseParse caseScan caseDistRef caseTransRef caseCisRef caseDistPlot caseTransPlot caseCisPlot)
+  extendedStages=()
+elif [[ $mode == "germline-nocov" ]]; then
+  essentialStages=(caseParse caseScan caseDistRef caseTransRef caseCisRef caseDistPlot caseTransPlot caseCisPlot)
+  extendedStages=()
+else
+  echo "stage collection" $mode "was not found!"
+  exit
+fi
+
+echo "---------------------------------------------------------------"
+echo "zoomxStage master settings:" 
+if [ ! -d $outputPf ]; then
+  echo "create output dir" $outputPf
+  mkdir $outputPf
+fi
+if [ ! -w $outputPf ] ; then 
+  echo 'cannot write to output dir' $outputPf; 
+  exit
+else
+  echo "create subdirs:" $logDir $cfgDir $datDir $resDir $plotDir
+  mkdir $logDir
+  mkdir $cfgDir
+  mkdir $datDir
+  mkdir $resDir
+  mkdir $plotDir
+  zoomxStageLogFile="$logDir/$cfgfile.zoomxStage.$mydate.log"
+  echo "zoomxStageLogFile: $zoomxStageLogFile"
+fi
+echo "---------------------------------------------------------------"
+
+echo "---------------------------------------------------------------"
+echo -n "essential zoomxRun9 stages overview:"
+echo ${essentialStages[*]}
+echo "---------------------------------------------------------------"
+
+for s in ${essentialStages[*]}; do
+  echo -n "$s:"
+  cmd="zoomxRun9 $s $cfgfile >$cfgDir/$cfgfile.$s.$mydate.json 2>$zoomxStageLogFile"
+  echo -n $cmd
+  echo $cmd | bash
+  if [[ ! $? -eq 0 ]]; then
+    echo "[ERROR]"
+    echo "Failed Stage Command:" $cmd
+    exit
+  fi
+  echo "[OK]"
+done
+
+echo "---------------------------------------------------------------"
+echo -n "extended zoomxRun9 stages overview:"
+echo ${extendedStages[*]}
+echo "---------------------------------------------------------------"
+
+#echo "-----------------------------------------" &&
+#echo "NOTE: it is OK to see Errors in extended stages above, resulting from bedtools complaining bed file cannot be opened.
+#It is because the file is zero sized as a result of no junction found in previous steps" &&
+#echo "-----------------------------------------" &&
+
+for s in ${extendedStages[*]}; do
+  echo -n "$s:"
+  cmd="zoomxRun9 $s $cfgfile >$cfgDir/$cfgfile.$s.$mydate.json 2>$zoomxStageLogFile"
+  echo -n $cmd
+  echo $cmd | bash
+  if [[ ! $? -eq 0 ]]; then
+    echo "[WARNING]"
+    echo "Warning Stage Command:" $cmd
+  else
+    echo "[OK]"
+  fi
+done
+
+echo "---------------------------------------------------------------"
+echo "all done successfully"
