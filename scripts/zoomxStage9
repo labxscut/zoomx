@@ -14,22 +14,22 @@ if [[ ! $? -eq 0 ]]; then
   exit; 
 fi
 
-if [[ $mode == "somatic" ]]; then
-  essentialStages=(controlCov caseCov controlParse controlScan caseParse caseScan controlCisRef controlDistRef controlTransRef caseDistRef caseTransRef caseCisRef caseDistPlot caseTransPlot caseCisPlot)
-  extendedStages=(distDiffMix cisDiffMix transDiffMix distShare cisShare transShare)
-elif [[ $mode == "somatic-nocov" ]]; then
-  essentialStages=(controlParse controlScan caseParse caseScan controlCisRef controlDistRef controlTransRef caseDistRef caseTransRef caseCisRef caseDistPlot caseTransPlot caseCisPlot)
-  extendedStages=(distDiffMix cisDiffMix transDiffMix distShare cisShare transShare)
-elif [[ $mode == "germline" ]]; then
-  essentialStages=(caseCov caseParse caseScan caseDistRef caseTransRef caseCisRef caseDistPlot caseTransPlot caseCisPlot)
-  extendedStages=()
-elif [[ $mode == "germline-nocov" ]]; then
-  essentialStages=(caseParse caseScan caseDistRef caseTransRef caseCisRef caseDistPlot caseTransPlot caseCisPlot)
-  extendedStages=()
-else
-  echo "stage collection" $mode "was not found!"
-  exit
-fi
+#if [[ $mode == "somatic" ]]; then
+#  essentialStages=(controlCov caseCov controlParse controlScan caseParse caseScan controlCisRef controlDistRef controlTransRef caseDistRef caseTransRef caseCisRef caseDistPlot caseTransPlot caseCisPlot)
+#  extendedStages=(distDiffMix cisDiffMix transDiffMix distShare cisShare transShare)
+#elif [[ $mode == "somatic-nocov" ]]; then
+#  essentialStages=(controlParse controlScan caseParse caseScan controlCisRef controlDistRef controlTransRef caseDistRef caseTransRef caseCisRef caseDistPlot caseTransPlot caseCisPlot)
+#  extendedStages=(distDiffMix cisDiffMix transDiffMix distShare cisShare transShare)
+#elif [[ $mode == "germline" ]]; then
+#  essentialStages=(caseCov caseParse caseScan caseDistRef caseTransRef caseCisRef caseDistPlot caseTransPlot caseCisPlot)
+#  extendedStages=()
+#elif [[ $mode == "germline-nocov" ]]; then
+#  essentialStages=(caseParse caseScan caseDistRef caseTransRef caseCisRef caseDistPlot caseTransPlot caseCisPlot)
+#  extendedStages=()
+#else
+#  echo "stage collection" $mode "was not found!"
+#  exit
+#fi
 
 echo "---------------------------------------------------------------"
 echo "zoomxStage master settings:" 
