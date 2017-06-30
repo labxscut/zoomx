@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 if [[ -z "$1" ]]; then
-  cfgfile="somatic9.cfg"
+  echo "usage: zoomxStage cfgfile"
+  echo "example: zoomxStage somatic9.cfg"
+  echo "  execute zoomxRun by sequential stages according to provided configure file"
+  exit
 else
   cfgfile=$1
 fi
-
 
 echo "zoomxStage and zoomxRun version 9"
 echo "sourcing $cfgfile ..."
@@ -13,23 +15,6 @@ if [[ ! $? -eq 0 ]]; then
   echo "configure file" $file "was not successfully sourced"
   exit; 
 fi
-
-#if [[ $mode == "somatic" ]]; then
-#  essentialStages=(controlCov caseCov controlParse controlScan caseParse caseScan controlCisRef controlDistRef controlTransRef caseDistRef caseTransRef caseCisRef caseDistPlot caseTransPlot caseCisPlot)
-#  extendedStages=(distDiffMix cisDiffMix transDiffMix distShare cisShare transShare)
-#elif [[ $mode == "somatic-nocov" ]]; then
-#  essentialStages=(controlParse controlScan caseParse caseScan controlCisRef controlDistRef controlTransRef caseDistRef caseTransRef caseCisRef caseDistPlot caseTransPlot caseCisPlot)
-#  extendedStages=(distDiffMix cisDiffMix transDiffMix distShare cisShare transShare)
-#elif [[ $mode == "germline" ]]; then
-#  essentialStages=(caseCov caseParse caseScan caseDistRef caseTransRef caseCisRef caseDistPlot caseTransPlot caseCisPlot)
-#  extendedStages=()
-#elif [[ $mode == "germline-nocov" ]]; then
-#  essentialStages=(caseParse caseScan caseDistRef caseTransRef caseCisRef caseDistPlot caseTransPlot caseCisPlot)
-#  extendedStages=()
-#else
-#  echo "stage collection" $mode "was not found!"
-#  exit
-#fi
 
 echo "---------------------------------------------------------------"
 echo "zoomxStage master settings:" 
@@ -70,13 +55,23 @@ fi
 echo "---------------------------------------------------------------"
 
 echo "---------------------------------------------------------------"
-echo -n "essential zoomxRun9 stages overview:"
+echo -n "essential zoomxRun stages overview:"
 echo ${essentialStages[*]}
 echo "---------------------------------------------------------------"
+#essentialStages are customer defined stages that oughut to have results
+#  that could include steps to:
+#    scan for sequencing coverage of genomes: caseCov (controlCov) 
+#    parse bam files: caseParse (controlParse) 
+#    do genome wide grid scan: caseScan (controlScan)
+#    refine breakpoint for distal, trans and cis junctions: caseDistRef caseTransRef caseCisRef (controlCisRef controlDistRef controlTransRef) 
+#    plot molecule supports for distal, trans and cis junctions: [caseDistPlot caseTransPlot caseCisPlot]
+#  (steps only required only in somatic call run are in parenthesis)
+#  [steps only required only in germline call run are in square bracket]
+#  in resurrecting a broken run, completed stages can be eliminated from the configure file
 
 for s in ${essentialStages[*]}; do
   echo -n "$s:"
-  cmd="zoomxRun9 $s $cfgfile >$cfgDir/$cfgfile.$s.$mydate.json 2>$zoomxStageLogFile"
+  cmd="zoomxRun $s $cfgfile >$cfgDir/$cfgfile.$s.$mydate.json 2>$zoomxStageLogFile"
   echo -n $cmd
   echo $cmd | bash
   if [[ ! $? -eq 0 ]]; then
@@ -88,18 +83,22 @@ for s in ${essentialStages[*]}; do
 done
 
 echo "---------------------------------------------------------------"
-echo -n "extended zoomxRun9 stages overview:"
+echo -n "extended zoomxRun stages overview:"
 echo ${extendedStages[*]}
 echo "---------------------------------------------------------------"
-
-#echo "-----------------------------------------" &&
-#echo "NOTE: it is OK to see Errors in extended stages above, resulting from bedtools complaining bed file cannot be opened.
-#It is because the file is zero sized as a result of no junction found in previous steps" &&
-#echo "-----------------------------------------" &&
+#extendedStages are customer defined stages that may have results
+#  they also may not have results simply because the previous steps' output are empty
+#  in this case, it will produce a WARNING
+#  that could include steps to:
+#    differential distal, trans and cis junctions betwen tumor and normal: (distDiffMix cisDiffMix transDiffMix) 
+#    intersect distal, trans and cis junctions betwen tumor and normal: (distShare cisShare transShare)
+#  (steps only required only in somatic call run are in parenthesis)
+#  [steps only required only in germline call run are in square bracket]
+#  in resurrecting a broken run, completed stages can be eliminated from the configure file
 
 for s in ${extendedStages[*]}; do
   echo -n "$s:"
-  cmd="zoomxRun9 $s $cfgfile >$cfgDir/$cfgfile.$s.$mydate.json 2>$zoomxStageLogFile"
+  cmd="zoomxRun $s $cfgfile >$cfgDir/$cfgfile.$s.$mydate.json 2>$zoomxStageLogFile"
   echo -n $cmd
   echo $cmd | bash
   if [[ ! $? -eq 0 ]]; then
