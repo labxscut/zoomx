@@ -3,6 +3,26 @@ if [[ -z "$1" ]]; then
   echo "usage: zoomxStage cfgfile"
   echo "example: zoomxStage somatic9.cfg"
   echo "  execute zoomxRun by sequential stages according to provided configure file"
+  echo "following variables in cfgfile are places to specify stages:"
+  echo "  essentialStages:" 
+  echo "    customer defined stages that oughut to have results"
+  echo "    that could include steps to:"
+  echo "      1. scan for sequencing coverage of genomes: caseCov (controlCov) "
+  echo "      2. parse bam files: caseParse (controlParse) "
+  echo "      3. do genome wide grid scan: caseScan (controlScan)"
+  echo "      4. refine breakpoint for distal, trans and cis junctions: caseDistRef caseTransRef caseCisRef (controlCisRef controlDistRef controlTransRef) "
+  echo "      5. plot molecule supports for distal, trans and cis junctions: [caseDistPlot caseTransPlot caseCisPlot]"
+  echo "  extendedStages:"
+  echo "    customer defined stages that may have results"
+  echo "    they also may not have results simply because the previous steps' output are empty"
+  echo "    in this case, it will produce a WARNING"
+  echo "    that could include steps to:"
+  echo "      1. differential distal, trans and cis junctions betwen tumor and normal: (distDiffMix cisDiffMix transDiffMix) "
+  echo "      2. intersect distal, trans and cis junctions betwen tumor and normal: (distShare cisShare transShare)"
+  echo "NOTE:"
+  echo "  steps only required only in somatic call run are in parenthesis ()"
+  echo "  steps only required only in germline call run are in square bracket []"
+  echo "  in resurrecting a broken run, completed stages can be eliminated from the configure file"
   exit
 else
   cfgfile=$1
@@ -58,16 +78,6 @@ echo "---------------------------------------------------------------"
 echo -n "essential zoomxRun stages overview:"
 echo ${essentialStages[*]}
 echo "---------------------------------------------------------------"
-#essentialStages are customer defined stages that oughut to have results
-#  that could include steps to:
-#    scan for sequencing coverage of genomes: caseCov (controlCov) 
-#    parse bam files: caseParse (controlParse) 
-#    do genome wide grid scan: caseScan (controlScan)
-#    refine breakpoint for distal, trans and cis junctions: caseDistRef caseTransRef caseCisRef (controlCisRef controlDistRef controlTransRef) 
-#    plot molecule supports for distal, trans and cis junctions: [caseDistPlot caseTransPlot caseCisPlot]
-#  (steps only required only in somatic call run are in parenthesis)
-#  [steps only required only in germline call run are in square bracket]
-#  in resurrecting a broken run, completed stages can be eliminated from the configure file
 
 for s in ${essentialStages[*]}; do
   echo -n "$s:"
@@ -86,15 +96,6 @@ echo "---------------------------------------------------------------"
 echo -n "extended zoomxRun stages overview:"
 echo ${extendedStages[*]}
 echo "---------------------------------------------------------------"
-#extendedStages are customer defined stages that may have results
-#  they also may not have results simply because the previous steps' output are empty
-#  in this case, it will produce a WARNING
-#  that could include steps to:
-#    differential distal, trans and cis junctions betwen tumor and normal: (distDiffMix cisDiffMix transDiffMix) 
-#    intersect distal, trans and cis junctions betwen tumor and normal: (distShare cisShare transShare)
-#  (steps only required only in somatic call run are in parenthesis)
-#  [steps only required only in germline call run are in square bracket]
-#  in resurrecting a broken run, completed stages can be eliminated from the configure file
 
 for s in ${extendedStages[*]}; do
   echo -n "$s:"

@@ -16,8 +16,6 @@
 |Logo| ZoomX - Single Molecule Based Rearrangement Analysis with Linked Read Sequencing
 ==========================================================================================
 
-.. contents:: Navigator
-
 QUICK LINKS
 -----------
 
