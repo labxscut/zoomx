@@ -67,7 +67,7 @@ TRYOUT
     
       ssh bkd@ec2-54-190-36-93.us-west-2.compute.amazonaws.com # secret is the same as user
     
-    Testing data and scripts are available in ~/setup/zoomx/test . Run ./clean to clean up the directory first. Examples are offered as germline3.run and somatic7.run, as explained in `Examples <https://bitbucket.org/charade/zoomx/wiki/Example>`__ .
+    Testing data and scripts are available in ~/setup/zoomx/test . Run ./clean to clean up the directory first. Examples are offered and explained in `Examples <https://bitbucket.org/charade/zoomx/wiki/Example>`__ .
 
     .. code::
    
