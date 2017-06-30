@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
-if [[ -z $1 ]]; then
-  cfgfile="somatic8.cfg"
+if [[ -z "$1" ]]; then
+  cfgfile="somatic9.cfg"
 else
   cfgfile=$1
 fi
 
-echo "zoomx somatic example version 8"
+
+echo "zoomxStage and zoomxRun version 9"
 echo "sourcing $cfgfile ..."
 source $cfgfile
 if [[ ! $? -eq 0 ]]; then 
@@ -13,22 +14,22 @@ if [[ ! $? -eq 0 ]]; then
   exit; 
 fi
 
-if [[ $mode == "somatic" ]]; then
-  essentialStages=(controlCov caseCov controlParse controlScan caseParse caseScan controlCisRef controlDistRef controlTransRef caseDistRef caseTransRef caseCisRef caseDistPlot caseTransPlot caseCisPlot)
-  extendedStages=(distDiffMix cisDiffMix transDiffMix distShare cisShare transShare)
-elif [[ $mode == "somatic-nocov" ]]; then
-  essentialStages=(controlParse controlScan caseParse caseScan controlCisRef controlDistRef controlTransRef caseDistRef caseTransRef caseCisRef caseDistPlot caseTransPlot caseCisPlot)
-  extendedStages=(distDiffMix cisDiffMix transDiffMix distShare cisShare transShare)
-elif [[ $mode == "germline" ]]; then
-  essentialStages=(caseCov caseParse caseScan caseDistRef caseTransRef caseCisRef caseDistPlot caseTransPlot caseCisPlot)
-  extendedStages=()
-elif [[ $mode == "germline-nocov" ]]; then
-  essentialStages=(caseParse caseScan caseDistRef caseTransRef caseCisRef caseDistPlot caseTransPlot caseCisPlot)
-  extendedStages=()
-else
-  echo "stage collection" $mode "was not found!"
-  exit
-fi
+#if [[ $mode == "somatic" ]]; then
+#  essentialStages=(controlCov caseCov controlParse controlScan caseParse caseScan controlCisRef controlDistRef controlTransRef caseDistRef caseTransRef caseCisRef caseDistPlot caseTransPlot caseCisPlot)
+#  extendedStages=(distDiffMix cisDiffMix transDiffMix distShare cisShare transShare)
+#elif [[ $mode == "somatic-nocov" ]]; then
+#  essentialStages=(controlParse controlScan caseParse caseScan controlCisRef controlDistRef controlTransRef caseDistRef caseTransRef caseCisRef caseDistPlot caseTransPlot caseCisPlot)
+#  extendedStages=(distDiffMix cisDiffMix transDiffMix distShare cisShare transShare)
+#elif [[ $mode == "germline" ]]; then
+#  essentialStages=(caseCov caseParse caseScan caseDistRef caseTransRef caseCisRef caseDistPlot caseTransPlot caseCisPlot)
+#  extendedStages=()
+#elif [[ $mode == "germline-nocov" ]]; then
+#  essentialStages=(caseParse caseScan caseDistRef caseTransRef caseCisRef caseDistPlot caseTransPlot caseCisPlot)
+#  extendedStages=()
+#else
+#  echo "stage collection" $mode "was not found!"
+#  exit
+#fi
 
 echo "---------------------------------------------------------------"
 echo "zoomxStage master settings:" 
@@ -40,21 +41,42 @@ if [ ! -w $outputPf ] ; then
   echo 'cannot write to output dir' $outputPf; 
   exit
 else
-  logDir="$outputPf/logs"
+  echo "create subdirs:" $logDir $cfgDir $datDir $resDir $plotDir
   mkdir $logDir
+  mkdir $cfgDir
+  mkdir $datDir
+  mkdir $resDir
+  mkdir $plotDir
   zoomxStageLogFile="$logDir/$cfgfile.zoomxStage.$mydate.log"
+  zoomxStageReadmeFile="$outputPf/$cfgfile.zoomxStage.$mydate.readme"
+  zoomxStageReadme="The zoomxStage script are provided for easy manage of zoomxRun\n
+  Input ($cfgfile):\n 
+    \t a configure file in the format as specified in manual\n
+  \n
+  Ouput ($outputPf):\n
+    \t $zoomxStageReadmeFile : this readme file. \n
+    \t $logDir : keep logs of zoomxRun and zoomxStage \n
+    \t $cfgDir : keep json formatted configures of zoomxRun \n
+    \t $datDir : keep intermediatary results of zoomxRun, some may be useful to user \n
+    \t $resDir : keep main results of zoomxRun, mostly useful to user \n
+    \t $plotDir : keep plotting results of zoomxRun, also useful to user \n"
+    
   echo "zoomxStageLogFile: $zoomxStageLogFile"
+  echo ""
+  echo -e "zoomxStageReadme: $zoomxStageReadme"
+  echo ""
+  echo -e $zoomxStageReadme >$zoomxStageReadmeFile
 fi
 echo "---------------------------------------------------------------"
 
 echo "---------------------------------------------------------------"
-echo -n "essential zoomxRun stages overview:"
+echo -n "essential zoomxRun9 stages overview:"
 echo ${essentialStages[*]}
 echo "---------------------------------------------------------------"
 
 for s in ${essentialStages[*]}; do
   echo -n "$s:"
-  cmd="zoomxRun $s $cfgfile >$cfgfile.$s.json.$mydate 2>$zoomxStageLogFile"
+  cmd="zoomxRun9 $s $cfgfile >$cfgDir/$cfgfile.$s.$mydate.json 2>$zoomxStageLogFile"
   echo -n $cmd
   echo $cmd | bash
   if [[ ! $? -eq 0 ]]; then
@@ -66,7 +88,7 @@ for s in ${essentialStages[*]}; do
 done
 
 echo "---------------------------------------------------------------"
-echo -n "extended zoomxRun stages overview:"
+echo -n "extended zoomxRun9 stages overview:"
 echo ${extendedStages[*]}
 echo "---------------------------------------------------------------"
 
@@ -77,7 +99,7 @@ echo "---------------------------------------------------------------"
 
 for s in ${extendedStages[*]}; do
   echo -n "$s:"
-  cmd="zoomxRun $s $cfgfile >$cfgfile.$s.json.$mydate 2>$zoomxStageLogFile"
+  cmd="zoomxRun9 $s $cfgfile >$cfgDir/$cfgfile.$s.$mydate.json 2>$zoomxStageLogFile"
   echo -n $cmd
   echo $cmd | bash
   if [[ ! $? -eq 0 ]]; then
