@@ -47,7 +47,7 @@ def main(args):
     bamFile = args.bam
     callFile = args.call
     cfgFile = args.cfg
-    covFile = args.covFile
+    gapFile = args.gapFile
     imBedpeFile = args.imBedpeFile
     ffBedpeFile = args.ffBedpeFile
     rrBedpeFile = args.rrBedpeFile 
@@ -65,7 +65,7 @@ def main(args):
     outPrefix = "none"
     callFile = "LS411N_CR1.wg12.bam.jct.bedpe"
     cfgFile = "LS411N_CR1.wg12.bam.gridScan.cfg.json"
-    covFile = "none"
+    gapFile = "none"
     imBedpeFile = "LS411N_CR1.wg12.bam.IM.bedpe"
     ffBedpeFile = "LS411N_CR1.wg12.bam.FF.bedpe"
     rrBedpeFile = "LS411N_CR1.wg12.bam.RR.bedpe"
@@ -124,7 +124,7 @@ def main(args):
   bedLabels=["chr","start","end","molcnt"]
   
   #rawCalls=pandas.read_table(callFile, names=callLabels)
-  rawCalls=pandas.read_table(callFile,names=callLabels,dtype=dict(zip(callLabels,callTypes)))
+  rawCalls=pandas.read_table(callFile,names=callLabels,dtype=dict(zip(callLabels,callTypes))) #only read cols 1-7
   #keep only min molcnt and above
   rawCalls=rawCalls[rawCalls['molcnt']>minMolCnt]
   #add index to bedpe file
@@ -138,13 +138,26 @@ def main(args):
   mergeBedpe=pandas.DataFrame(dict(zip(callLabels,[ [] for i in range(len(callLabels)) ])), columns=callLabels)
   if (len(rawCalls) > 0):
     #save bedpe file for pairtopair overlapping
-    tmpBedpeFile=lib10x.getTemporaryFile('bedpe_')
-    rawCalls.to_csv(tmpBedpeFile,header=False, sep="\t", index=False)
-    
+    tmpRawFile=lib10x.getTemporaryFile('bedpe_')
+    if debug: sys.stderr.write("tmpRawFile='"+str(tmpRawFile)+"'\n")
+    rawCalls.to_csv(tmpRawFile,header=False, sep="\t", index=False)
+
+    if (gapFile != "none"):
+      sys.stderr.write("filtering gap calls...\n")
+      #do gapFile-based filtering of calls
+      #assuming gapFile has already been padded
+      tmpBedpeFile=lib10x.getTemporaryFile('bedpe_')
+      cutString=",".join([str(x) for x in xrange(1,len(callLabels)+1)])
+      gapfilter_cmd = "bedtools pairtobed -type neither -a %s -b %s | cut -f%s >%s" % (tmpRawFile, cutString, tmpBedpeFile)
+      if lib10x.run_cmd(gapfilter_cmd) == False:
+        sys.stderr.write("Error in running gapfilter overlapping..."); quit()
+    else:
+      tmpBedpeFile=tmpRawFile
+
+    if debug: sys.stderr.write("tmpBedpeFile='"+str(tmpBedpeFile)+"'\n")
     #pairtopair overlapping
     sys.stderr.write("merging calls...\n")
     tmpOverlapFile=lib10x.getTemporaryFile('bedpe_')
-    if debug: sys.stderr.write("tmpBedpeFile='"+str(tmpBedpeFile)+"'\n")
     pair2pair_cmd="bedtools pairtopair -is -a %s -b %s | cut -f8,16 >%s" % (tmpBedpeFile, tmpBedpeFile, tmpOverlapFile)
     if debug: sys.stderr.write("pair2pair_cmd="+str(pair2pair_cmd)+"\n")
     if lib10x.run_cmd(pair2pair_cmd) == False:
@@ -380,7 +393,8 @@ def run():
   parser.add_argument("bam", help="sorted 10x bamfile, in Longranger BAM format")
   parser.add_argument("call", help="SV call bedpefile, in bedpe format") 
   parser.add_argument("cfg",help="parameter config file, in JSON format")
-  parser.add_argument("-c","--covFile", default="none",help="100bp window coverage file")
+  #parser.add_argument("-c","--covFile", default="none",help="100bp window coverage file")
+  parser.add_argument("-g","--gapFile", default="none",help="bedfile of boundaries of known gaps >5K + slop(if any)")
   parser.add_argument("-m","--maxNum", default=numpy.iinfo(numpy.int32).max,type=int,
     help="max number of events to process (reduce this if time constrained)")
   parser.add_argument("-e","--altExpect", default=25,type=int, help="minimum mixture fraction for alternative, specify a percentage between 10-100, default 25")
