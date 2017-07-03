@@ -75,7 +75,7 @@ fi
 echo "---------------------------------------------------------------"
 
 echo "---------------------------------------------------------------"
-echo -n "essential zoomxRun9 stages overview:"
+echo -n "essential zoomxRun stages overview:"
 echo ${essentialStages[*]}
 echo "---------------------------------------------------------------"
 
@@ -93,7 +93,7 @@ for s in ${essentialStages[*]}; do
 done
 
 echo "---------------------------------------------------------------"
-echo -n "extended zoomxRun9 stages overview:"
+echo -n "extended zoomxRun stages overview:"
 echo ${extendedStages[*]}
 echo "---------------------------------------------------------------"
 
