@@ -82,9 +82,9 @@ includeMolecule = cmd$options$includeMolecule
 ####Debug####
 if(debug){
   #workDir="~/ws/zoomx/02_ZoomX/NA12878_from10X_wg12.bam.cis.E40.refined.Plot_1"
-  #workDir="~/ws/zoomx/02_ZoomX/NA12878_from10X_wg12.bam.cis.E40.refined.Plot_2"
-  workDir="~/ws/zoomx/02_ZoomX/NA12878_from10X_wg12.bam.tra.E40.refined.Plot_3"
-  includeMolecule=FALSE
+  workDir="~/ws/zoomx/02_ZoomX/NA12878_from10X_wg12.bam.cis.E40.refined.Plot_2"
+  #workDir="~/ws/zoomx/02_ZoomX/NA12878_from10X_wg12.bam.cis.E40.refined.Plot_112"
+  includeMolecule=TRUE
   outPrefix="none"
   reference="hg37"
   padding = "-"
@@ -132,21 +132,27 @@ rd2GR=GenomicRanges::GRanges(seqnames=rdpInfo$chrom2,
                              strand=rdpInfo$strand2,
                              type=rdpInfo$supportType)
 
-if(!includeMolecule) { #analyzing rdps only
-  rd1GR =rd1GR[rd1GR$type!="molecule"]
-  rd2GR =rd2GR[rd2GR$type!="molecule"]
+if(!includeMolecule) { #analyzing only
+  rd1GR = rd1GR[rd1GR$type!="molecule"]
+  rd2GR = rd2GR[rd1GR$type!="molecule"]
+} else {
+  sel = (end(ranges(rd2GR))!=end(ranges(rd1GR)) & start(ranges(rd2GR))!=start(ranges(rd1GR))) | rd1GR$type!="molecule"
 }
+
+#analyzing only non-duplicates
+rd1GR = rd1GR[sel]
+rd2GR = rd2GR[sel]
 
 if(length(rd1GR)==0 | length(rd2GR)==0) {
   message("no supporting read pairs and/or molecules, quitting")
   quit()
 }
 
-g1 = ggplot2::ggplot(rd1GR) + 
-  ggbio::geom_arrowrect(ggplot2::aes(y=name,group=name,fill=type,group.selfish=TRUE),xlab=as.character(GenomicRanges::seqnames(rd1GR)[1])) + 
+g1 = ggplot2::ggplot() + 
+  ggbio::geom_arrowrect(data=rd1GR,ggplot2::aes(y=name,group=name,fill=type,group.selfish=TRUE),xlab=as.character(GenomicRanges::seqnames(rd1GR)[1])) + 
   ggplot2::theme(legend.position="bottom", legend.box="vertical", legend.direction = "horizontal") #box-v, item-h
-g2 = ggplot2::ggplot(rd2GR) + 
-  ggbio::geom_arrowrect(ggplot2::aes(y=name,group=name,fill=type,group.selfish=TRUE),xlab=as.character(GenomicRanges::seqnames(rd2GR)[1]))
+g2 = ggplot2::ggplot() + 
+  ggbio::geom_arrowrect(data=rd2GR,ggplot2::aes(y=name,group=name,fill=type,group.selfish=TRUE),xlab=as.character(GenomicRanges::seqnames(rd2GR)[1]))
 legendHeight=0.3 #control legend area height
 plots=list(g1,g2)
 plotGrobs1=lapply(plots,ggbio:::Grob)
@@ -479,7 +485,7 @@ contigSeqs = DNAStringSet(unlist(lapply(seq_along(contigs),"retrieveContig", con
 message("write contigs to:", paste(outPrefix,"fas",sep="."))
 writeXStringSet(contigSeqs, file=paste(outPrefix,"fas",sep="."), format="fasta")
 
-quit()
+#quit()
 #old proof-of-idea scripts
 #IMbr1=min(info[info$supportType=="rdpIM",]$start1)
 #IMbr2=min(info[info$supportType=="rdpIM",]$start2)
