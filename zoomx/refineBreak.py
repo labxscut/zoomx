@@ -147,24 +147,28 @@ def main(args):
       #do gapFile-based filtering of calls
       #assuming gapFile has already been padded
       tmpBedpeFile=lib10x.getTemporaryFile('bedpe_')
-      cutString=",".join([str(x) for x in xrange(1,len(callLabels)+1)])
-      gapfilter_cmd = "bedtools pairtobed -type neither -a %s -b %s | cut -f%s >%s" % (tmpRawFile, cutString, tmpBedpeFile)
+      cutString=",".join([str(x) for x in xrange(1,rawCalls.shape[1]+1)]) #include the last index column
+      gapfilter_cmd = "bedtools pairtobed -type neither -a %s -b %s | cut -f%s >%s" % (tmpRawFile, gapFile, cutString, tmpBedpeFile)
       if lib10x.run_cmd(gapfilter_cmd) == False:
         sys.stderr.write("Error in running gapfilter overlapping..."); quit()
     else:
       tmpBedpeFile=tmpRawFile
 
     if debug: sys.stderr.write("tmpBedpeFile='"+str(tmpBedpeFile)+"'\n")
+    sys.stderr.write("tmpBedpeFile='"+str(tmpBedpeFile)+"'\n"); #quit()
+
     #pairtopair overlapping
     sys.stderr.write("merging calls...\n")
     tmpOverlapFile=lib10x.getTemporaryFile('bedpe_')
     pair2pair_cmd="bedtools pairtopair -is -a %s -b %s | cut -f8,16 >%s" % (tmpBedpeFile, tmpBedpeFile, tmpOverlapFile)
+
     if debug: sys.stderr.write("pair2pair_cmd="+str(pair2pair_cmd)+"\n")
     if lib10x.run_cmd(pair2pair_cmd) == False:
       sys.stderr.write("Error in running pair2pair overlapping..."); quit()
     end_time=time.time()
     sys.stderr.write("overlapping done:{}s\n".format(end_time-start_time))
     
+    sys.stderr.write("tmpOverlapFile='"+str(tmpOverlapFile)+"'\n"); #quit()
     sys.stderr.write("loading overlapping graph...")
     overlapCalls=pandas.read_table(tmpOverlapFile, names=["bedpe1","bedpe2"], dtype={'bedpe1':numpy.int32,'bedpe2':numpy.int32})
     #load pairtopair overlapping into a sparse matrix

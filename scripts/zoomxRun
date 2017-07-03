@@ -1,11 +1,12 @@
 #!/bin/bash
 
 #this script pipelines ZoomX germline and somatic call analysis
+#version 10
 
-#germline test configuration as in germline3.cfg
+#germline test configuration as in germline10.cfg
 #bam from 10X Chromium data of Chr22:22M-24M of NA12878
 
-#somatic test configuration as in somatic7.cfg
+#somatic test configuration as in somatic10.cfg
 #bam from 10X Chromium data of Chr8:98M-100M of a matched MetB7175 and Norm7176 sample
 
 #tested on BioLinux v8 Virtual Machine on running on AWS
@@ -76,6 +77,7 @@ echo "  'dryMode': '$dryMode',"
 echo "  'ref': '$ref',"
 echo "  'grid': '$grid',"
 echo "  'covGrid': '$covGrid',"
+echo "  'gapFile': '$gapFile',"
 echo "  'outputPf': '$outputPf',"
 echo "  'distSize': $distSize,"
 echo "  'cisSize': $cisSize,"
@@ -93,7 +95,6 @@ echo "  'cfgDir': $cfgDir,"
 echo "  'datDir': $datDir,"
 echo "  'resDir': $resDir,"
 echo "  'plotDir': $plotDir,"
-
 
 #process control files;
 if [[ ! -z $( testSubstring "control" $ZoomXRunOp ) ]]; then # define common control variables;
@@ -171,21 +172,21 @@ if [[ ! -z $( testSubstring "controlScan" $ZoomXRunOp ) ]]; then
 fi
   
 if [[ ! -z $( testSubstring "controlCisRef" $ZoomXRunOp ) ]]; then
-  cisRefCMD="PYTHONPATH=$ZOOMXPATH  python -m refineBreak -n 8 -m $controlMax -e $controlExp -f $controlExp -o $resDir/$controlBam.cis.E$controlExp -i $datDir/$controlBam.geq$cisSize.IM.bedpe -j $datDir/$controlBam.geq$cisSize.FF.bedpe -k $datDir/$controlBam.geq$cisSize.RR.bedpe $controlPf/$controlBam $cis $cfg >$logPf.$ZoomXRunOp.$mydate.log"
+  cisRefCMD="PYTHONPATH=$ZOOMXPATH  python -m refineBreak -g $gapFile -n 8 -m $controlMax -e $controlExp -f $controlExp -o $resDir/$controlBam.cis.E$controlExp -i $datDir/$controlBam.geq$cisSize.IM.bedpe -j $datDir/$controlBam.geq$cisSize.FF.bedpe -k $datDir/$controlBam.geq$cisSize.RR.bedpe $controlPf/$controlBam $cis $cfg >$logPf.$ZoomXRunOp.$mydate.log"
   if [[ -z $dryMode ]]; then echo $cisRefCMD | bash; fi
   if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
   echo "    'cisRefCMD':'$cisRefCMD',"
 fi
   
 if [[ ! -z $( testSubstring "controlDistRef" $ZoomXRunOp ) ]]; then
-  distRefCMD="PYTHONPATH=$ZOOMXPATH  python -m refineBreak -n 8 -m $controlMax -e $controlExp -f $controlExp -o $resDir/$controlBam.dist.E$controlExp -i $datDir/$controlBam.geq$cisSize.IM.bedpe -j $datDir/$controlBam.geq$cisSize.FF.bedpe -k $datDir/$controlBam.geq$cisSize.RR.bedpe $controlPf/$controlBam $distal $cfg >$logPf.$ZoomXRunOp.$mydate.log"
+  distRefCMD="PYTHONPATH=$ZOOMXPATH  python -m refineBreak -g $gapFile -n 8 -m $controlMax -e $controlExp -f $controlExp -o $resDir/$controlBam.dist.E$controlExp -i $datDir/$controlBam.geq$cisSize.IM.bedpe -j $datDir/$controlBam.geq$cisSize.FF.bedpe -k $datDir/$controlBam.geq$cisSize.RR.bedpe $controlPf/$controlBam $distal $cfg >$logPf.$ZoomXRunOp.$mydate.log"
   if [[ -z $dryMode ]]; then echo $distRefCMD | bash; fi
   if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
   echo "    'distRefCMD':'$distRefCMD',"
 fi
   
 if [[ ! -z $( testSubstring "controlTransRef" $ZoomXRunOp ) ]]; then
-  transRefCMD="PYTHONPATH=$ZOOMXPATH  python -m refineBreak -n 8 -m $controlMax -e $controlExp -f $controlExp -o $resDir/$controlBam.tra.E$controlExp -i $datDir/$controlBam.geq$cisSize.IM.bedpe -j $datDir/$controlBam.geq$cisSize.FF.bedpe -k $datDir/$controlBam.geq$cisSize.RR.bedpe $controlPf/$controlBam $trans $cfg >$logPf.$ZoomXRunOp.$mydate.log"
+  transRefCMD="PYTHONPATH=$ZOOMXPATH  python -m refineBreak -g $gapFile -n 8 -m $controlMax -e $controlExp -f $controlExp -o $resDir/$controlBam.tra.E$controlExp -i $datDir/$controlBam.geq$cisSize.IM.bedpe -j $datDir/$controlBam.geq$cisSize.FF.bedpe -k $datDir/$controlBam.geq$cisSize.RR.bedpe $controlPf/$controlBam $trans $cfg >$logPf.$ZoomXRunOp.$mydate.log"
   if [[ -z $dryMode ]]; then echo $transRefCMD | bash; fi
   if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
   echo "    'transRefCMD':'$transRefCMD',"
@@ -267,21 +268,21 @@ if [[ ! -z $( testSubstring "caseScan" $ZoomXRunOp ) ]]; then
 fi
   
 if [[ ! -z $( testSubstring "caseCisRef" $ZoomXRunOp ) ]]; then
-  cisRefCMD="PYTHONPATH=$ZOOMXPATH  python -m refineBreak -n 8 -m $caseMax -e $caseExp -f $caseExp -o $resDir/$caseBam.cis.E$caseExp -i $datDir/$caseBam.geq$cisSize.IM.bedpe -j $datDir/$caseBam.geq$cisSize.FF.bedpe -k $datDir/$caseBam.geq$cisSize.RR.bedpe $casePf/$caseBam $cis $cfg >$logPf.$ZoomXRunOp.$mydate.log"
+  cisRefCMD="PYTHONPATH=$ZOOMXPATH  python -m refineBreak -g $gapFile -n 8 -m $caseMax -e $caseExp -f $caseExp -o $resDir/$caseBam.cis.E$caseExp -i $datDir/$caseBam.geq$cisSize.IM.bedpe -j $datDir/$caseBam.geq$cisSize.FF.bedpe -k $datDir/$caseBam.geq$cisSize.RR.bedpe $casePf/$caseBam $cis $cfg >$logPf.$ZoomXRunOp.$mydate.log"
   if [[ -z $dryMode ]]; then echo $cisRefCMD | bash; fi
   if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
   echo "    'cisRefCMD':'$cisRefCMD',"
 fi
  
 if [[ ! -z $( testSubstring "caseDistRef" $ZoomXRunOp ) ]]; then
-  distRefCMD="PYTHONPATH=$ZOOMXPATH  python -m refineBreak -n 8 -m $caseMax -e $caseExp -f $caseExp -o $resDir/$caseBam.dist.E$caseExp -i $datDir/$caseBam.geq$cisSize.IM.bedpe -j $datDir/$caseBam.geq$cisSize.FF.bedpe -k $datDir/$caseBam.geq$cisSize.RR.bedpe $casePf/$caseBam $distal $cfg >$logPf.$ZoomXRunOp.$mydate.log"
+  distRefCMD="PYTHONPATH=$ZOOMXPATH  python -m refineBreak -g $gapFile -n 8 -m $caseMax -e $caseExp -f $caseExp -o $resDir/$caseBam.dist.E$caseExp -i $datDir/$caseBam.geq$cisSize.IM.bedpe -j $datDir/$caseBam.geq$cisSize.FF.bedpe -k $datDir/$caseBam.geq$cisSize.RR.bedpe $casePf/$caseBam $distal $cfg >$logPf.$ZoomXRunOp.$mydate.log"
   if [[ -z $dryMode ]]; then echo $distRefCMD | bash; fi
   if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
   echo "    'distRefCMD':'$distRefCMD',"
 fi
   
 if [[ ! -z $( testSubstring "caseTransRef" $ZoomXRunOp ) ]]; then
-  transRefCMD="PYTHONPATH=$ZOOMXPATH  python -m refineBreak -n 8 -m $caseMax -e $caseExp -f $caseExp -o $resDir/$caseBam.tra.E$caseExp -i $datDir/$caseBam.geq$cisSize.IM.bedpe -j $datDir/$caseBam.geq$cisSize.FF.bedpe -k $datDir/$caseBam.geq$cisSize.RR.bedpe $casePf/$caseBam $trans $cfg >$logPf.$ZoomXRunOp.$mydate.log"
+  transRefCMD="PYTHONPATH=$ZOOMXPATH  python -m refineBreak -g $gapFile -n 8 -m $caseMax -e $caseExp -f $caseExp -o $resDir/$caseBam.tra.E$caseExp -i $datDir/$caseBam.geq$cisSize.IM.bedpe -j $datDir/$caseBam.geq$cisSize.FF.bedpe -k $datDir/$caseBam.geq$cisSize.RR.bedpe $casePf/$caseBam $trans $cfg >$logPf.$ZoomXRunOp.$mydate.log"
   if [[ -z $dryMode ]]; then echo $transRefCMD | bash; fi
   if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
   echo "    'transRefCMD':'$transRefCMD',"
