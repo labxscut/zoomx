@@ -5,6 +5,11 @@ rm -f *.tagidx *.json *.a0
 rm -f *.gz
 rm -f *bedpe*
 rm -rf zoomx_*
+rm -rf logs
+rm -rf cfgs
+rm -rf data
+rm -rf results
+rm -rf plots
 rm -f *log*
 rm -f *.refined
 rm -f *.somatic

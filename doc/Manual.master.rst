@@ -39,6 +39,12 @@ $ZOOMXPKG/scripts/plotMolecule.R
 2. Short Manuals for Bash scripts are available with comment lines or call wihtout options  
 -------------------------------------------------------------------------------------------
 
+$ZOOMXPKG/scripts/zoomxStage
+
+.. code:: bash
+
+  REPLACE_WITH_ZOOMX_ZOOMXSTAGE_HELP
+
 $ZOOMXPKG/scripts/zoomxRun
 
 .. code:: bash
