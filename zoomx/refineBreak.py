@@ -148,7 +148,7 @@ def main(args):
       #assuming gapFile has already been padded
       tmpBedpeFile=lib10x.getTemporaryFile('bedpe_')
       cutString=",".join([str(x) for x in xrange(1,len(callLabels)+1)])
-      gapfilter_cmd = "bedtools pairtobed -type neither -a %s -b %s | cut -f%s >%s" % (tmpRawFile, cutString, tmpBedpeFile)
+      gapfilter_cmd = "bedtools pairtobed -type neither -a %s -b %s | cut -f%s >%s" % (tmpRawFile, gapFile, cutString, tmpBedpeFile)
       if lib10x.run_cmd(gapfilter_cmd) == False:
         sys.stderr.write("Error in running gapfilter overlapping..."); quit()
     else:

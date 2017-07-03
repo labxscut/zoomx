@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 if [[ -z "$1" ]]; then
   echo "usage: zoomxStage cfgfile"
-  echo "example: zoomxStage somatic9.cfg"
+  echo "example: zoomxStage somatic10.cfg"
   echo "  execute zoomxRun by sequential stages according to provided configure file"
   echo "following variables in cfgfile are places to specify stages:"
   echo "  essentialStages:" 
@@ -75,7 +75,7 @@ fi
 echo "---------------------------------------------------------------"
 
 echo "---------------------------------------------------------------"
-echo -n "essential zoomxRun9 stages overview:"
+echo -n "essential zoomxRun stages overview:"
 echo ${essentialStages[*]}
 echo "---------------------------------------------------------------"
 
@@ -93,7 +93,7 @@ for s in ${essentialStages[*]}; do
 done
 
 echo "---------------------------------------------------------------"
-echo -n "extended zoomxRun9 stages overview:"
+echo -n "extended zoomxRun stages overview:"
 echo ${extendedStages[*]}
 echo "---------------------------------------------------------------"
 
