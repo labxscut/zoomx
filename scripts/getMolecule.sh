@@ -14,8 +14,6 @@ echo "inMolFile=$1"
 inMolFile=$1
 echo "inPrefix=$2"
 inPrefix=$2
-source $inPrefix
-inPrefix=$datDir/
 echo "lineNum=$3"
 lineNum=$3
 headLineNum=$(expr $lineNum + 1)
@@ -51,14 +49,14 @@ FRcol=8
 RFcol=9
 FFcol=10
 RRcol=11
-echo "head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$FRcol | grep -o '[0-9]\+' | sed '/^$/d' | sed -e 's/$/p/g' | tr '\n' ';' | sed -e 's/p;$/p;\n/g' >$outDir/refined.rindex.FR"
-head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$FRcol | grep -o '[0-9]\+' | sed '/^$/d' |  sed -e 's/$/p/g' | tr '\n' ';' | sed -e 's/p;$/p;\n/g' >$outDir/refined.rindex.FR
-echo "head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$RFcol | grep -o '[0-9]\+' | sed '/^$/d' | sed -e 's/$/p/g' | tr '\n' ';' | sed -e 's/p;$/p;\n/g' >$outDir/refined.rindex.RF"
-head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$RFcol | grep -o '[0-9]\+' | sed '/^$/d' |  sed -e 's/$/p/g' | tr '\n' ';' | sed -e 's/p;$/p;\n/g' >$outDir/refined.rindex.RF
-echo "head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$FFcol | grep -o '[0-9]\+' | sed '/^$/d' |  sed -e 's/$/p/g' | tr '\n' ';' | sed -e 's/p;$/p;\n/g' >$outDir/refined.rindex.FF"
-head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$FFcol | grep -o '[0-9]\+' | sed '/^$/d' |  sed -e 's/$/p/g' | tr '\n' ';' | sed -e 's/p;$/p;\n/g' >$outDir/refined.rindex.FF
-echo "head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$RRcol | grep -o '[0-9]\+' | sed '/^$/d' |  sed -e 's/$/p/g' | tr '\n' ';' | sed -e 's/p;$/p;\n/g' >$outDir/refined.rindex.RR"
-head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$RRcol | grep -o '[0-9]\+' |  sed '/^$/d' | sed -e 's/$/p/g' | tr '\n' ';' | sed -e 's/p;$/p;\n/g' >$outDir/refined.rindex.RR
+echo "head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$FRcol | grep -o '[0-9]\+' | sed '/^$/d' | sed -e 's/$/p/g' | tr '\n' ';' >$outDir/refined.rindex.FR"
+head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$FRcol | grep -o '[0-9]\+' | sed '/^$/d' |  sed -e 's/$/p/g' | tr '\n' ';' >$outDir/refined.rindex.FR
+echo "head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$RFcol | grep -o '[0-9]\+' | sed '/^$/d' | sed -e 's/$/p/g' | tr '\n' ';' >$outDir/refined.rindex.RF"
+head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$RFcol | grep -o '[0-9]\+' | sed '/^$/d' |  sed -e 's/$/p/g' | tr '\n' ';' >$outDir/refined.rindex.RF
+echo "head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$FFcol | grep -o '[0-9]\+' | sed '/^$/d' |  sed -e 's/$/p/g' | tr '\n' ';' >$outDir/refined.rindex.FF"
+head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$FFcol | grep -o '[0-9]\+' | sed '/^$/d' |  sed -e 's/$/p/g' | tr '\n' ';' >$outDir/refined.rindex.FF
+echo "head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$RRcol | grep -o '[0-9]\+' | sed '/^$/d' |  sed -e 's/$/p/g' | tr '\n' >$outDir/refined.rindex.RR"
+head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$RRcol | grep -o '[0-9]\+' |  sed '/^$/d' | sed -e 's/$/p/g' | tr '\n' ';' >$outDir/refined.rindex.RR
 ###
 echo "sed -n -f $outDir/refined.rindex.FR $inPrefix.geq$cisSize.FR.bedpe >$outDir/refined.FR.bedpe"
 sed -n -f $outDir/refined.rindex.FR $inPrefix.geq$cisSize.FR.bedpe >$outDir/refined.FR.bedpe

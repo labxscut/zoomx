@@ -83,10 +83,12 @@ echo "  'distSize': $distSize,"
 echo "  'cisSize': $cisSize,"
 echo "  'controlPf': '$controlPf',"
 echo "  'controlBam': '$controlBam',"
+echo "  'controlGenomeSize': '$controlGenomeSize',"
 echo "  'controlExp': $controlExp,"
 echo "  'controlMax': $controlMax,"
 echo "  'casePf': '$casePf',"
 echo "  'caseBam': '$caseBam',"
+echo "  'caseGenomeSize': '$caseGenomeSize',"
 echo "  'caseExp': $caseExp,"
 echo "  'caseMax': $caseMax,"
 echo "  'maxPlot': $maxPlot,"
@@ -141,7 +143,7 @@ if [[ ! -z $( testSubstring "controlScan" $ZoomXRunOp ) ]]; then
   if [[ -z $dryMode ]]; then echo $filterCMD | bash; fi
   if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
   echo "    filterCMD': '$filterCMD',"
-  gridScanCMD="PYTHONPATH=$ZOOMXPATH  python -m gridScan -n 3 $grid $clean $h5 $datDir/$controlBam >>$logPf.$ZoomXRunOp.$mydate.log" #run gridScan module on Chr22 only (50 Mbp)
+  gridScanCMD="PYTHONPATH=$ZOOMXPATH  python -m gridScan -g $controlGenomeSize -n 3 $grid $clean $h5 $datDir/$controlBam >>$logPf.$ZoomXRunOp.$mydate.log" #run gridScan module on Chr22 only (50 Mbp)
   if [[ -z $dryMode ]]; then echo $gridScanCMD | bash; fi
   if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
   echo "    'gridScanCMD': '$gridScanCMD'," 
@@ -241,7 +243,7 @@ if [[ ! -z $( testSubstring "caseScan" $ZoomXRunOp ) ]]; then
   if [[ -z $dryMode ]]; then echo $filterCMD | bash; fi
   if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
   echo "    filterCMD': '$filterCMD',"
-  gridScanCMD="PYTHONPATH=$ZOOMXPATH  python -m gridScan -n 3 $grid $clean $h5 $datDir/$caseBam >>$logPf.$ZoomXRunOp.$mydate.log" #run gridScan module on Chr22 only (50 Mbp)
+  gridScanCMD="PYTHONPATH=$ZOOMXPATH  python -m gridScan -g $caseGenomeSize -n 3 $grid $clean $h5 $datDir/$caseBam >>$logPf.$ZoomXRunOp.$mydate.log" #run gridScan module on Chr22 only (50 Mbp)
   if [[ -z $dryMode ]]; then echo $gridScanCMD | bash; fi
   if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
   echo "    'gridScanCMD': '$gridScanCMD'," 
