@@ -89,7 +89,8 @@ def main(args):
   if outPrefix == "none":
     outPrefix = bamfile
   
-  imBedpeFile = open(outPrefix+".IM.bedpe",'w') 
+  frBedpeFile = open(outPrefix+".FR.bedpe",'w') 
+  rfBedpeFile = open(outPrefix+".RF.bedpe",'w') 
   ffBedpeFile = open(outPrefix+".FF.bedpe",'w') 
   rrBedpeFile = open(outPrefix+".RR.bedpe",'w') 
   
@@ -166,113 +167,114 @@ def main(args):
   if longRangerVersion < 1.2: #use nearest neighbor clustering
   
     print >>sys.stderr, "using manual nearest neighbour clustering (distance<alpha) to infer molecule..."
-    print >>sys.stderr, "for longranger v<1.2 only, going to be obsolete..."
+    print >>sys.stderr, "for longranger v<1.2 only, now is obsolete..."
+    print >>sys.stderr, "use earlier version of zoomx instead"; quit()
   
-    numAlpha = len(setAlpha)
-    barfragdata = dict(zip(setAlpha,[ dict() for x in xrange(numAlpha)])) #NOTE: * doesn't create independent dictionaries 
-    fragdata = dict(zip(setAlpha,[ [] for x in xrange(numAlpha)]))
-    N_f =  dict(zip(setAlpha,[0]*numAlpha)) #alpha is alpha, here * does create independent integers
+    #numAlpha = len(setAlpha)
+    #barfragdata = dict(zip(setAlpha,[ dict() for x in xrange(numAlpha)])) #NOTE: * doesn't create independent dictionaries 
+    #fragdata = dict(zip(setAlpha,[ [] for x in xrange(numAlpha)]))
+    #N_f =  dict(zip(setAlpha,[0]*numAlpha)) #alpha is alpha, here * does create independent integers
   
-    for rd in samfile.fetch():
-    
-      if N_all % 100000 == 0 and N_all != 0: print >>sys.stderr, N_all, "reads processed"
-    
-      if N_all >= maxRead: break
-    
-      N_all += 1
-    
-      #filter based on if bearing barcode, throw Barcode unresolved read pairs
-      if not dict(rd.tags).get('BX'):
-        continue
+    #for rd in samfile.fetch():
+    #
+    #  if N_all % 100000 == 0 and N_all != 0: print >>sys.stderr, N_all, "reads processed"
+    #
+    #  if N_all >= maxRead: break
+    #
+    #  N_all += 1
+    #
+    #  #filter based on if bearing barcode, throw Barcode unresolved read pairs
+    #  if not dict(rd.tags).get('BX'):
+    #    continue
   
-      #filter based on sam flags
-        # i.e. -f 0x001 -F 0x004 -F 0x008 -F 0x100 -F 0x800 -F 0x400 -F 0x200
-        #throw unmapped and low quality read and qc failed read read pairs
-      if (not rd.is_paired) or rd.is_unmapped or rd.mate_is_unmapped or rd.is_qcfail or rd.is_secondary or rd.is_supplementary or rd.is_duplicate:
-        continue
+    #  #filter based on sam flags
+    #    # i.e. -f 0x001 -F 0x004 -F 0x008 -F 0x100 -F 0x800 -F 0x400 -F 0x200
+    #    #throw unmapped and low quality read and qc failed read read pairs
+    #  if (not rd.is_paired) or rd.is_unmapped or rd.mate_is_unmapped or rd.is_qcfail or rd.is_secondary or rd.is_supplementary or rd.is_duplicate:
+    #    continue
   
-      try:
-         hp = int(dict(rd.tags)['HP'])
-         ps = int(dict(rd.tags)['PS'])
-      except:
-         hp = -1
-         ps = -1
-    
-      #output imBedpe/ffBedpe/rrBedpe
-      if ( not rd.is_reverse ) and rd.mate_is_reverse and ( not rd.is_proper_pair ) : #IM
-        imBedpeFile.write('\t'.join([rd.reference_name, str(rd.reference_start), str(rd.reference_start+100), \
-                         rd.next_reference_name, str(rd.next_reference_start), str(rd.next_reference_start+100), str(hp)])+'\n' )
+    #  try:
+    #     hp = int(dict(rd.tags)['HP'])
+    #     ps = int(dict(rd.tags)['PS'])
+    #  except:
+    #     hp = -1
+    #     ps = -1
+    #
+    #  #output frBedpe/rfBedpe/ffBedpe/rrBedpe
+    #  if ( not rd.is_reverse ) and rd.mate_is_reverse and ( not rd.is_proper_pair ) : #
+    #    frBedpeFile.write('\t'.join([rd.reference_name, str(rd.reference_start), str(rd.reference_start+100), \
+    #                     rd.next_reference_name, str(rd.next_reference_start), str(rd.next_reference_start+100), str(hp)])+'\n' )
   
-      if ( not rd.is_reverse ) and ( not rd.mate_is_reverse ) : #FF
-        ffBedpeFile.write('\t'.join([rd.reference_name, str(rd.reference_start), str(rd.reference_start+100), \
-                         rd.next_reference_name, str(rd.next_reference_start), str(rd.next_reference_start+100), str(hp)])+'\n' )
+    #  if ( not rd.is_reverse ) and ( not rd.mate_is_reverse ) : #FF
+    #    ffBedpeFile.write('\t'.join([rd.reference_name, str(rd.reference_start), str(rd.reference_start+100), \
+    #                     rd.next_reference_name, str(rd.next_reference_start), str(rd.next_reference_start+100), str(hp)])+'\n' )
   
-      if rd.is_reverse and rd.mate_is_reverse: #RR
-        rrBedpeFile.write('\t'.join([rd.reference_name, str(rd.reference_start), str(rd.reference_start+100), \
-                         rd.next_reference_name, str(rd.next_reference_start), str(rd.next_reference_start+100), str(hp)])+'\n' )
+    #  if rd.is_reverse and rd.mate_is_reverse: #RR
+    #    rrBedpeFile.write('\t'.join([rd.reference_name, str(rd.reference_start), str(rd.reference_start+100), \
+    #                     rd.next_reference_name, str(rd.next_reference_start), str(rd.next_reference_start+100), str(hp)])+'\n' )
   
-      #filter based on read quality
-      if rd.mapq<30:
-        continue
-    
-      N_qc += 1
-    
-      if not rd.reference_id==rd.next_reference_id: #we only consider read pairs mapped to the same chromosome
-        continue
-    
-      if rd.pos>rd.mpos: #we only consider the leftmost read of any read pair
-        continue
-    
-      if rd.pos==rd.mpos and rd.is_read2: #if it cann't be distinguished by pos we distinguish by first/second read
-        continue #NOTE: this make sure one read pair is only counted once and reduce excessive zeros in spacing
-      #NOTE: pysam pos is 0-based !!!!
-    
-      if rd.pos<0 or rd.pos>=A[samfile.get_reference_name(rd.reference_id)]:
-        continue #NOTE: if exceeding the bounds of reference length ignore
-    
-      bar = dict(rd.tags)['BX'] #BX is the barcode field
-      gip_GoodReadLeft = lib10x.cp2g(samfile.get_reference_name(rd.reference_id),rd.pos+1,C) #self
-    
-      if covVec[int(gip_GoodReadLeft/100)] > cov_cut \
-         or covVec[int(gip_GoodReadLeft/100)-1] > cov_cut \
-         or covVec[int(gip_GoodReadLeft/100)+1] > cov_cut:
-        continue #NOTE: skip if encouting reads from high coverage region or neighbors
-    
-      N_goodLeftRead += 1   #number of good read pairs within N_qc
-    
-      if N_goodLeftRead < statReadMax: #on the same chromosome
-        rpinsert.append(rd.template_length)
-        readlen.append(rd.infer_query_length())
-    
-      if debug:
-        assert (samfile.get_reference_name(rd.reference_id),rd.pos+1) == lib10x.g2cp(gip_GoodReadLeft,C,acclen_C,chrname), \
-        "".join([ "to=", str((samfile.get_reference_name(rd.reference_id),rd.pos+1)), ",gip=", str(gip_GoodReadLeft), ",back=", str(lib10x.g2cp(gip_GoodReadLeft,C,acclen_C,chrname)), "read=", str(rd)])
-    
-      for alpha in setAlpha: #barfragdata[alpha]=dict(b:{fb1,fb2,...}),fragdata[alpha]=[f1,f2,...],N_f[alpha]=counter 
-        if not barfragdata[alpha].has_key(bar): #barcode is new
-          barfragdata[alpha][bar]=[N_f[alpha]] #add this molecule to the first of bardcoded frag list
-          fragdata[alpha].append([gip_GoodReadLeft,bar,[gip_GoodReadLeft]]) #add a new molecule
-          N_f[alpha] += 1;  #move molecule counter next
-        else: #barcode exists, 
-          if (gip_GoodReadLeft - fragdata[alpha][barfragdata[alpha][bar][-1]][-1][-1]) <= alpha and \
-              gip_GoodReadLeft < A[samfile.get_reference_name(rd.reference_id)]: 
-            #chcking if within dist and not crossing chr border
-            #compare this read gip with last same-barcoded read gip, if within alpha => the same molecule
-            #if (gip_GoodReadLeft - fragdata[alpha][barfragdata[alpha][bar][-1]][-1][-1]) <= 0: 
-            if (gip_GoodReadLeft - fragdata[alpha][barfragdata[alpha][bar][-1]][-1][-1]) <= 0:
-              #DEBUG: stop if added matches tail
-              #print >>sys.stderr, "!!! Reversed order is impossible in a sorted bam:"
-              #print >>sys.stderr, fragdata[alpha][barfragdata[alpha][bar][-1]], chrname[rd.rname], rd.pos, gip_GoodReadLeft
-              continue
-            fragdata[alpha][barfragdata[alpha][bar][-1]][-1].append(gip_GoodReadLeft) # append read to this frag's read list
-          else: #start an new molecule
-            barfragdata[alpha][bar].append(N_f[alpha]) #add new molecule to same barcoded frag list
-            fragdata[alpha].append([gip_GoodReadLeft,bar,[gip_GoodReadLeft]]) #add new molecule to fragdata
-            N_f[alpha] += 1
-        #DEBUG: make sure head is always valid compare to tail
-        #cp1 = lib10x.g2cp(fragdata[alpha][N_f[alpha]-1][-1][0],C,acclen_C,chrname)
-        #cp2 = lib10x.g2cp(fragdata[alpha][N_f[alpha]-1][-1][-1],C,acclen_C,chrname)
-        #assert cp1[0] == cp2[0] and cp1[1] <= cp2[1], "incorrect frag gip tip %d (%s,%d) and end %d (%s,%d) of %s" % (fragdata[alpha][frag][-1][0],cp1[0],cp1[1],fragdata[alpha][frag][-1][-1],cp2[0],cp2[1],str(fragdata[alpha][frag]))
+    #  #filter based on read quality
+    #  if rd.mapq<30:
+    #    continue
+    #
+    #  N_qc += 1
+    #
+    #  if not rd.reference_id==rd.next_reference_id: #we only consider read pairs mapped to the same chromosome
+    #    continue
+    #
+    #  if rd.pos>rd.mpos: #we only consider the leftmost read of any read pair
+    #    continue
+    #
+    #  if rd.pos==rd.mpos and rd.is_read2: #if it cann't be distinguished by pos we distinguish by first/second read
+    #    continue #NOTE: this make sure one read pair is only counted once and reduce excessive zeros in spacing
+    #  #NOTE: pysam pos is 0-based !!!!
+    #
+    #  if rd.pos<0 or rd.pos>=A[samfile.get_reference_name(rd.reference_id)]:
+    #    continue #NOTE: if exceeding the bounds of reference length ignore
+    #
+    #  bar = dict(rd.tags)['BX'] #BX is the barcode field
+    #  gip_GoodReadLeft = lib10x.cp2g(samfile.get_reference_name(rd.reference_id),rd.pos+1,C) #self
+    #
+    #  if covVec[int(gip_GoodReadLeft/100)] > cov_cut \
+    #     or covVec[int(gip_GoodReadLeft/100)-1] > cov_cut \
+    #     or covVec[int(gip_GoodReadLeft/100)+1] > cov_cut:
+    #    continue #NOTE: skip if encouting reads from high coverage region or neighbors
+    #
+    #  N_goodLeftRead += 1   #number of good read pairs within N_qc
+    #
+    #  if N_goodLeftRead < statReadMax: #on the same chromosome
+    #    rpinsert.append(rd.template_length)
+    #    readlen.append(rd.infer_query_length())
+    #
+    #  if debug:
+    #    assert (samfile.get_reference_name(rd.reference_id),rd.pos+1) == lib10x.g2cp(gip_GoodReadLeft,C,acclen_C,chrname), \
+    #    "".join([ "to=", str((samfile.get_reference_name(rd.reference_id),rd.pos+1)), ",gip=", str(gip_GoodReadLeft), ",back=", str(lib10x.g2cp(gip_GoodReadLeft,C,acclen_C,chrname)), "read=", str(rd)])
+    #
+    #  for alpha in setAlpha: #barfragdata[alpha]=dict(b:{fb1,fb2,...}),fragdata[alpha]=[f1,f2,...],N_f[alpha]=counter 
+    #    if not barfragdata[alpha].has_key(bar): #barcode is new
+    #      barfragdata[alpha][bar]=[N_f[alpha]] #add this molecule to the first of bardcoded frag list
+    #      fragdata[alpha].append([gip_GoodReadLeft,bar,[gip_GoodReadLeft]]) #add a new molecule
+    #      N_f[alpha] += 1;  #move molecule counter next
+    #    else: #barcode exists, 
+    #      if (gip_GoodReadLeft - fragdata[alpha][barfragdata[alpha][bar][-1]][-1][-1]) <= alpha and \
+    #          gip_GoodReadLeft < A[samfile.get_reference_name(rd.reference_id)]: 
+    #        #chcking if within dist and not crossing chr border
+    #        #compare this read gip with last same-barcoded read gip, if within alpha => the same molecule
+    #        #if (gip_GoodReadLeft - fragdata[alpha][barfragdata[alpha][bar][-1]][-1][-1]) <= 0: 
+    #        if (gip_GoodReadLeft - fragdata[alpha][barfragdata[alpha][bar][-1]][-1][-1]) <= 0:
+    #          #DEBUG: stop if added matches tail
+    #          #print >>sys.stderr, "!!! Reversed order is impossible in a sorted bam:"
+    #          #print >>sys.stderr, fragdata[alpha][barfragdata[alpha][bar][-1]], chrname[rd.rname], rd.pos, gip_GoodReadLeft
+    #          continue
+    #        fragdata[alpha][barfragdata[alpha][bar][-1]][-1].append(gip_GoodReadLeft) # append read to this frag's read list
+    #      else: #start an new molecule
+    #        barfragdata[alpha][bar].append(N_f[alpha]) #add new molecule to same barcoded frag list
+    #        fragdata[alpha].append([gip_GoodReadLeft,bar,[gip_GoodReadLeft]]) #add new molecule to fragdata
+    #        N_f[alpha] += 1
+    #    #DEBUG: make sure head is always valid compare to tail
+    #    #cp1 = lib10x.g2cp(fragdata[alpha][N_f[alpha]-1][-1][0],C,acclen_C,chrname)
+    #    #cp2 = lib10x.g2cp(fragdata[alpha][N_f[alpha]-1][-1][-1],C,acclen_C,chrname)
+    #    #assert cp1[0] == cp2[0] and cp1[1] <= cp2[1], "incorrect frag gip tip %d (%s,%d) and end %d (%s,%d) of %s" % (fragdata[alpha][frag][-1][0],cp1[0],cp1[1],fragdata[alpha][frag][-1][-1],cp2[0],cp2[1],str(fragdata[alpha][frag]))
     
   else:  #end of longRangerVersion < 1.2 and begin of newer versions
   
@@ -319,19 +321,24 @@ def main(args):
          hp = -1
          ps = -1
     
-      #output imBedpe/ffBedpe/rrBedpe
-      #include only one coordinate ordered pair from two reads
-      #define IM as +/- pair, FF and +/+ pair, RR as -- pair and MI as -/+ pair
-      reference_name, reference_start, next_reference_name, next_reference_start, ordered = lib10x.orderedPair(rd)
-      if ( not rd.is_reverse ) and rd.mate_is_reverse and ( not rd.is_proper_pair ) : #IM
-        imBedpeFile.write('\t'.join([reference_name, str(reference_start), str(reference_start+100), \
+      #output frBedpe/rfBedpe/ffBedpe/rrBedpe
+      #include only one coordinate ordered pair from two reads as recorded in the left read (smaller pos)
+      #define FR as +/- pair, FF and +/+ pair, RR as -- pair and RF as -/+ pair
+      reference_name, reference_start, next_reference_name, next_reference_start, rdIsLeftRead = lib10x.classifyPair(rd)
+
+      if ( not rd.is_reverse ) and rd.mate_is_reverse and ( not rd.is_proper_pair ) and rdIsLeftRead : #FR
+        frBedpeFile.write('\t'.join([reference_name, str(reference_start), str(reference_start+100), \
+                         next_reference_name, str(next_reference_start), str(next_reference_start+100), str(hp)])+'\n' )
+
+      if rd.is_reverse and (not rd.mate_is_reverse) and ( not rd.is_proper_pair ) and rdIsLeftRead : #RF
+        rfBedpeFile.write('\t'.join([reference_name, str(reference_start), str(reference_start+100), \
                          next_reference_name, str(next_reference_start), str(next_reference_start+100), str(hp)])+'\n' )
   
-      if ( not rd.is_reverse ) and ( not rd.mate_is_reverse ) and ordered : #FF
+      if ( not rd.is_reverse ) and ( not rd.mate_is_reverse ) and rdIsLeftRead : #FF
         ffBedpeFile.write('\t'.join([reference_name, str(reference_start), str(reference_start+100), \
                          next_reference_name, str(next_reference_start), str(next_reference_start+100), str(hp)])+'\n' )
   
-      if rd.is_reverse and rd.mate_is_reverse and ordered: #RR
+      if rd.is_reverse and rd.mate_is_reverse and rdIsLeftRead: #RR
         rrBedpeFile.write('\t'.join([rd.reference_name, str(rd.reference_start), str(rd.reference_start+100), \
                          rd.next_reference_name, str(rd.next_reference_start), str(rd.next_reference_start+100), str(hp)])+'\n' )
   
@@ -398,7 +405,8 @@ def main(args):
           #print(fragdata[alpha][barfragdata[alpha][bar][-1]]) #newly added mol
   
   samfile.close()
-  imBedpeFile.close()
+  frBedpeFile.close()
+  rfBedpeFile.close()
   ffBedpeFile.close()
   rrBedpeFile.close()
     

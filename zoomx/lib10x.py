@@ -97,6 +97,50 @@ def ParallelIdentifySupportRDP(callDF, rdpBedpeFile, callLabels, callTypes, nump
   support = pool.map( ThreadIdentifySupportRDP, info)
   return support
 
+def ParallelIdentifyNonSelfOverlapMole(callDF, moleBedFile, callLabels, callTypes, numprocs, debug):
+  #column 8 is unique molecule id
+  numCall=len(callDF)
+  info=[ [i, numCall, callDF.loc[i:i,:], moleBedFile, debug] for i in range(0,numCall) ] #0-based call index
+  support=[ [] for i in range(0,numCall) ] #1-based merged call index
+  pool=Pool(processes=int(numprocs))
+  support = pool.map( ThreadIdentifyNonSelfOverlapMole, info)
+  return support
+
+def ThreadIdentifyNonSelfOverlapMole(info):
+  #sys.stderr.write("in test thread\n")
+  bi=info[0]
+  numCall=info[1]
+  df=info[2]
+  moleBedFile=info[3]
+  debug=info[4]
+  sys.stderr.write("START: procssing "+str(bi+1)+" of "+str(numCall)+" events\n")
+  singleBedFileReg1=getTemporaryFile('bed_')
+  singleBedFileReg2=getTemporaryFile('bed_')
+  tmpOverlapFileReg1=getTemporaryFile('bed_')
+  tmpOverlapFileReg2=getTemporaryFile('bed_')
+  df.iloc[[0],0:3].to_csv(singleBedFileReg1, header=False, sep="\t", index=False)
+  df.iloc[[0],3:6].to_csv(singleBedFileReg2, header=False, sep="\t", index=False)
+  #perform overlapping
+  #bedtools intersect -u -a $inPrefix.multiFragBar.bed.a0 -b $outDir/refined.reg1.bed >$outDir/refined.reg1.mol
+  bed2bed_cmd1="bedtools intersect -u -a %s -b %s >%s" % (moleBedFile, singleBedFileReg1, tmpOverlapFileReg1)
+  bed2bed_cmd2="bedtools intersect -u -a %s -b %s >%s" % (moleBedFile, singleBedFileReg2, tmpOverlapFileReg2)
+  if debug:
+    sys.stderr.write("bed2bed_cmd1="+str(bed2bed_cmd1)+"\n")
+    sys.stderr.write("bed2bed_cmd2="+str(bed2bed_cmd2)+"\n")
+  if run_cmd(bed2bed_cmd1) == False or run_cmd(bed2bed_cmd2) == False:
+    sys.stderr.write("Error in running bed2bed overlapping..."); quit()
+  overlapMoleReg1=pandas.read_table(tmpOverlapFileReg1, header=None)
+  overlapMoleReg2=pandas.read_table(tmpOverlapFileReg2, header=None)
+  #perform filtering based on the 7-th column, which is the 'MI' field 
+  MIcol=7; BXcol=3  #this is zero-based
+  BXshared = set(overlapMoleReg1.ix[:,BXcol]) & set(overlapMoleReg2.ix[:,BXcol])
+  sharedMoleReg1 = overlapMoleReg1[overlapMoleReg1.ix[:,BXcol].isin(BXshared)]
+  sharedMoleReg2 = overlapMoleReg2[overlapMoleReg2.ix[:,BXcol].isin(BXshared)]
+  distinctMole = set(sharedMoleReg1.ix[:,MIcol]).symmetric_difference(sharedMoleReg2.ix[:,MIcol])
+  sys.stderr.write("END: procssing "+str(bi+1)+" of "+str(numCall)+" events\n")
+  support = list(distinctMole)
+  return support
+
 def empirical_density(v):
   #values, base = np.histogram(nearest, bins=20, density=1)
   d, b = numpy.histogram(v, bins=range(0,int(numpy.ceil(v.max()))+1), density=1)
@@ -112,8 +156,6 @@ def empirical_density(v):
 #v=np.random.exponential(100,100)
 #empirical_density(v)
 
-#disregarding second read in pair
-#TODO: need to expand to include strand, FR or RF
 def orderedPair(rd): 
   reference_name = rd.reference_name
   reference_start = rd.reference_start
@@ -131,6 +173,31 @@ def orderedPair(rd):
     next_reference_start = rd.reference_start
     ordered = False
   return [reference_name, reference_start, next_reference_name, next_reference_start, ordered]
+
+def classifyPair(rd): 
+  #NOTE: expand to include left read and right read pos, strand to determine FF, RR, FR and RF pairs
+  #      left read is the one with smaller pos
+  #      right read is the one with larger pos
+  #      left read F, right read F => FF
+  #      left read F, right read R => FR
+  #      left read R, right read F => RF
+  #      left read R, right read R => RR
+  reference_name = rd.reference_name
+  reference_start = rd.reference_start
+  next_reference_name = rd.next_reference_name
+  next_reference_start = rd.next_reference_start
+  rdIsLeftRead = True
+  if rd.reference_name > rd.next_reference_name: #rd is right read
+    reference_name = rd.next_reference_name
+    reference_start = rd.next_reference_start
+    next_reference_name = rd.reference_name
+    next_reference_start = rd.reference_start
+    rdIsLeftRead = False
+  elif rd.reference_name == rd.next_reference_name and rd.reference_start>rd.next_reference_start: #rd is right read
+    reference_start = rd.next_reference_start
+    next_reference_start = rd.reference_start
+    rdIsLeftRead = False
+  return [reference_name, reference_start, next_reference_name, next_reference_start, rdIsLeftRead]
 
 def mad(a, axis=None):
   """
@@ -808,3 +875,55 @@ def compute_lrt(w1b,x1b,y1b,z1b,w2b,x2b,y2b,z2b,nw1x1,ny1z1,nw2x2,ny2z2,b,DistrT
   pseudo=0.00000000001
   lw2x2 = nw2x2*DistrT[b]+pseudo; ly2z2 = ny2z2*DistrT[b]+pseudo; lw1x1 = nw1x1*DistrT[b]+pseudo; ly1z1 = ny1z1*DistrT[b]+pseudo;
   return poisson.pmf((len(w2b)+len(x2b))>0,lw2x2)*poisson.pmf((len(y2b)+len(z2b))>0,ly2z2)/poisson.pmf((len(w1b)+len(x1b))>0,lw1x1)/poisson.pmf((len(y1b)+len(z1b))>0,ly1z1)
+
+  #def IdentifySupportRDP(callDF, rdpBedpeFile):
+  #  numCall=len(callDF)
+  #  rdpBedpe=pandas.read_table(rdpBedpeFile, names=callLabels)
+  #  sel=rdpBedpe['chr2']=="="
+  #  rdpBedpe.loc[sel,('chr2')]=rdpBedpe.loc[sel,('chr1')]
+  #  mixBedpe=pandas.concat([callDF, rdpBedpe])
+  #  tmpBedpeFile=lib10x.getTemporaryFile('bedpe_')
+  #  mixBedpe['index']=xrange(0,mixBedpe.shape[0])
+  #  mixBedpe.to_csv(tmpBedpeFile,header=False, sep="\t", index=False)
+  #  sys.stderr.write("tmpBedpeFile='"+str(tmpBedpeFile)+"'\n")
+  #  tmpOverlapFile=lib10x.getTemporaryFile('bedpe_')
+  #  pair2pair_cmd="bedtools pairtopair -a %s -b %s | cut -f8,16 >%s" % (tmpBedpeFile, tmpBedpeFile, tmpOverlapFile)
+  #  sys.stderr.write("pair2pair_cmd="+str(pair2pair_cmd)+"\n")
+  #  if lib10x.run_cmd(pair2pair_cmd) == False:
+  #    sys.stderr.write("Error in running pair2pair overlapping..."); quit()
+  #  overlapCalls=pandas.read_table(tmpOverlapFile, names=["bedpe1","bedpe2"], dtype=numpy.int32)
+  #  ones=[1]*overlapCalls.shape[0]
+  #  overlapGraph=scipy.sparse.coo_matrix((ones,(overlapCalls.iloc[:,0],overlapCalls.iloc[:,1])), shape=(len(mixBedpe),len(mixBedpe)))
+  #  numComponents, components = scipy.sparse.csgraph.connected_components(overlapGraph)
+  #  support=[ [] for i in range(numCall) ]
+  #  for ci in range(numComponents):
+  #    ri=list(numpy.where(components == ci))[0]
+  #    bi=ri[ri<numCall]
+  #    if len(bi) == 0:
+  #      continue
+  #    bi=bi[0] # bedpe id
+  #    support[bi] = support[bi] + list(ri[(ri-numCall+1)>0]-numCall+1)
+  #  return support
+
+  #def NewIdentifySupportRDP(callDF, rdpBedpeFile):
+  #  rdpBedpe=pandas.read_table(rdpBedpeFile, names=callLabels)
+  #  sel=rdpBedpe['chr2']=="="
+  #  rdpBedpe.loc[sel,('chr2')]=rdpBedpe.loc[sel,('chr1')]
+  #  rdpBedpe['index']=xrange(0,rdpBedpe.shape[0]) #0-based index
+  #  tmpBedpeFile=lib10x.getTemporaryFile('bedpe_')
+  #  sys.stderr.write("tmpBedpeFile='"+str(tmpBedpeFile)+"'\n")
+  #  rdpBedpe.to_csv(tmpBedpeFile,header=False, sep="\t", index=False)
+  #  numCall=len(callDF)
+  #  support=[ [] for i in range(0,numCall) ] #1-based merged call index
+  #  for bi in xrange(0,numCall):
+  #    singleBedpeFile=lib10x.getTemporaryFile('bedpe_')
+  #    tmpOverlapFile=lib10x.getTemporaryFile('bedpe_')
+  #    callDF.loc[bi:bi,:].to_csv(singleBedpeFile,header=False, sep="\t", index=False)
+  #    sys.stderr.write("singleBedpeFile='"+str(singleBedpeFile)+"'\n")
+  #    pair2pair_cmd="bedtools pairtopair -a %s -b %s | cut -f15 >%s" % (singleBedpeFile, tmpBedpeFile, tmpOverlapFile)
+  #    sys.stderr.write("pair2pair_cmd="+str(pair2pair_cmd)+"\n")
+  #    if lib10x.run_cmd(pair2pair_cmd) == False:
+  #      sys.stderr.write("Error in running pair2pair overlapping..."); quit()
+  #    overlapCalls=pandas.read_table(tmpOverlapFile, names=["bedpe2"], dtype=numpy.int32)
+  #    support[bi] = list(overlapCalls['bedpe2']+1)
+  #  return support

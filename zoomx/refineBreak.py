@@ -48,9 +48,11 @@ def main(args):
     callFile = args.call
     cfgFile = args.cfg
     gapFile = args.gapFile
-    imBedpeFile = args.imBedpeFile
+    frBedpeFile = args.frBedpeFile
+    rfBedpeFile = args.rfBedpeFile
     ffBedpeFile = args.ffBedpeFile
     rrBedpeFile = args.rrBedpeFile 
+    moleBedFile = args.moleBedFile 
     debug = args.debug
     mergeOnly = args.mergeOnly
     tempdir = args.tempdir
@@ -66,9 +68,11 @@ def main(args):
     callFile = "LS411N_CR1.wg12.bam.jct.bedpe"
     cfgFile = "LS411N_CR1.wg12.bam.gridScan.cfg.json"
     gapFile = "none"
-    imBedpeFile = "LS411N_CR1.wg12.bam.IM.bedpe"
+    frBedpeFile = "LS411N_CR1.wg12.bam.FR.bedpe"
+    rfBedpeFile = "LS411N_CR1.wg12.bam.RF.bedpe"
     ffBedpeFile = "LS411N_CR1.wg12.bam.FF.bedpe"
     rrBedpeFile = "LS411N_CR1.wg12.bam.RR.bedpe"
+    moleBedFile = "LS411N_CR1.wg12.bam.multiFragBar.bed.a0"
     tempdir = 'zoomx_'+lib10x.randascii(4)
     numprocs = 2
     debug = False
@@ -83,7 +87,6 @@ def main(args):
   minMolCnt = numpy.ceil((1-altExpect/100.)*scanConfig['E0'] + altExpect/100.*scanConfig['Cem'])
   if forcedExpect != 0:
     minMolCnt = max(minMolCnt, forcedExpect)  
-    #force minimum molecules required for any somatic events
   sys.stderr.write("minMolCnt="+str(minMolCnt)+"\n")
   
   if debug:
@@ -93,12 +96,16 @@ def main(args):
   
   if outPrefix == "none":
     outPrefix = callFile
-  if imBedpeFile == "none":
-    imBedpeFile = ".".join([bamFile,'IM','bedpe'])
+  if frBedpeFile == "none":
+    frBedpeFile = ".".join([bamFile,'FR','bedpe'])
+  if rfBedpeFile == "none":
+    rfBedpeFile = ".".join([bamFile,'RF','bedpe'])
   if ffBedpeFile == "none":
     ffBedpeFile = ".".join([bamFile,'FF','bedpe'])
   if rrBedpeFile == "none":
     rrBedpeFile = ".".join([bamFile,'RR','bedpe'])
+  if moleBedFile == "none":
+    moleBedFile = ".".join([bamFile,'multiFragBar','bed','a0'])
   
   sys.stderr.write("refineBreak.py -m {} -f {} -e {} -n {} {} {} {}\n".format(maxNum,forcedExpect,altExpect,numprocs,bamFile,callFile,cfgFile)) 
   sys.stderr.write("args="+str(args)+"\n")
@@ -107,26 +114,28 @@ def main(args):
     sys.stderr.write("bamFile="+str(bamFile)+"\n")
     sys.stderr.write("callFile="+str(callFile)+"\n")
     sys.stderr.write("covFile="+str(covFile)+"\n")
-    sys.stderr.write("imBedpeFile="+str(imBedpeFile)+"\n")
+    sys.stderr.write("frBedpeFile="+str(frBedpeFile)+"\n")
+    sys.stderr.write("rfBedpeFile="+str(rfBedpeFile)+"\n")
     sys.stderr.write("ffBedpeFile="+str(ffBedpeFile)+"\n")
     sys.stderr.write("rrBedpeFile="+str(rrBedpeFile)+"\n")
+    sys.stderr.write("moleBedFile="+str(moleBedFile)+"\n")
     sys.stderr.write("debug="+str(debug)+"\n")
     sys.stderr.write("mergeOnly="+str(mergeOnly)+"\n")
     sys.stderr.write("tempdir="+str(tempfile.tempdir)+"\n")
   
-  callLabels=["chr1","start1","end1","chr2","start2","end2","molcnt"]
+  callLabels=["chr1","start1","end1","chr2","start2","end2","barcnt"]
   callTypes=["string",numpy.int32,numpy.int32,"string",numpy.int32,numpy.int32,numpy.int32]
   bedpeLabels=["chr1","start1","end1","chr2","start2","end2","hp"]
-  bed1Labels=["chr1","start1","end1","molcnt","index"]
-  bed2Labels=["chr2","start2","end2","molcnt","index"]
-  clust1Labels=["chr1","start1","end1","molcnt","index","clust"]
-  clust2Labels=["chr2","start2","end2","molcnt","index","clust"]
-  bedLabels=["chr","start","end","molcnt"]
+  bed1Labels=["chr1","start1","end1","barcnt","index"]
+  bed2Labels=["chr2","start2","end2","barcnt","index"]
+  clust1Labels=["chr1","start1","end1","barcnt","index","clust"]
+  clust2Labels=["chr2","start2","end2","barcnt","index","clust"]
+  bedLabels=["chr","start","end","barcnt"]
   
   #rawCalls=pandas.read_table(callFile, names=callLabels)
   rawCalls=pandas.read_table(callFile,names=callLabels,dtype=dict(zip(callLabels,callTypes))) #only read cols 1-7
-  #keep only min molcnt and above
-  rawCalls=rawCalls[rawCalls['molcnt']>minMolCnt]
+  #keep only min barcnt and above
+  rawCalls=rawCalls[rawCalls['barcnt']>minMolCnt]
   #add index to bedpe file
   rawCalls['index']=xrange(0,rawCalls.shape[0])
   sys.stderr.write("maxNum={}\n".format(maxNum))
@@ -200,11 +209,11 @@ def main(args):
       mergeChr2[ci]=list(numpy.unique(rawCalls.iloc[ri]['chr2']))[0]
       mergeStart2[ci]=min(rawCalls.iloc[ri]['start2'])
       mergeEnd2[ci]=max(rawCalls.iloc[ri]['end2'])
-      mergeMolCnt[ci]=max(rawCalls.iloc[ri]['molcnt']) #
+      mergeMolCnt[ci]=max(rawCalls.iloc[ri]['barcnt']) #
     
     mergeBedpe=pandas.DataFrame(dict(zip(callLabels,[mergeChr1,mergeStart1,mergeEnd1,mergeChr2,mergeStart2,mergeEnd2,mergeMolCnt])),\
       columns=callLabels) # natually sorted, good!
-    mergeBedpe=mergeBedpe.sort_values(by=['molcnt'],ascending=False)
+    mergeBedpe=mergeBedpe.sort_values(by=['barcnt'],ascending=False)
 
   mergeBedpeFile=".".join([outPrefix,"merged"])
   sys.stderr.write("output merged calls\n")
@@ -213,94 +222,53 @@ def main(args):
   end_time=time.time()
   sys.stderr.write("output merged done:{}s\n".format(end_time-start_time))
   
-  if mergeOnly:
+  if mergeOnly:   #quit now if only merging events
     quit()
   
-  #def IdentifySupportRDP(callDF, rdpBedpeFile):
-  #  numCall=len(callDF)
-  #  rdpBedpe=pandas.read_table(rdpBedpeFile, names=callLabels)
-  #  sel=rdpBedpe['chr2']=="="
-  #  rdpBedpe.loc[sel,('chr2')]=rdpBedpe.loc[sel,('chr1')]
-  #  mixBedpe=pandas.concat([callDF, rdpBedpe])
-  #  tmpBedpeFile=lib10x.getTemporaryFile('bedpe_')
-  #  mixBedpe['index']=xrange(0,mixBedpe.shape[0])
-  #  mixBedpe.to_csv(tmpBedpeFile,header=False, sep="\t", index=False)
-  #  sys.stderr.write("tmpBedpeFile='"+str(tmpBedpeFile)+"'\n")
-  #  tmpOverlapFile=lib10x.getTemporaryFile('bedpe_')
-  #  pair2pair_cmd="bedtools pairtopair -a %s -b %s | cut -f8,16 >%s" % (tmpBedpeFile, tmpBedpeFile, tmpOverlapFile)
-  #  sys.stderr.write("pair2pair_cmd="+str(pair2pair_cmd)+"\n")
-  #  if lib10x.run_cmd(pair2pair_cmd) == False:
-  #    sys.stderr.write("Error in running pair2pair overlapping..."); quit()
-  #  overlapCalls=pandas.read_table(tmpOverlapFile, names=["bedpe1","bedpe2"], dtype=numpy.int32)
-  #  ones=[1]*overlapCalls.shape[0]
-  #  overlapGraph=scipy.sparse.coo_matrix((ones,(overlapCalls.iloc[:,0],overlapCalls.iloc[:,1])), shape=(len(mixBedpe),len(mixBedpe)))
-  #  numComponents, components = scipy.sparse.csgraph.connected_components(overlapGraph)
-  #  support=[ [] for i in range(numCall) ]
-  #  for ci in range(numComponents):
-  #    ri=list(numpy.where(components == ci))[0]
-  #    bi=ri[ri<numCall]
-  #    if len(bi) == 0:
-  #      continue
-  #    bi=bi[0] # bedpe id
-  #    support[bi] = support[bi] + list(ri[(ri-numCall+1)>0]-numCall+1)
-  #  return support
-  
-  #def NewIdentifySupportRDP(callDF, rdpBedpeFile):
-  #  rdpBedpe=pandas.read_table(rdpBedpeFile, names=callLabels)
-  #  sel=rdpBedpe['chr2']=="="
-  #  rdpBedpe.loc[sel,('chr2')]=rdpBedpe.loc[sel,('chr1')]
-  #  rdpBedpe['index']=xrange(0,rdpBedpe.shape[0]) #0-based index
-  #  tmpBedpeFile=lib10x.getTemporaryFile('bedpe_')
-  #  sys.stderr.write("tmpBedpeFile='"+str(tmpBedpeFile)+"'\n")
-  #  rdpBedpe.to_csv(tmpBedpeFile,header=False, sep="\t", index=False)
-  #  numCall=len(callDF)
-  #  support=[ [] for i in range(0,numCall) ] #1-based merged call index
-  #  for bi in xrange(0,numCall):
-  #    singleBedpeFile=lib10x.getTemporaryFile('bedpe_')
-  #    tmpOverlapFile=lib10x.getTemporaryFile('bedpe_')
-  #    callDF.loc[bi:bi,:].to_csv(singleBedpeFile,header=False, sep="\t", index=False)
-  #    sys.stderr.write("singleBedpeFile='"+str(singleBedpeFile)+"'\n")
-  #    pair2pair_cmd="bedtools pairtopair -a %s -b %s | cut -f15 >%s" % (singleBedpeFile, tmpBedpeFile, tmpOverlapFile)
-  #    sys.stderr.write("pair2pair_cmd="+str(pair2pair_cmd)+"\n")
-  #    if lib10x.run_cmd(pair2pair_cmd) == False:
-  #      sys.stderr.write("Error in running pair2pair overlapping..."); quit()
-  #    overlapCalls=pandas.read_table(tmpOverlapFile, names=["bedpe2"], dtype=numpy.int32)
-  #    support[bi] = list(overlapCalls['bedpe2']+1)
-  #  return support
-  
   sys.stderr.write("attaching short read support\n")
-  sys.stderr.write("merging IM rdp\n")
-  imSupport = lib10x.ParallelIdentifySupportRDP(mergeBedpe, imBedpeFile, callLabels, callTypes, numprocs, debug)
-  #print >>"imSupport=", imSupport
-  #if imSupport == [ None ]: imSupport = [ [] ]
+  sys.stderr.write("merging FR rdp\n")
+  frSupport = lib10x.ParallelIdentifySupportRDP(mergeBedpe, frBedpeFile, callLabels, callTypes, numprocs, debug)
   end_time=time.time()
-  sys.stderr.write("merging IM done:{}s\n".format(end_time-start_time))
+  sys.stderr.write("merging FR done:{}s\n".format(end_time-start_time))
+
+  sys.stderr.write("merging RF rdp\n")
+  rfSupport = lib10x.ParallelIdentifySupportRDP(mergeBedpe, rfBedpeFile, callLabels, callTypes, numprocs, debug)
+  end_time=time.time()
+  sys.stderr.write("merging RF done:{}s\n".format(end_time-start_time))
   
   sys.stderr.write("merging FF rdp\n")
   ffSupport = lib10x.ParallelIdentifySupportRDP(mergeBedpe, ffBedpeFile, callLabels, callTypes, numprocs, debug)
-  #if ffSupport == [ None ]: ffSupport = [ [] ]
   end_time=time.time()
   sys.stderr.write("merging FF done:{}s\n".format(end_time-start_time))
   
   sys.stderr.write("merging RR rdp\n")
   rrSupport = lib10x.ParallelIdentifySupportRDP(mergeBedpe, rrBedpeFile, callLabels, callTypes, numprocs, debug)
-  #if rrSupport == [ None ]: rrSupport = [ [] ]
   end_time=time.time()
   sys.stderr.write("merging RR rdp:{}s\n".format(end_time-start_time))
+
+  sys.stderr.write("attaching unique molecule support\n")
+  sys.stderr.write("merging non-self-overlapping molecules\n")
+  miSupport = lib10x.ParallelIdentifyNonSelfOverlapMole(mergeBedpe, moleBedFile, callLabels, callTypes, numprocs, debug)
+  end_time=time.time()
+  sys.stderr.write("merging done:{}s\n".format(end_time-start_time))
   
-  mergeBedpe['im']=imSupport
+  mergeBedpe['fr']=frSupport
+  mergeBedpe['rf']=rfSupport
   mergeBedpe['ff']=ffSupport
   mergeBedpe['rr']=rrSupport
+  mergeBedpe['mi']=miSupport
   
   if debug:
-    print(imSupport)
+    print(frSupport)
+    print(rfSupport)
     print(ffSupport)
     print(rrSupport)
+    print(miSupport)
     print(mergeBedpe)
   
   sys.stderr.write("output refined calls\n")
   refineBedpeFile=".".join([outPrefix,"refined"])
-  #refineBedpe=mergeBedpe.sort_values(by=['molcnt'],ascending=False) #this is already sorted
+  #refineBedpe=mergeBedpe.sort_values(by=['barcnt'],ascending=False) #this is already sorted
   mergeBedpe.to_csv(refineBedpeFile,header=True, sep="\t", index=False)
   sys.stderr.write("refineBedpeFile='"+str(refineBedpeFile)+"'\n")
 
@@ -397,15 +365,16 @@ def run():
   parser.add_argument("bam", help="sorted 10x bamfile, in Longranger BAM format")
   parser.add_argument("call", help="SV call bedpefile, in bedpe format") 
   parser.add_argument("cfg",help="parameter config file, in JSON format")
-  #parser.add_argument("-c","--covFile", default="none",help="100bp window coverage file")
   parser.add_argument("-g","--gapFile", default="none",help="bedfile of boundaries of known gaps >5K + slop(if any)")
   parser.add_argument("-m","--maxNum", default=numpy.iinfo(numpy.int32).max,type=int,
     help="max number of events to process (reduce this if time constrained)")
   parser.add_argument("-e","--altExpect", default=25,type=int, help="minimum mixture fraction for alternative, specify a percentage between 10-100, default 25")
-  parser.add_argument("-f","--forcedExpect",default=0,type=int, help="forced minimum molecule for events")
-  parser.add_argument("-i","--imBedpeFile", default="none",help="impp FR read file in bedpe, default=bam.IM.bedpe")
+  parser.add_argument("-f","--forcedExpect",default=2,type=int, help="forced minimum molecule support for SV events")
+  parser.add_argument("-i","--frBedpeFile", default="none",help="impp FR read file in bedpe, default=bam.FR.bedpe")
   parser.add_argument("-j","--ffBedpeFile", default="none",help="disc FF read file in bedpe, default=bam.FF.bedpe")
   parser.add_argument("-k","--rrBedpeFile", default="none",help="splt RR read file in bedpe, default=bam.RR.bedpe")
+  parser.add_argument("-l","--rfBedpeFile", default="none",help="impp RF read file in bedpe, default=bam.RF.bedpe")
+  parser.add_argument("-x","--moleBedFile", default="none",help="linked-read single molecule file, default=bam.multiFragBar.bed.a0")
   parser.add_argument("-o","--outPrefix",help="outputPrefix",default="none")
   parser.add_argument("-a","--debug",default=False,action="store_true",help="in debug mode")
   parser.add_argument("-b","--mergeOnly",default=False,action="store_true",help="in mergeOnly mode")
