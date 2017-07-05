@@ -147,20 +147,24 @@ refinedFFid=rjson::fromJSON(refined$FF)
 refinedRRid=rjson::fromJSON(refined$RR)
 refinedMIid=rjson::fromJSON(refined$MI)
 
-sharedBarID = unique(refinedReg1$barID[refinedReg1$barID %in% refinedReg2$barID])
-mergedMolList = lapply(sharedBarID, function(b) { sel1=which(refinedReg1$barID==b)
-sel2=which(refinedReg2$barID==b)
-mdat=cbind(refinedReg1[sel1[1],c(1,2,3)], refinedReg2[sel2[1],c(1,2,3)])
-colnames(mdat)=bedpeCols[1:6]
-mdat$id=paste("molID",b,sep=":")
-mdat$type="molecule"
-mdat$barcode=refinedReg1[sel1[1],dim(refinedReg1)[2]]
-mdat$mi1=
-mdat
+sharedBarID = unique(refinedReg1$barID[refinedReg1$barID %in% refinedReg2$barID]) #shared barcodes
+mergedMolList = lapply(sharedBarID, function(b) { 
+  sel1=which(refinedReg1$barID==b)
+  sel2=which(refinedReg2$barID==b)
+  mdat=cbind(refinedReg1[sel1[1],c("chr1","st1","ed1")], refinedReg2[sel2[1],c("chr1","st1","ed1")])
+  colnames(mdat)=bedpeCols[1:6]
+  mdat$id=paste("molID",b,sep=":")
+  mdat$type="molecule"
+  mdat$barcode=refinedReg1[sel1[1],c("molBX")]
+  mdat$mi1=refinedReg1[sel1[1],c("molID")]
+  mdat$mi2=refinedReg2[sel2[1],c("molID")]
+  mdat
 })
-mergedMol = do.call("rbind", mergedMolList)
+mergedMol = do.call("rbind", mergedMolList)                         #all molecules, i.e. BX
+mergedMI = mergedMol[mergedMol$mi1 != mergedMol$mi2, ]              #non-self-overlapping molecules
+mergedBI = mergedMol[mergedMol$mi1 == mergedMol$mi2, ]              #self-overlapping molecules
 
-#following assume for mergedMol if (chr1==chr2) => st1 <= st2 
+#following assume (chr1==chr2) => st1 <= st2 which is enforced in parse10x
 mergedFR = do.call("rbind", 
                    apply(refinedFR[,1:6], 1, FUN = function(r, chr1) { 
                      if( r[1]!=chr1 | (r[4]==chr1 & as.numeric(r[2])>as.numeric(r[5])) ) 
@@ -197,8 +201,6 @@ if(!isUCSC & nrow(refined)>0) {refined$chr1=paste("chr",refined$chr1,sep="")}
 if(!isUCSC & nrow(refined)>0) {refined$chr2=paste("chr",refined$chr2,sep="")}
 if(!isUCSC & nrow(refinedReg1)>0) {refinedReg1$chr1=paste("chr",refinedReg1$chr1,sep="")}
 if(!isUCSC & nrow(refinedReg2)>0) {refinedReg2$chr1=paste("chr",refinedReg2$chr1,sep="")}
-if(!isUCSC & length(mergedMol)>0) {mergedMol$chr1=paste("chr",mergedMol$chr1,sep="")
-                               mergedMol$chr2=paste("chr",mergedMol$chr2,sep="")}
 if(!isUCSC & length(mergedFR)>0) {mergedFR$chr1=paste("chr",mergedFR$chr1,sep="")
                                  mergedFR$chr2=paste("chr",mergedFR$chr2,sep="")}
 if(!isUCSC & length(mergedRF)>0) {mergedRF$chr1=paste("chr",mergedRF$chr1,sep="")
@@ -207,24 +209,28 @@ if(!isUCSC & length(mergedFF)>0) {mergedFF$chr1=paste("chr",mergedFF$chr1,sep=""
                                  mergedFF$chr2=paste("chr",mergedFF$chr2,sep="")}
 if(!isUCSC & length(mergedRR)>0) {mergedRR$chr1=paste("chr",mergedRR$chr1,sep="")
                                  mergedRR$chr2=paste("chr",mergedRR$chr2,sep="")}
+if(!isUCSC & length(mergedMI)>0) {mergedMI$chr1=paste("chr",mergedMI$chr1,sep="")
+                                   mergedMI$chr2=paste("chr",mergedMI$chr2,sep="")}
+if(!isUCSC & length(mergedBI)>0) {mergedBI$chr1=paste("chr",mergedBI$chr1,sep="")
+                                  mergedBI$chr2=paste("chr",mergedBI$chr2,sep="")}
 
-Type=c("molecule","rdpFR","rdpRF","rdpFF","rdpRR")
+Type=c("molSOV","molNSOV","rdpFR","rdpRF","rdpFF","rdpRR")
 strandInfo=c(".","1","-1",".")
 strandDf=c("1","-1",".")
 strandGR=c("+","-","*")
-supportType=c("molecule","readPair","readPair","readPair")
+supportType=c("molecule","molecule","readPair","readPair","readPair","readPair")
 supportGR=c("molecule","readPair")
 supportColors=RColorBrewer::brewer.pal(3,"Set1")[1:length(supportGR)]
 names(supportColors)=supportGR
 strandColors=RColorBrewer::brewer.pal(3,"Set2")
 names(strandColors)=strandGR
 
-mergedAll=rbind(mergedMol,mergedFR,mergedRF,mergedFF,mergedRR)
+mergedAll=rbind(mergedFR,mergedRF,mergedFF,mergedRR,mergedBI,mergedMI)
 mergedAll$strand1=strandInfo[match(mergedAll$type, Type)]
 mergedAll$strand2=strandInfo[match(mergedAll$type, Type)]
 mergedAll$supportType=mergedAll$type
 colnames(mergedAll)=c("chrom1","start1","end1","chrom2","start2","end2","name","score","barcode","strand1","strand2","supportType")
-mergedAll$score=0
+mergedAll$score=1
 if(!includeDupMolecule) {
   sel = (mergedAll$start1!=mergedAll$start2) | (mergedAll$end1!=mergedAll$end2) | (mergedAll$supportType != "molecule")
   mergeAll=mergedAll[sel,]
