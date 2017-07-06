@@ -1,0 +1,23 @@
+#!/bin/bash
+echo -e "cleaning previous test files ..."
+rm -rf ~/zoomx_*
+rm -f *.tagidx *.json *.a0
+rm -f *.gz
+rm -f *bedpe*
+rm -rf zoomx_*
+rm -rf logs
+rm -rf cfgs
+rm -rf data
+rm -rf results
+rm -rf plots
+rm -f *log*
+rm -f *.refined
+rm -f *.somatic
+rm -f *.germline
+rm -rf *Plot_*/
+rm -f *.merged
+rm -f *.clean*
+rm -f *.cov100
+rm -f *.json.*
+rm -f *.readme
+echo "done"

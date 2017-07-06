@@ -243,7 +243,7 @@ if [[ ! -z $( testSubstring "caseScan" $ZoomXRunOp ) ]]; then
   if [[ -z $dryMode ]]; then echo $filterCMD | bash; fi
   if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
   echo "    filterCMD': '$filterCMD',"
-  gridScanCMD="PYTHONPATH=$ZOOMXPATH  python -m gridScan -g $caseGenomeSize -n 3 $grid $clean $h5 $datDir/$caseBam >>$logPf.$ZoomXRunOp.$mydate.log" #run gridScan module on Chr22 only (50 Mbp)
+  gridScanCMD="PYTHONPATH=$ZOOMXPATH  python -m gridScan -g $caseGenomeSize -n 3 $grid $clean $h5 $datDir/$caseBam >>$logPf.$ZoomXRunOp.$mydate.log 2>&1" #run gridScan module on Chr22 only (50 Mbp)
   if [[ -z $dryMode ]]; then echo $gridScanCMD | bash; fi
   if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
   echo "    'gridScanCMD': '$gridScanCMD'," 
