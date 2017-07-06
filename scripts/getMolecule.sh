@@ -1,9 +1,9 @@
 #!/bin/bash
 
-if [ -z $5 ]; then
-	echo "usage: getMolecule.sh inMoleFile inPrefix lineNum outDir"
+if [ -z $6 ]; then
+	echo "usage: getMolecule.sh inMoleFile inPrefix lineNum outDir suffix"
   echo "example:"
-  echo "  getMolecule.sh NA12878.wg12.chr22.bam.dis.E40.refined NA12878.wg12.chr22.bam 1 PlotDir cisSize"
+  echo "  getMolecule.sh NA12878.wg12.chr22.bam.dis.E40.refined NA12878.wg12.chr22.bam 1 PlotDir cisSize case/control"
   echo "  #this gets singlue molecules supports 1st junction listed in NA12878.wg12.chr22.bam.dis.E40.refined"
   echo "  #from NA12878.wg12.chr22.bam and store them in PlotDir"
   exit
@@ -23,6 +23,8 @@ echo "outDir=$outDir"_"$lineNum"
 outDir="$outDir"_"$lineNum"
 cisSize=$5
 echo "cisSize=$5"
+suffix=$6
+echo "suffix=$6"
 #inMolFile=results/NA12878.wg12.chr22-22M-24M.bam.dist.E45.refined
 #inPrefix=data/NA12878.wg12.chr22-22M-24M.bam
 #lineNum=1
@@ -39,31 +41,31 @@ echo "head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f4,5,6 >$out
 head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f4,5,6 >$outDir/refined.reg2.bed
 echo -n "found reg2="
 cat $outDir/refined.reg2.bed
-echo "bedtools intersect -u -a $inPrefix.multiFragBar.bed.a0 -b $outDir/refined.reg1.bed >$outDir/refined.reg1.mol"
-bedtools intersect -u -a $inPrefix.multiFragBar.bed.a0 -b $outDir/refined.reg1.bed >$outDir/refined.reg1.mol
-echo "bedtools intersect -u -a $inPrefix.multiFragBar.bed.a0 -b $outDir/refined.reg2.bed >$outDir/refined.reg2.mol"
-bedtools intersect -u -a $inPrefix.multiFragBar.bed.a0 -b $outDir/refined.reg2.bed >$outDir/refined.reg2.mol
+echo "bedtools intersect -u -a $inPrefix.multiFragBar.bed.a0 -b $outDir/refined.reg1.bed >$outDir/refined.reg1.mol.$suffix"
+bedtools intersect -u -a $inPrefix.multiFragBar.bed.a0 -b $outDir/refined.reg1.bed >$outDir/refined.reg1.mol.$suffix
+echo "bedtools intersect -u -a $inPrefix.multiFragBar.bed.a0 -b $outDir/refined.reg2.bed >$outDir/refined.reg2.mol.$suffix"
+bedtools intersect -u -a $inPrefix.multiFragBar.bed.a0 -b $outDir/refined.reg2.bed >$outDir/refined.reg2.mol.$suffix
 ###
 ###
 FRcol=8
 RFcol=9
 FFcol=10
 RRcol=11
-echo "head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$FRcol | grep -o '[0-9]\+' | sed '/^$/d' | sed -e 's/$/p/g' | tr '\n' ';' >$outDir/refined.rindex.FR"
-head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$FRcol | grep -o '[0-9]\+' | sed '/^$/d' |  sed -e 's/$/p/g' | tr '\n' ';' >$outDir/refined.rindex.FR
-echo "head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$RFcol | grep -o '[0-9]\+' | sed '/^$/d' | sed -e 's/$/p/g' | tr '\n' ';' >$outDir/refined.rindex.RF"
-head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$RFcol | grep -o '[0-9]\+' | sed '/^$/d' |  sed -e 's/$/p/g' | tr '\n' ';' >$outDir/refined.rindex.RF
-echo "head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$FFcol | grep -o '[0-9]\+' | sed '/^$/d' |  sed -e 's/$/p/g' | tr '\n' ';' >$outDir/refined.rindex.FF"
-head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$FFcol | grep -o '[0-9]\+' | sed '/^$/d' |  sed -e 's/$/p/g' | tr '\n' ';' >$outDir/refined.rindex.FF
-echo "head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$RRcol | grep -o '[0-9]\+' | sed '/^$/d' |  sed -e 's/$/p/g' | tr '\n' >$outDir/refined.rindex.RR"
-head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$RRcol | grep -o '[0-9]\+' |  sed '/^$/d' | sed -e 's/$/p/g' | tr '\n' ';' >$outDir/refined.rindex.RR
+echo "head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$FRcol | grep -o '[0-9]\+' | sed '/^$/d' | sed -e 's/$/p/g' | tr '\n' ';' >$outDir/refined.rindex.FR.$suffix"
+head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$FRcol | grep -o '[0-9]\+' | sed '/^$/d' |  sed -e 's/$/p/g' | tr '\n' ';' >$outDir/refined.rindex.FR.$suffix
+echo "head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$RFcol | grep -o '[0-9]\+' | sed '/^$/d' | sed -e 's/$/p/g' | tr '\n' ';' >$outDir/refined.rindex.RF.$suffix"
+head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$RFcol | grep -o '[0-9]\+' | sed '/^$/d' |  sed -e 's/$/p/g' | tr '\n' ';' >$outDir/refined.rindex.RF.$suffix
+echo "head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$FFcol | grep -o '[0-9]\+' | sed '/^$/d' |  sed -e 's/$/p/g' | tr '\n' ';' >$outDir/refined.rindex.FF.$suffix"
+head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$FFcol | grep -o '[0-9]\+' | sed '/^$/d' |  sed -e 's/$/p/g' | tr '\n' ';' >$outDir/refined.rindex.FF.$suffix
+echo "head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$RRcol | grep -o '[0-9]\+' | sed '/^$/d' |  sed -e 's/$/p/g' | tr '\n' >$outDir/refined.rindex.RR.$suffix"
+head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$RRcol | grep -o '[0-9]\+' |  sed '/^$/d' | sed -e 's/$/p/g' | tr '\n' ';' >$outDir/refined.rindex.RR.$suffix
 ###
-echo "sed -n -f $outDir/refined.rindex.FR $inPrefix.geq$cisSize.FR.bedpe >$outDir/refined.FR.bedpe"
-sed -n -f $outDir/refined.rindex.FR $inPrefix.geq$cisSize.FR.bedpe >$outDir/refined.FR.bedpe
-echo "sed -n -f $outDir/refined.rindex.RF $inPrefix.geq$cisSize.RF.bedpe >$outDir/refined.RF.bedpe"
-sed -n -f $outDir/refined.rindex.RF $inPrefix.geq$cisSize.RF.bedpe >$outDir/refined.RF.bedpe
-echo "sed -n -f $outDir/refined.rindex.FF $inPrefix.geq$cisSize.FF.bedpe >$outDir/refined.FF.bedpe"
-sed -n -f $outDir/refined.rindex.FF $inPrefix.geq$cisSize.FF.bedpe >$outDir/refined.FF.bedpe
-echo "sed -n -f $outDir/refined.rindex.RR $inPrefix.geq$cisSize.RR.bedpe >$outDir/refined.RR.bedpe"
-sed -n -f $outDir/refined.rindex.RR $inPrefix.geq$cisSize.RR.bedpe >$outDir/refined.RR.bedpe
+echo "sed -n -f $outDir/refined.rindex.FR.$suffix $inPrefix.geq$cisSize.FR.bedpe >$outDir/refined.FR.bedpe.$suffix"
+sed -n -f $outDir/refined.rindex.FR.$suffix $inPrefix.geq$cisSize.FR.bedpe >$outDir/refined.FR.bedpe.$suffix
+echo "sed -n -f $outDir/refined.rindex.RF.$suffix $inPrefix.geq$cisSize.RF.bedpe >$outDir/refined.RF.bedpe.$suffix"
+sed -n -f $outDir/refined.rindex.RF.$suffix $inPrefix.geq$cisSize.RF.bedpe >$outDir/refined.RF.bedpe.$suffix
+echo "sed -n -f $outDir/refined.rindex.FF.$suffix $inPrefix.geq$cisSize.FF.bedpe >$outDir/refined.FF.bedpe.$suffix"
+sed -n -f $outDir/refined.rindex.FF.$suffix $inPrefix.geq$cisSize.FF.bedpe >$outDir/refined.FF.bedpe.$suffix
+echo "sed -n -f $outDir/refined.rindex.RR.$suffix $inPrefix.geq$cisSize.RR.bedpe >$outDir/refined.RR.bedpe.$suffix"
+sed -n -f $outDir/refined.rindex.RR.$suffix $inPrefix.geq$cisSize.RR.bedpe >$outDir/refined.RR.bedpe.$suffix
 echo "getMolecule.sh Done"

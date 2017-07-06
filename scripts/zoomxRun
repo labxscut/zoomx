@@ -298,7 +298,7 @@ if [[ ! -z $( testSubstring "caseTransRef" $ZoomXRunOp ) ]]; then
   echo "    'transRefCMD':'$transRefCMD',"
 fi
 
-#plotting of Diff or Share Molecules, moleFile is predefined in previous Diff and Share stages
+#plotting refined Molecules, moleFile is predefined in previous *Ref stages
 if [[ ! -z $(testSubstring "Plot" $ZoomXRunOp) ]]; then 
   if [[ ! -z $(testSubstring "case" $ZoomXRunOp) && ! -z $(testSubstring "Dist" $ZoomXRunOp) ]]; then
     moleFile=$( echo "$caseBam.dist.E$caseExp.refined" )
@@ -326,13 +326,17 @@ if [[ ! -z $(testSubstring "Plot" $ZoomXRunOp) ]]; then
     maxSize=$(expr $(($maxPlot>$maxSize?$maxSize:$maxPlot)) - 1)
     if [[ $maxSize -ge 1 ]]; then
       for i in `seq 1 $maxSize`; do
-        getMolCMD="$ZOOMXPATH/../scripts/getMolecule.sh $resDir/$moleFile $datDir/$caseBam $i $plotDir/$moleFile.Plot $cisSize  >>$logFile 2>&1"
+        getMolCMD="$ZOOMXPATH/../scripts/getMolecule.sh $resDir/$moleFile $datDir/$caseBam $i $plotDir/$moleFile.Plot $cisSize  case >>$logFile 2>&1"
         if [[ -z $dryMode ]]; then echo $getMolCMD | bash; fi
+        if [[ $mode -eq "somatic" && ! -z $(testSubstring "control" $ZoomXRunOp) ]]; then #output corresponding control region
+          bgMolCMD="$ZOOMXPATH/../scripts/getMolecule.sh $resDir/$moleFile $datDir/$controlBam $i $plotDir/$moleFile.Plot $cisSize control >>$logFile 2>&1"
+          if [[ -z $dryMode ]]; then echo $bgMolCMD | bash; fi
+        fi
         if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
         plotMolCMD="$ZOOMXPATH/../scripts/plotMolecule.R $isUCSC $plotDir/$moleFile.Plot_$i $datDir/$caseBam.gridScan.cfg.json  >>$logFile 2>&1" 
         if [[ -z $dryMode ]]; then echo $plotMolCMD | bash; fi
         if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
-        echo "    [ '$getMolCMD', '$plotMolCMD' ],"
+        echo "    [ '$getMolCMD', '$bgMolCMD', '$plotMolCMD' ],"
       done
     fi
   fi
@@ -446,13 +450,17 @@ if [[ ! -z $(testSubstring "Diff" $ZoomXRunOp) || ! -z $(testSubstring "Share" $
     maxSize=$(expr $(($maxPlot>$maxSize?$maxSize:$maxPlot)) - 1)
     if [[ $maxSize -ge 1 ]]; then
       for i in `seq 1 $maxSize`; do
-        getMolCMD="$ZOOMXPATH/../scripts/getMolecule.sh $resDir/$moleFile $datDir/$caseBam $i $plotDir/$moleFile.Plot $cisSize >>$logFile 2>&1"
+        getMolCMD="$ZOOMXPATH/../scripts/getMolecule.sh $resDir/$moleFile $datDir/$caseBam $i $plotDir/$moleFile.Plot $cisSize  case >>$logFile 2>&1"
         if [[ -z $dryMode ]]; then echo $getMolCMD | bash; fi
+        if [[ $mode -eq "somatic"]]; then #output corresponding control region
+          bgMolCMD="$ZOOMXPATH/../scripts/getMolecule.sh $resDir/$moleFile $datDir/$controlBam $i $plotDir/$moleFile.Plot $cisSize control >>$logFile 2>&1"
+          if [[ -z $dryMode ]]; then echo $bgMolCMD | bash; fi
+        fi
         if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
         plotMolCMD="$ZOOMXPATH/../scripts/plotMolecule.R $isUCSC $plotDir/$moleFile.Plot_$i $datDir/$caseBam.gridScan.cfg.json >>$logFile 2>&1" 
         if [[ -z $dryMode ]]; then echo $plotMolCMD | bash; fi
         if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
-        echo "    [ '$getMolCMD', '$plotMolCMD' ],"
+        echo "    [ '$getMolCMD', '$bgMolCMD', '$plotMolCMD' ],"
       done
     fi
   fi
