@@ -228,10 +228,6 @@ def main(args):
   print >>sys.stderr, "averageFragLength:", averageFragLength
   tagFractionSquareSum=numpy.sum(tagFractions*tagFractions,axis=1)[0]
   print >>sys.stderr, "tagFractionSquareSum:", tagFractionSquareSum
-  expectShareFrag=(fragNumber**2)*(regionFraction**2)*tagFractionSquareSum     #FIX, u0, expected shared Fragment by random chance
-  print >>sys.stderr, "expectShareFrag:", expectShareFrag
-  expectJunctionFrag=fragNumber*averageFragLength/float(genomeSize)                    #u, expected shared Fragment by junction formation
-  print >>sys.stderr, "expectJunctionFrag:", expectJunctionFrag
   
   if maxTagFraction <0 or maxTagFraction>0.99:
     medTagFraction = numpy.median(tagFractions)
@@ -270,6 +266,11 @@ def main(args):
   #print "tagidx2tagcol",tagidx2tagcol
   frag2tagidx = list(fragdata.iloc[:,3]-1) #0-based fragment to tagidx lookup
   #print "frag2tagidx",frag2tagidx
+
+  expectShareFrag = parsedBarcode**2 * (gridSize/float(genomeSize))**2 * (tagFractionSquareSum) #u0, expected shared Fragment by random chance
+  print >>sys.stderr, "expectShareFrag:", expectShareFrag
+  expectJunctionFrag = fragNumber * averageFragLength / float(genomeSize)         #u1, expected shared Fragment by junction formation
+  print >>sys.stderr, "expectJunctionFrag:", expectJunctionFrag
   
   if debug:
     gtk1_time = time.time()
@@ -525,8 +526,10 @@ def main(args):
   scanConfig['mNb'] = parsedBarcode
   scanConfig['fNb'] = filteredBarcode
   scanConfig['Tb'] = tagFractionSquareSum 
-  scanConfig['Cem'] = fragNumber * averageFragLength / float(genomeSize)
-  scanConfig['E0'] = parsedBarcode**2 * (gridSize/float(genomeSize))**2 * (tagFractionSquareSum)
+  #scanConfig['Cem'] = fragNumber * averageFragLength / float(genomeSize)
+  scanConfig['Cem'] = expectJunctionFrag
+  #scanConfig['E0'] = parsedBarcode**2 * (gridSize/float(genomeSize))**2 * (tagFractionSquareSum)
+  scanConfig['E0'] = expectShareFrag
   with open(cfgFile, 'w') as f: json.dump(scanConfig, f)
   
   if not debug:

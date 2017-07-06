@@ -93,7 +93,7 @@ reference = cmd$options$reference
 breakSlopSize = cmd$options$breakSlopSize
 padding = cmd$options$padding
 plotPrefix = cmd$options$plotPrefix
-includeMolecule = cmd$options$includeMolecule
+includeDupMolecule = cmd$options$includeDupMolecule
 workDir=cmd$args[1]
 statsFile=cmd$args[2]
 
@@ -122,7 +122,7 @@ if(debug){
 
 ####plotMolecule-LoadInput####
 options(stringsAsFactors = FALSE)
-statsTab=rjson::rjson::fromJSON(paste(readLines(statsFile), collapse=""))
+statsTab=rjson::fromJSON(paste(readLines(statsFile), collapse=""))
 setwd(workDir)
 regCols=c("chr1","start1","end1","chr2","start2","end2","barcnt","FR","RF","FF","RR","MI") # in refined
 bedpeCols=c("chr1","st1","ed1","chr2","st2","ed2","hp")
@@ -169,12 +169,13 @@ if(nrow(mergedBI)>0) mergedBI$type = "molSOV"
 mergedFR = do.call("rbind", 
                    apply(refinedFR[,1:6], 1, FUN = function(r, chr1) { 
                      if( r[1]!=chr1 | (r[4]==chr1 & as.numeric(r[2])>as.numeric(r[5])) ) 
-                                                                            { t=r[1:3]; r[1:3]=r[4:6]; r[4:6]=t; }
-                                                                        as.data.frame(t(r)) 
-                                                                     }, chr1) )
+                     { t=r[1:3]; r[1:3]=r[4:6]; r[4:6]=t; }
+                     as.data.frame(t(r)) 
+                  }, chr1) )
 if(!is.null(mergedFR)) { #set_colClass(mergedFR, c("character","integer","integer","character","integer","integer"));
   mergedFR$id = paste("rdpFR",refinedFRid,sep=":"); mergedFR$type="rdpFR"; mergedFR$barcode=refinedFR$hp;
-  mergedFR$mi1 = NA; mergedFR$mi2 = NA}
+  mergedFR$mi1 = 0; mergedFR$mi2 = 0}
+message("mergedFR"); print(mergedFR)
 
 mergedRF = do.call("rbind", 
                    apply(refinedRF[,1:6], 1, FUN = function(r, chr1) { 
@@ -183,8 +184,9 @@ mergedRF = do.call("rbind",
                      as.data.frame(t(r)) 
                    }, chr1) )
 if(!is.null(mergedRF)) { #set_colClass(mergedFR, c("character","integer","integer","character","integer","integer"));
-  mergedRF$id = paste("rdpRF",refinedRFid,sep=":"); mergedFR$type="rdpRF"; mergedFR$barcode=refinedRF$hp;
-  mergedRF$mi1 = NA; mergedRF$mi2 = NA}
+  mergedRF$id = paste("rdpRF",refinedRFid,sep=":"); mergedRF$type="rdpRF"; mergedRF$barcode=refinedRF$hp;
+  mergedRF$mi1 = 0; mergedRF$mi2 = 0}
+message("mergedRF"); print(mergedRF)
 
 mergedFF = do.call("rbind", 
                    apply(refinedFF[,1:6], 1, FUN = function(r, chr1) { 
@@ -192,7 +194,8 @@ mergedFF = do.call("rbind",
                                                                                   as.data.frame(t(r)) }, chr1))
 if(!is.null(mergedFF)) { #set_colClass(mergedFF, c("character","integer","integer","character","integer","integer")); 
                          mergedFF$id = paste("rdpFF",refinedFFid,sep=":"); mergedFF$type="rdpFF"; mergedFF$barcode=refinedFF$hp;
-                         mergedFF$mi1 = NA; mergedFF$mi2 = NA} 
+                         mergedFF$mi1 = 0; mergedFF$mi2 = 0} 
+message("mergedFF"); print(mergedFF)
 
 mergedRR = do.call("rbind", 
                    apply(refinedRR[,1:6], 1, FUN = function(r, chr1) { 
@@ -200,46 +203,55 @@ mergedRR = do.call("rbind",
                    as.data.frame(t(r)) }, chr1))
 if(!is.null(mergedRR)) { #set_colClass(mergedRR, c("character","integer","integer","character","integer","integer")); 
                          mergedRR$id = paste("rdpRR",refinedRRid,sep=":"); mergedRR$type="rdpRR"; mergedRR$barcode=refinedRR$hp;
-                         mergedRR$mi1 = NA; mergedRR$mi2 = NA}
+                         mergedRR$mi1 = 0; mergedRR$mi2 = 0}
+message("mergedRR"); print(mergedRR)
 
+
+# add "chr" for non UCSC format, required step to use BSgenome
 if(!isUCSC & nrow(refined)>0) {refined$chr1=paste("chr",refined$chr1,sep="")}
 if(!isUCSC & nrow(refined)>0) {refined$chr2=paste("chr",refined$chr2,sep="")}
 if(!isUCSC & nrow(refinedReg1)>0) {refinedReg1$chr1=paste("chr",refinedReg1$chr1,sep="")}
 if(!isUCSC & nrow(refinedReg2)>0) {refinedReg2$chr1=paste("chr",refinedReg2$chr1,sep="")}
-if(!isUCSC & length(mergedFR)>0) {mergedFR$chr1=paste("chr",mergedFR$chr1,sep="")
+if(!isUCSC & !is.null(mergedFR)) {mergedFR$chr1=paste("chr",mergedFR$chr1,sep="")
                                  mergedFR$chr2=paste("chr",mergedFR$chr2,sep="")}
-if(!isUCSC & length(mergedRF)>0) {mergedRF$chr1=paste("chr",mergedRF$chr1,sep="")
+if(!isUCSC & !is.null(mergedRF)) {mergedRF$chr1=paste("chr",mergedRF$chr1,sep="")
                                   mergedRF$chr2=paste("chr",mergedRF$chr2,sep="")}
-if(!isUCSC & length(mergedFF)>0) {mergedFF$chr1=paste("chr",mergedFF$chr1,sep="")
+if(!isUCSC & !is.null(mergedFF)) {mergedFF$chr1=paste("chr",mergedFF$chr1,sep="")
                                  mergedFF$chr2=paste("chr",mergedFF$chr2,sep="")}
-if(!isUCSC & length(mergedRR)>0) {mergedRR$chr1=paste("chr",mergedRR$chr1,sep="")
+if(!isUCSC & !is.null(mergedRR)) {mergedRR$chr1=paste("chr",mergedRR$chr1,sep="")
                                  mergedRR$chr2=paste("chr",mergedRR$chr2,sep="")}
-if(!isUCSC & length(mergedMI)>0) {mergedMI$chr1=paste("chr",mergedMI$chr1,sep="")
+if(!isUCSC & nrow(mergedMI)>0) {mergedMI$chr1=paste("chr",mergedMI$chr1,sep="")
                                    mergedMI$chr2=paste("chr",mergedMI$chr2,sep="")}
-if(!isUCSC & length(mergedBI)>0) {mergedBI$chr1=paste("chr",mergedBI$chr1,sep="")
+if(!isUCSC & nrow(mergedBI)>0) {mergedBI$chr1=paste("chr",mergedBI$chr1,sep="")
                                   mergedBI$chr2=paste("chr",mergedBI$chr2,sep="")}
 
-Type=c("molSOV","molNSOV","rdpFR","rdpRF","rdpFF","rdpRR")
-strand1Info=c(".",".","1","-1","1","-1")
-strand2Info=c(".",".","-1","1","1","-1")
+
 strandDf=c("1","-1",".")
 strandGR=c("+","-","*")
-supportType=c("molSOV","molNSOV","readPair","readPair","readPair","readPair")
-supportGR=c("molSOV","molNSOV")
+supportType=c("molSOV","molNSOV","rdpFR","rdpRF","rdpFF","rdpRR")
+supportGR=c("molSOV","molNSOV","rdpFR","rdpRF","rdpFF","rdpRR")
+strand1Info=c(".",".","1","-1","1","-1")
+strand2Info=c(".",".","-1","1","1","-1")
 supportColors=RColorBrewer::brewer.pal(3,"Set1")[1:length(supportGR)]
 names(supportColors)=supportGR
 strandColors=RColorBrewer::brewer.pal(3,"Set2")
 names(strandColors)=strandGR
 
+# print(mergedRF)
+# print(mergedFF)
+# print(mergedRR)
+# print(mergedBI)
+# print(mergedMI)
+
 mergedAll=rbind(mergedFR,mergedRF,mergedFF,mergedRR,mergedBI,mergedMI)
-mergedAll$strand1=strand1Info[match(mergedAll$type, Type)]
-mergedAll$strand2=strand2Info[match(mergedAll$type, Type)]
+mergedAll$strand1=strand1Info[match(mergedAll$type, supportType)]
+mergedAll$strand2=strand2Info[match(mergedAll$type, supportType)]
 mergedAll$supportType=mergedAll$type
-GRcols=c("chrom1","start1","end1","chrom2","start2","end2","name","score","barcode","mi1","mi2","strand1","strand2","supportType")
-GRclasses=c("character","numeric","numeric","character","numeric","numeric","character","numeric","character","character","character","character","character","character")
+GRcols=c("chrom1",      "start1", "end1",   "chrom2",   "start2", "end2",   "name",     "score",    "barcode",  "mi1",      "mi2",      "strand1",  "strand2",  "supportType")
+GRclasses=c("character","numeric","numeric","character","numeric","numeric","character","character","character","character","character","character","character","character")
 colnames(mergedAll)=GRcols
-mergedAll = set_colClass(mergedAll, GRclasses)
 mergedAll$score = 1
+mergedAll = set_colClass(mergedAll, GRclasses)
 
 if(!includeDupMolecule) {  
   sel = (mergedAll$supportType != "molSOV") #ecluding self-overlapping molecules
@@ -268,7 +280,7 @@ convertedAll$end1 = convertedAll$end1 - scaledReg1St + 150
 convertedAll$chrom2 = "chrA"
 convertedAll$start2 = convertedAll$start2 - scaledReg2St + shiftReg2St + 1
 convertedAll$end2 = convertedAll$end2 - scaledReg2St + shiftReg2St +150
-convertedAll$supportType = supportType[match(convertedAll$supportType,Type)]
+convertedAll$supportType = supportType[match(convertedAll$supportType,supportType)]
 convertedAll$strand1 = strandGR[match(convertedAll$strand1,strandDf)]
 convertedAll$strand2 = strandGR[match(convertedAll$strand2,strandDf)]
 flushSDReg1 = c(sd(convertedAll$start1),sd(convertedAll$end1))
@@ -307,12 +319,12 @@ grComp <- GRanges(seqnames = convertedAll$chrom1,
                   score = rep(0,nrow(convertedAll)),
                   supportType = convertedAll$supportType,
                   pair = convertedAll$name)
-tickReg1 = c(shiftReg12[1]+gapSize/2, shiftReg12[2]-gapSize/2, breakReg1) 
-tickReg2 = c(shiftReg12[3]+gapSize/2, shiftReg12[4]-gapSize/2, breakReg2)
-tickLab1 = c(boundaryReg12[1]+gapSize/2, boundaryReg12[2]-gapSize/2, boundaryReg12[1]+breakReg1) 
-tickLab2 = c(boundaryReg12[3]+gapSize/2, boundaryReg12[4]-gapSize/2, boundaryReg12[3]+breakReg2-shiftReg12[2])
-tickLab1 = paste(c(chr1,"",""),tickLab1,sep=":")
-tickLab2 = paste(c(chr2,"",""),tickLab2,sep=":")
+tickReg1 = c(shiftReg12[1]+gapSize/2, shiftReg12[2]-gapSize/2) 
+tickReg2 = c(shiftReg12[3]+gapSize/2, shiftReg12[4]-gapSize/2)
+tickLab1 = c(boundaryReg12[1]+gapSize/2, boundaryReg12[2]-gapSize/2) 
+tickLab2 = c(boundaryReg12[3]+gapSize/2, boundaryReg12[4]-gapSize/2)
+tickLab1 = paste(chr1,tickLab1,sep=":")
+tickLab2 = paste(chr2,tickLab2,sep=":")
 
 ####plotMolecule-WriteOutput####
 cat("exporting...\n")
@@ -334,13 +346,14 @@ if(infoTab$chr1!=infoTab$chr2) {
   tmpSVType = "UNK"
 }
 
-infoFile = paste(plotPrefix,"break","txt",sep=".")
+infoFile = paste(plotPrefix,"info","txt",sep=".")
 infoTabNew = cbind(infoTab[,seq(7)], as.data.frame( list( breakpoint1=boundaryReg12[1]+unname(breakReg1[1]),
                                                       breakpoint2=boundaryReg12[3]+unname(breakReg2[1])-shiftReg12[2],
                                                       SVType=tmpSVType,
                                                       AlleleFraction=sum(mergedAll$supportType=="molNSOV")/statsTab$Cem,
                                                       ReadPair=length(refinedFRid)+length(refinedRFid)+length(refinedFFid)+length(refinedRRid),
                                                       MolCnt=sum(mergedAll$supportType=="molNSOV")) ))
+message("infoFile=",infoFile); print(infoTabNew)
 write.table(infoTabNew,file=infoFile,col.names=FALSE,row.names=FALSE,sep="\t",quote=FALSE)
 #chr1  start1	end1	chr2	start2	end2	molcnt	breakpoint1	breakpoint2	SVType	AlleleFraction	ReadPair
 
@@ -349,6 +362,8 @@ writeLines(rjson::toJSON(list(reg1=chr1,
                        break1=infoTabNew$breakpoint1,
                        break1CILow=boundaryReg12[1]+unname(breakReg1CILow[1]),
                        break1CIHigh=boundaryReg12[1]+unname(breakReg1CIHigh[1]),
+                       isLeftBreak1=leftBreakReg1,
+                       isLeftBreak2=leftBreakReg2,
                        reg2=chr2,
                        break2=infoTabNew$breakpoint2, 
                        break2CILow=boundaryReg12[3]+unname(breakReg2CILow[1])-shiftReg12[2],
@@ -372,22 +387,22 @@ p = p + ggplot2::scale_fill_manual(values=strandColors, na.value="black")
 p = p + ggplot2::scale_x_continuous("Genomic Region Pair", breaks=tickReg1, labels=tickLab1,
                            limits=c(shiftReg12[1],shiftReg12[4]),
                            sec.axis=ggplot2::sec_axis(~., breaks=tickReg2, labels=tickLab2))
-p = p + ggplot2::geom_vline(xintercept=breakReg1) + ggplot2::geom_vline(xintercept=breakReg2)
-p = p + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, color="red"))
+p = p + ggplot2::geom_vline(xintercept=breakReg1, linetype="dotted") + ggplot2::geom_vline(xintercept=breakReg2, linetype="dotted")
+p = p + ggplot2::geom_text(ggplot2::aes(x=breakReg1-gapSize/10, label=paste(infoTabNew$breakpoint1), y=100), colour="blue", angle=90)
+p = p + ggplot2::geom_text(ggplot2::aes(x=breakReg2+gapSize/10, label=paste(infoTabNew$breakpoint2), y=100), colour="blue", angle=90)
+#p = p + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 0, hjust = 1, color="red"))
 print(p)
 dev.off()
 
-
-mergedAllFile = paste(plotPrefix,"mol",sep=".")
+mergedAllFile = paste(plotPrefix,"support","txt",sep=".")
 write.table(mergedAll,file=mergedAllFile,col.names=TRUE,row.names=FALSE,sep="\t",quote=FALSE) #mergeAll 
 
 ####rdpBreakpoint-PlotRdp####
 callInfo=refined
 colScheme="Dark2"
-supportTypes=c("molSOV","molNSOV","readPair","readPair","readPair","readPair")
-colors=RColorBrewer::brewer.pal(length(supportTypes), colScheme)
-names(colors)=supportTypes
-info = mergedAll
+colors=RColorBrewer::brewer.pal(length(supportType), colScheme)
+names(colors)=supportType
+info = mergedAll[!grepl("mol",mergedAll$supportType),]
 
 if(reference=="hg38") {
   refSeq = BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38
@@ -422,12 +437,12 @@ g1 = ggplot2::ggplot() +
   ggbio::geom_arrowrect(data=rd1GR,ggplot2::aes(y=name,group=name,fill=type,group.selfish=TRUE),xlab=as.character(GenomicRanges::seqnames(rd1GR)[1])) + 
   ggplot2::theme(legend.position="bottom", legend.box="vertical", legend.direction = "horizontal") + #box-v, item-h
   ggplot2::geom_vline(xintercept=infoTabNew$breakpoint1,linetype="dotted") +
-  ggplot2::geom_text(ggplot2::aes(x=infoTabNew$breakpoint1, label=paste("breakpoint1:", infoTabNew$breakpoint1), y=10), colour="blue", angle=90)
+  ggplot2::geom_text(ggplot2::aes(x=infoTabNew$breakpoint1, label=paste(infoTabNew$breakpoint1), y=1), colour="blue", angle=90)
   
 g2 = ggplot2::ggplot() + 
   ggbio::geom_arrowrect(data=rd2GR,ggplot2::aes(y=name,group=name,fill=type,group.selfish=TRUE),xlab=as.character(GenomicRanges::seqnames(rd2GR)[1])) +
   ggplot2::geom_vline(xintercept=infoTabNew$breakpoint2,linetype="dotted") +
-  ggplot2::geom_text(ggplot2::aes(x=infoTabNew$breakpoint2, label=paste("breakpoint2:", infoTabNew$breakpoint2), y=10), colour="blue", angle=90)
+  ggplot2::geom_text(ggplot2::aes(x=infoTabNew$breakpoint2, label=paste(infoTabNew$breakpoint2), y=1), colour="blue", angle=90)
 
 legendHeight=0.3 #control legend area height
 plots=list(g1,g2)
@@ -441,16 +456,16 @@ prow <- cowplot::plot_grid( plotlist = plotGrobs2,
 )
 lrow <- cowplot::ggdraw() + cowplot::draw_grob(legend) #this only draws the legend, all aes has to be predefined.
 pall = cowplot::plot_grid( prow, lrow, ncol=1, rel_heights=c(1,legendHeight))
-message("saving support plots to:", paste(plotPrefix,".rdp.pdf",sep="") )
-cowplot::save_plot(paste(plotPrefix,".rdp.pdf",sep=""), pall, base_height = 10, base_aspect_ratio = 2.1)
+message("saving support plots to:", paste(plotPrefix,"rdp","pdf",sep=".") )
+cowplot::save_plot(paste(plotPrefix,"rdp","pdf",sep="."), pall, base_height = 10, base_aspect_ratio = 2.1)
 
 ####rdpBreakpoint-InferContig####
 
 #convert support groups to contigs
 
 #estimate breakpoint based on each supportType group (same supportType group)
-#break1IsLeft=rep(NA,length(supportTypes))
-#break2IsLeft=rep(NA,length(supportTypes))
+#break1IsLeft=rep(NA,length(supportType))
+#break2IsLeft=rep(NA,length(supportType))
 
 # contruct a graph of |rdps|*|rdps| vertices
 # c1 & c2  => c
@@ -460,10 +475,12 @@ cowplot::save_plot(paste(plotPrefix,".rdp.pdf",sep=""), pall, base_height = 10, 
 #we first group by type
 #  in each group by type, 
 #  debug not finished
+direction1=ifelse(is.na(leftBreakReg1), "U", ifelse(leftBreakReg1, "L", "R"))
+direction2=ifelse(is.na(leftBreakReg2), "U", ifelse(leftBreakReg2, "L", "R"))
 contigs=list()
-for(i in seq_along(supportTypes)) {
+for(i in seq_along(supportType)) {
   # i=1; i=2; i=3; i=4
-  s = supportTypes[i]
+  s = supportType[i]
   if( ! grepl("mol", s) ) { #some rdp support
     if(s=="rdpFF") {
       strand1 = "+"; strand2 = "+"
@@ -474,7 +491,8 @@ for(i in seq_along(supportTypes)) {
     } else if(s=="rdpRF") {
       strand1 = "-"; strand2 = "+"
     } else {
-      strand1 = c("-","+"); strand2 = c("+","-")
+      next
+      #strand1 = c("-","+"); strand2 = c("+","-")
     }
     rdps = info[info$supportType==s,]
     if(nrow(rdps)==0) next #no such rdp support
@@ -484,93 +502,238 @@ for(i in seq_along(supportTypes)) {
     rdpRanges2 = IRanges(start=rdps$start2, end=rdps$start2+1)
     rdpRangePairs2 = expand.grid(rdpRanges2,rdpRanges2) #
     rdpRangePairOverlaps2 = matrix(poverlaps(rdpRangePairs2[,1], rdpRangePairs2[,2], maxgap=breakSlopSize/2), nrow=length(rdpRanges2) )
-    rdpRangePairOverlaps=rdpRangePairOverlaps1 & rdpRangePairOverlaps2
-    rdpRangePairOverlapsGraph=igraph::graph_from_incidence_matrix(rdpRangePairOverlaps) #|rdps| by |rdps| graph
+    rdpRangePairOverlaps = rdpRangePairOverlaps1 & rdpRangePairOverlaps2
+    colnames(rdpRangePairOverlaps)=seq(1,dim(rdpRangePairOverlaps)[2]) #make sure cols and rows has the same set of names
+    rownames(rdpRangePairOverlaps)=seq(1,dim(rdpRangePairOverlaps)[1])
+    rdpRangePairOverlapsGraph = igraph::graph_from_adjacency_matrix(rdpRangePairOverlaps) #|rdps| by |rdps| graph
     rdpRangePairOverlapsGraphComponents=igraph::components(rdpRangePairOverlapsGraph)   #will assume 2*|rdps| nodes
-    for(j in seq_len(rdpRangePairOverlapsGraphComponents$no)) { 
-      sel=which(rdpRangePairOverlapsGraphComponents$membership[1:length(rdpRanges1)]==j) #only need first half
+    for(j in seq.int(rdpRangePairOverlapsGraphComponents$no)) { 
+      sel=which(rdpRangePairOverlapsGraphComponents$membership==j) #only need first half
       selrdps=rdps[sel,]
       #if(nrow(selrdps)<2) next #require at least two rdps 
       #if less than three rdps, we cannot determine direction
       #if more, we determine direction by find small difference size
       #break1IsLeft is NA if neither Left or Right, is False if Right
-      direction1="U"; direction2="U";
-      if(nrow(selrdps)>2) { #rdp >=3, determine direction by read mapping density
-        start1Diff=diff(sort(selrdps$start1)) #sorted
-        if(start1Diff[1]<tail(start1Diff,1)) direction1 = "L"
-        if(start1Diff[1]>tail(start1Diff,1)) direction1 = "R"
-        start2Diff=diff(sort(selrdps$start2)) #sorted
-        if(start2Diff[1]<tail(start2Diff,1)) direction2 = "L"
-        if(start2Diff[1]>tail(start2Diff,1)) direction2 = "R"
-      }
+      # this part is not reliable, always assume not knowing breakpoint direction
+      # if(nrow(selrdps)>2) { #rdp >=3, determine direction by read mapping density
+      #   start1Diff=diff(sort(selrdps$start1)) #sorted
+      #   if(start1Diff[1]<tail(start1Diff,1)) direction1 = "L"
+      #   if(start1Diff[1]>tail(start1Diff,1)) direction1 = "R"
+      #   start2Diff=diff(sort(selrdps$start2)) #sorted
+      #   if(start2Diff[1]<tail(start2Diff,1)) direction2 = "L"
+      #   if(start2Diff[1]>tail(start2Diff,1)) direction2 = "R"
+      # }
       sel1 = paste(strand1,direction1) %in% c("+ R", "- L", "+ U", "- U") #possible read1 configuration
       sel2 = paste(strand2,direction2) %in% c("+ R", "- L", "+ U", "- U") #possible read2 configuration
       sel = sel1 & sel2                                                   #only select possible ones
-      strand1 = strand1[sel]; strand2 = strand2[sel];                     
+      #strand1 = strand1[sel]; strand2 = strand2[sel];                     
       direction1 = ifelse(strand1=="+","R","L"); direction2 = ifelse(strand2=="+","R","L"); 
-      #once selected convert U to L/R based on +/-
-      #direction1 = direction1[sel]; direction2 = direction2[sel]; 
-      start1 = (strand1=="+")*max(selrdps$start1) + (strand1=="-")*min(selrdps$start1); end1=start1
-      start2 = (strand2=="+")*max(selrdps$start2) + (strand2=="-")*min(selrdps$start2); end2=start2
-      for(k in seq_along(start1)) { # handles the two possibility of "IM" type read pairs
+      #once know the strand convert U to L/R based on +/-
+      # 1R2R, 1L2R, 1R2L, 1L2L
+      start1 = (direction1=="R")*max(selrdps$start1) + (direction1=="L")*min(selrdps$start1); end1=start1
+      start2 = (direction2=="R")*max(selrdps$start2) + (direction2=="L")*min(selrdps$start2); end2=start2
+      for(k in seq_along(start1)) { # handles the two possibility of unknown type read pairs
+        cname=paste("contig","type",i,"group",j,"possibility",k,sep="-")
         c=list(chrom1=selrdps$chrom1[1],start1=start1[k],end1=end1[k],
                chrom2=selrdps$chrom2[1],start2=start2[k],end2=end2[k],
-               name=paste("contig","type",i,"group",j,"possibility",k,sep="-"), score=nrow(selrdps),
-               strand1=strand1[k],strand2=strand2[k],direction1=direction1[k],direction2=direction2[k],
-               type=s, support=nrow(selrdps))
+               name=cname, score=nrow(selrdps),
+               strand1=strand1,strand2=strand2,direction1=direction1[k],direction2=direction2[k],
+               type=s, support=nrow(selrdps), cluster=paste("[", paste(unlist(selrdps$name),collapse=","), "]", sep=""))
         contigs[[length(contigs)+1]]=c
+        if(is.null(names(contigs))) {
+          names(contigs)=cname #first element
+        } else {
+          names(contigs)[length(contigs)]=cname #continuing elements
+        }
       }
     }
   } else { #some molecule support, no clustering needed
-    #currently use the derived information of plotMolecule
-    
-    if(is.na(leftBreakReg1) | is.na(leftBreakReg2)) next #anything non flushed, we gave up inferring contigure
     next #let's don't worry about it for now, just use breakpoint as determined from plotMolecule analysis
-    
-    moles = info[info$supportType==s,]
-    
-    moleLeftFlush1 = sd(moles$start1) < flushSD #first seg left flush <500
-    moleRightFlush1 = sd(moles$end1) < flushSD #first seg right flush <500
-    moleLeftFlush2 = sd(moles$start2) < flushSD #second seg left flush <500
-    moleRightFlush2 = sd(moles$end2) < flushSD #second seg right flush <500
-    
-    j=1 #only one group - all molecules overlaps
-    k=1 #only one possibility - use the best one
-    
-    #deal 16 combinations of flushing
-    
-    if(moleLeftFlush1 & moleRightFlush1 & !moleLeftFlush2 & !moleRightFlush2 ) {
-      # a short translocated fragment, derive both start and end contigs
-      # case1: mol2L - mol1L - mol1R - mol2L : 
-      #   junction 1.1: 
-      #   junction 1.2:
-      # case2: r(mol2R) - mol1L - mol1R - r(mol2L)
-      #   junction 2.1:
-      #   junction 2.2:
-      c=list(chrom1=moles$chrom1[1],start1=min(moles$start2),end1=end1[k],
-             chrom2=moles$chrom2[1],start2=start2[k],end2=end2[k],
-             name=paste("contig","type",i,"group",j,"possibility",k,sep="-"), score=nrow(moles),
-             strand1="*",strand2="*",direction1=direction1[k],direction2=direction2[k],
-             type=s, support=nrow(selrdps))
-    } else if(!moleLeftFlush1 & !moleRightFlush1 & moleLeftFlush2 & moleRightFlush2 ) {
-      # a short translocated fragment, derive both start and end contigs
-      
-    } else if(moleLeftFlush1 & !moleRightFlush1 & moleLeftFlush2 & !moleRightFlush2) { 
-      # derive one contig
-      
-    } else if(moleLeftFlush1 & !moleRightFlush1 & !moleLeftFlush2 & moleRightFlush2) { 
-      # derive one contig
-      
-    } else if(!moleLeftFlush1 & moleRightFlush1 & moleLeftFlush2 & !moleRightFlush2) {
-      # derive one contig
-    } else if(!moleLeftFlush1 & moleRightFlush1 & !moleLeftFlush2 & moleRightFlush2) {
-      # derive one contig
-    } else {
-      message("Warning: unsupported molecule configuration")
-      next
-    }
+    #currently use the derived information of plotMolecule
+    # if(is.na(leftBreakReg1) | is.na(leftBreakReg2)) next #anything non flushed, we gave up inferring contigure
+    # 
+    # moles = info[info$supportType==s,]
+    # 
+    # moleLeftFlush1 = sd(moles$start1) < flushSD #first seg left flush <500
+    # moleRightFlush1 = sd(moles$end1) < flushSD #first seg right flush <500
+    # moleLeftFlush2 = sd(moles$start2) < flushSD #second seg left flush <500
+    # moleRightFlush2 = sd(moles$end2) < flushSD #second seg right flush <500
+    # 
+    # j=1 #only one group - all molecules overlaps
+    # k=1 #only one possibility - use the best one
+    # 
+    # #deal 16 combinations of flushing
+    # 
+    # if(moleLeftFlush1 & moleRightFlush1 & !moleLeftFlush2 & !moleRightFlush2 ) {
+    #   # a short translocated fragment, derive both start and end contigs
+    #   # case1: mol2L - mol1L - mol1R - mol2L : 
+    #   #   junction 1.1: 
+    #   #   junction 1.2:
+    #   # case2: r(mol2R) - mol1L - mol1R - r(mol2L)
+    #   #   junction 2.1:
+    #   #   junction 2.2:
+    #   c=list(chrom1=moles$chrom1[1],start1=min(moles$start2),end1=end1[k],
+    #          chrom2=moles$chrom2[1],start2=start2[k],end2=end2[k],
+    #          name=paste("contig","type",i,"group",j,"possibility",k,sep="-"), score=nrow(moles),
+    #          strand1="*",strand2="*",direction1=direction1[k],direction2=direction2[k],
+    #          type=s, support=nrow(selrdps))
+    # } else if(!moleLeftFlush1 & !moleRightFlush1 & moleLeftFlush2 & moleRightFlush2 ) {
+    #   # a short translocated fragment, derive both start and end contigs
+    #   
+    # } else if(moleLeftFlush1 & !moleRightFlush1 & moleLeftFlush2 & !moleRightFlush2) { 
+    #   # derive one contig
+    #   
+    # } else if(moleLeftFlush1 & !moleRightFlush1 & !moleLeftFlush2 & moleRightFlush2) { 
+    #   # derive one contig
+    #   
+    # } else if(!moleLeftFlush1 & moleRightFlush1 & moleLeftFlush2 & !moleRightFlush2) {
+    #   # derive one contig
+    # } else if(!moleLeftFlush1 & moleRightFlush1 & !moleLeftFlush2 & moleRightFlush2) {
+    #   # derive one contig
+    # } else {
+    #   message("Warning: unsupported molecule configuration")
+    #   next
+    # }
   }
 }
+
+cat("writing contig table...\n")
+contigsDF = Reduce(rbind, lapply(contigs,as.data.frame)) #save contigs
+contigsDF = cbind(contigsDF, callInfo)
+write.table(contigsDF, file=paste(plotPrefix,"rdp","ctg",sep="."), sep="\t", quote=F, row.names=F, col.names=F)
+
+cat("getting contig seqs...\n")
+contigSeqs = x <- vector(mode = "list", length = length(contigs))
+#tmpSlopSize = min(breakSlopSize,maxSlopSize)
+tmpSlopSize = breakSlopSize
+
+formatCoordinate=function(chrom1,start1,end1,chrom2,start2,end2,type,support){
+  paste(chrom1,start1,end1,chrom2,start2,end2,type,support,sep="|")
+}
+
+formContig=function(seg1chr,seg1start,seg1end,seg1rc,seg2chr,seg2start,seg2end,seg2rc,tag,type,support){
+  contigSeqInfo = formatCoordinate(seg1chr, seg1start, seg1end, seg2chr, seg2start, seg2end,type,support)
+  contigName = paste(tag,contigSeqInfo,sep="")
+  contigSeg1 = refSeq[[seg1chr]][seg1start:seg1end]
+  if(seg1rc) contigSeg1 = Biostrings::reverseComplement(contigSeg1)
+  contigSeg2 = refSeq[[seg2chr]][seg2start:seg2end]
+  if(seg2rc) contigSeg2 = Biostrings::reverseComplement(contigSeg2)
+  setNames(list(Biostrings::xscat(contigSeg1, Biostrings::DNAString(x=padding), contigSeg2)), contigName)
+}
+
+retrieveContig = function(i, contigs, breakSlopSize, padding, refSeq) {
+  contig = contigs[[i]]
+  contigSeqs = NULL
+  #contigInfo = NULL
+  
+  #only following 16 patterns are expected
+  #(+,R) x (+,R) ; (+,R) x (-,R) ; (+,R) x (+,L) ; (+,R) x (-,L) 
+  #(-,R) x (+,R) ; (-,R) x (-,R) ; (-,R) x (+,L) ; (-,R) x (-,L)
+  #(+,L) x (+,R) ; (+,L) x (-,R) ; (+,L) x (+,L) ; (+,L) x (-,L) 
+  #(-,L) x (+,R) ; (-,L) x (-,R) ; (-,L) x (+,L) ; (-,L) x (-,L)
+  
+  #since the breakpoint is in the middle of a read pair. i.e. in the middle of a fragment
+  #only cases listed below are possible
+  #this is not considering palindormes, in which case + and - are unresolvable
+
+  #let's say the two segment reference sequences are
+  #     seg1        seg2
+  # 5-AC[ACGTGT]GA-AT[ATCACA]GC-3
+  # 3-TG[TGCACA]CT-TA[TAGTGT]CG-5
+  # [READ]
+  # <junction edge>
+  
+  #(+,R1) x (+,R2) implies 5-AC[ACGTGT]<GA>-<GC>[TGTGAT]AT-3
+  #(+,R2) x (+,R1) implies 5-ATATCACAGC-AGTGTGCACA-3
+  #(+,R1) x (-,L2) implies 5-AC[ACGTGT]<GA>-<AT>[ATCACA]GC-3
+  #(-,L1) x (+,R2) implies 5-ATATCACAGC-ACACGTGTGA-3
+  #(-,L1) x (-,L2) implies 5-TCACACGTGT-ATATCACAGC-3
+  #(-,L2) x (-,L1) implies 5-GCTGTGATAT-ACACGTGTGA-3
+  
+  #contig:
+  #  [seg1] - read => x <= read - [seg2]; 
+  #reads are part of segments
+  #read order is important, let's say the order is (r1,r2) and (r2,r1).
+  #we assign the order to (-)/(-), (-)/(+) and (+)/(+), 
+  #then we have (1-,2-),(2-,1-),(1-,2+),(1+,2-),(1+,2+),(2+,1+) six cases
+  #NOTE: for L-R pairs, mapping orders are obvious; for L-L, R-R pairs, 1 and 2 are added to dnote their mapping order
+  
+  #generate (+,R) x (-,L) contig for compatible modes 
+  # [seg1] | R+ => x <= L- | [seg2]
+  if(paste(contig$strand1,contig$direction1) %in% c("+ R","+ U","* R","* U")  
+     && paste(contig$strand2,contig$direction2) %in% c("- L","- U","* L","* U") ) {
+    seg1chr=contig$chrom1; seg1start=contig$start1-breakSlopSize+1; seg1end=contig$end1; seg1rc=FALSE
+    seg2chr=contig$chrom2; seg2start=contig$start2; seg2end=contig$end2+breakSlopSize-1; seg2rc=FALSE
+    contigSeqs = Biostrings::append(contigSeqs, formContig(seg1chr,seg1start,seg1end,seg1rc,seg2chr,seg2start,seg2end,seg2rc,paste("contig-",i,"(R+,L-)|",sep=""),contig$type,contig$support))
+    #contigInfo = append(contigInfo, list(chrom1=contig$chrom1, start1=contig$start1, end1=contig$end1, 
+  }
+  #generate (-,L) x (+,R) contig for compatible modes
+  # [seg1] | R+ => x <= L- | [seg2]
+  if(paste(contig$strand1,contig$direction1) %in% c("- L","- U","* L","* U") 
+     && paste(contig$strand2,contig$direction2) %in% c("+ R","+ U","* R","* U") ) {
+    seg1chr=contig$chrom2; seg1start=contig$start2-breakSlopSize+1; seg1end=contig$end2; seg1rc=FALSE
+    seg2chr=contig$chrom1; seg2start=contig$start1; seg2end=contig$end1+breakSlopSize-1; seg2rc=FALSE
+    contigSeqs = Biostrings::append(contigSeqs, formContig(seg1chr,seg1start,seg1end,seg1rc,seg2chr,seg2start,seg2end,seg2rc,paste("contig-",i,"(L-,R+)|",sep=""),contig$type,contig$support))
+  }
+  #generate (+,R1) x (+,R2) contig for compatible modes
+  # [seg1] | R1+ => x <= rc(R2+) | [rc(seg2)]
+  if(paste(contig$strand1,contig$direction1) %in% c("+ R","+ U","* R","* U")  
+     && paste(contig$strand2,contig$direction2) %in% c("+ R","+ R","* R","* U") ) {
+    seg1chr=contig$chrom1; seg1start=contig$start1-breakSlopSize+1; seg1end=contig$end1; seg1rc=FALSE
+    seg2chr=contig$chrom2; seg2start=contig$start2; seg2end=contig$end2+breakSlopSize-1; seg2rc=TRUE
+    contigSeqs = Biostrings::append(contigSeqs, formContig(seg1chr,seg1start,seg1end,seg1rc,seg2chr,seg2start,seg2end,seg2rc,paste("contig-",i,"(R1+,R2+)|",sep=""),contig$type,contig$support))
+  }
+  #generate (+,R2) x (+,R1) contig for compatible modes
+  # [seg1] | R2+ => x <= rc(R1+) | [rc(seg2)]
+  if(paste(contig$strand1,contig$direction1) %in% c("+ R","+ U","* R","* U")  
+     && paste(contig$strand2,contig$direction2) %in% c("+ R","+ R","* R","* U") ) {
+    seg1chr=contig$chrom2; seg1start=contig$start2-breakSlopSize+1; seg1end=contig$end2; seg1rc=FALSE
+    seg2chr=contig$chrom1; seg2start=contig$start1; seg2end=contig$end1+breakSlopSize-1; seg2rc=TRUE
+    contigSeqs = Biostrings::append(contigSeqs, formContig(seg1chr,seg1start,seg1end,seg1rc,seg2chr,seg2start,seg2end,seg2rc,paste("contig-",i,"(R2+,R1+)|",sep=""),contig$type,contig$support))
+  }
+  #generate (-,L1) x (-,L2) contig for compatible modes
+  # [rc(seg1)] | rc(L1-) => x <= L2- | [seg2]
+  if(paste(contig$strand1,contig$direction1) %in% c("- L","- U","* L","* U")  
+     && paste(contig$strand2,contig$direction2) %in% c("- L","- U","* L","* U") ) {
+    seg1chr=contig$chrom1; seg1start=contig$start1-breakSlopSize+1; seg1end=contig$end1; seg1rc=TRUE
+    seg2chr=contig$chrom2; seg2start=contig$start2; seg2end=contig$end2+breakSlopSize-1; seg2rc=FALSE
+    contigSeqs = Biostrings::append(contigSeqs, formContig(seg1chr,seg1start,seg1end,seg1rc,seg2chr,seg2start,seg2end,seg2rc,paste("contig-",i,"(L1-,L2-)|",sep=""),contig$type,contig$support))
+  }
+  #generate (-,L2) x (-,L1) contig for compatible modes
+  # [rc(seg1)] | rc(L2-) => x <= L1- | [seg2]
+  if(paste(contig$strand1,contig$direction1) %in% c("- L","- U","* L","* U")  
+     && paste(contig$strand2,contig$direction2) %in% c("- L","- U","* L","* U") ) {
+    seg1chr=contig$chrom2; seg1start=contig$start2-breakSlopSize+1; seg1end=contig$end2; seg1rc=TRUE
+    seg2chr=contig$chrom1; seg2start=contig$start1; seg2end=contig$end1+breakSlopSize-1; seg2rc=FALSE
+    contigSeqs = Biostrings::append(contigSeqs, formContig(seg1chr,seg1start,seg1end,seg1rc,seg2chr,seg2start,seg2end,seg2rc,paste("contig-",i,"(L2-,L1-)|",sep=""),contig$type,contig$support))
+  }
+  
+  contigSeqs
+}
+
+#contigSeqs[[1]] = retrieveContig(1, contigs, breakSlopSize, padding, refSeq)
+
+#need to work on this
+contigSeqs = Biostrings::DNAStringSet(unlist(lapply(seq_along(contigs),"retrieveContig", contigs, breakSlopSize, padding, refSeq)))
+
+#output to fasta
+message("write contigs to:", paste(plotPrefix,"rdp","fas",sep="."))
+Biostrings::writeXStringSet(contigSeqs, file=paste(plotPrefix,"rdp","fas",sep="."), format="fasta")
+
+#quit()
+#old proof-of-idea scripts
+#IMbr1=min(info[info$supportType=="rdpFR",]$start1)
+#IMbr2=min(info[info$supportType=="rdpFR",]$start2)
+#RRbr1=min(info[info$supportType=="rdpRR",]$start1)
+#RRbr2=min(info[info$supportType=="rdpRR",]$start2)
+#FFbr1=max(info[info$supportType=="rdpFF",]$start1)
+#FFbr2=max(info[info$supportType=="rdpFF",]$start2)
+
+#only trust the start location of mapping
+#hassupportType=sapply(supportType, function(x) { any(grepl(x,info$supportType)) } )
+
+cat("plotMoleculeDone in",proc.time()[3]-ptm[3],"seconds! \n")
+
 
 #determine breakpoint automatically, we will just use the start of mapping
 
@@ -654,150 +817,4 @@ for(i in seq_along(supportTypes)) {
 #contigs = list(contig1,contig2,contig3)
 
 #print(contigs)
-
-contigsDF = Reduce(rbind, lapply(contigs,as.data.frame)) #save contigs
-contigsDF = cbind(contigsDF, callInfo)
-write.table(contigsDF, file=paste(plotPrefix,"rdp","ctg",sep="."), sep="\t", quote=F, row.names=F, col.names=F)
-
-contigSeqs = x <- vector(mode = "list", length = length(contigs))
-#tmpSlopSize = min(breakSlopSize,maxSlopSize)
-tmpSlopSize = breakSlopSize
-
-formatCoordinate=function(chrom1,start1,end1,chrom2,start2,end2,type,support){
-  paste(chrom1,start1,end1,chrom2,start2,end2,type,support,sep="|")
-}
-
-formContig=function(seg1chr,seg1start,seg1end,seg1rc,seg2chr,seg2start,seg2end,seg2rc,tag,type,support){
-  contigSeqInfo = formatCoordinate(seg1chr, seg1start, seg1end, seg2chr, seg2start, seg2end,type,support)
-  contigName = paste(tag,contigSeqInfo,sep="")
-  contigSeg1 = refSeq[[seg1chr]][seg1start:seg1end]
-  if(seg1rc) contigSeg1 = Biostrings::reverseComplement(contigSeg1)
-  contigSeg2 = refSeq[[seg2chr]][seg2start:seg2end]
-  if(seg2rc) contigSeg2 = Biostrings::reverseComplement(contigSeg2)
-  setNames(list(Biostrings::xscat(contigSeg1, Biostrings::DNAString(x=padding), contigSeg2)), contigName)
-}
-
-retrieveContig = function(i, contigs, breakSlopSize, padding, refSeq) {
-  contig = contigs[[i]]
-  contigSeqs = NULL
-  #contigInfo = NULL
-  
-  #since the breakpoint is in the middle
-  #+ must be associated with read with break point to the Right
-  #- must be associated with read with break point to the Left 
-  #by paired-end read sequencing only (except palindromes)
-  #only following patterns are expected
-  #only need to consider
-  #(-,L) x (+,R) 
-  #(+,R) x (-,L)
-  #(+,R) x (+,R)
-  #(-,L) x (-,L)
-  #(*,L) x (*,L) expands to (-,L) x (-,L)
-  #(*,R) x (*,R) expands to (+,R) x (+,R)
-  #(*,L) x (*,U) expands to (-,L) x (-,L) or (-,L) x (+,R)
-  #(*,U) x (*,L) expands to (-,L) x (-,L) or (+,R) x (-,L)
-  #(*,R) x (*,U) expands to (+,R) x (+,R) or (+,R) x (-,L)
-  #(*,U) x (*,R) expands to (-,L) x (+,R) or (+,R) x (+,R)
-  #(*,U) x (*,U) expands to (+,R) x (+,R), (+,R) x (-,L), (-,L) x (+,R) and (-,L) x (-,L)
-  #let's say the two segment reference sequences are
-  #     seg1        seg2
-  # 5-ACACGTGTGA-ATATCACAGC-3
-  # 3-TGTGCACACT-TATAGTGTCG-5
-  #(+,R1) x (-,L2) implies contig1
-  # 5-ACACGTGTGA-ATATCACAGC-3
-  #(-,L1) x (+,R2) implies contig2
-  # 5-ATATCACAGC-ACACGTGTGA-3
-  #(+,R1) x (+,R2) implies
-  # 5-ACACGTGTGA-GCTGTGATAT-3
-  #(+,R2) x (+,R1) implies
-  # 5-ATATCACAGC-AGTGTGCACA-3
-  #(-,L1) x (-,L2) implies
-  # 5-TCACACGTGT-ATATCACAGC-3
-  #(-,L2) x (-,L1) implies
-  # 5-GCTGTGATAT-ACACGTGTGA-3
-  #contig:
-  #  [seg1] - read => x <= read - [seg2]; 
-  #reads are part of segments
-  #read order is important, let's say the order is (r1,r2) and (r2,r1).
-  #we assign the order to (-)/(-), (-)/(+) and (+)/(+), 
-  #then we have (1-,2-),(2-,1-),(1-,2+),(1+,2-),(1+,2+),(2+,1+) six cases
-  #NOTE: for L-R pairs, mapping orders are obvious; for L-L, R-R pairs, 1 and 2 are added to dnote their mapping order
-  
-  #generate (+,R) x (-,L) contig for compatible modes 
-  # [seg1] | R+ => x <= L- | [seg2]
-  if(paste(contig$strand1,contig$direction1) %in% c("+ R","+ U","* R","* U")  
-     && paste(contig$strand2,contig$direction2) %in% c("- L","- U","* L","* U") ) {
-    seg1chr=contig$chrom1; seg1start=contig$start1-breakSlopSize+1; seg1end=contig$end1; seg1rc=FALSE
-    seg2chr=contig$chrom2; seg2start=contig$start2; seg2end=contig$end2+breakSlopSize-1; seg2rc=FALSE
-    contigSeqs = Biostrings::append(contigSeqs, formContig(seg1chr,seg1start,seg1end,seg1rc,seg2chr,seg2start,seg2end,seg2rc,paste("contig-",i,"(R+,L-)|",sep=""),contig$type,contig$support))
-    #contigInfo = append(contigInfo, list(chrom1=contig$chrom1, start1=contig$start1, end1=contig$end1, 
-  }
-  #generate (-,L) x (+,R) contig for compatible modes
-  # [seg1] | R+ => x <= L- | [seg2]
-  if(paste(contig$strand1,contig$direction1) %in% c("- L","- U","* L","* U") 
-     && paste(contig$strand2,contig$direction2) %in% c("+ R","+ U","* R","* U") ) {
-    seg1chr=contig$chrom2; seg1start=contig$start2-breakSlopSize+1; seg1end=contig$end2; seg1rc=FALSE
-    seg2chr=contig$chrom1; seg2start=contig$start1; seg2end=contig$end1+breakSlopSize-1; seg2rc=FALSE
-    contigSeqs = Biostrings::append(contigSeqs, formContig(seg1chr,seg1start,seg1end,seg1rc,seg2chr,seg2start,seg2end,seg2rc,paste("contig-",i,"(L-,R+)|",sep=""),contig$type,contig$support))
-  }
-  #generate (+,R1) x (+,R2) contig for compatible modes
-  # [seg1] | R1+ => x <= rc(R2+) | [rc(seg2)]
-  if(paste(contig$strand1,contig$direction1) %in% c("+ R","+ U","* R","* U")  
-     && paste(contig$strand2,contig$direction2) %in% c("+ R","+ R","* R","* U") ) {
-    seg1chr=contig$chrom1; seg1start=contig$start1-breakSlopSize+1; seg1end=contig$end1; seg1rc=FALSE
-    seg2chr=contig$chrom2; seg2start=contig$start2; seg2end=contig$end2+breakSlopSize-1; seg2rc=TRUE
-    contigSeqs = Biostrings::append(contigSeqs, formContig(seg1chr,seg1start,seg1end,seg1rc,seg2chr,seg2start,seg2end,seg2rc,paste("contig-",i,"(R1+,R2+)|",sep=""),contig$type,contig$support))
-  }
-  #generate (+,R2) x (+,R1) contig for compatible modes
-  # [seg1] | R2+ => x <= rc(R1+) | [rc(seg2)]
-  if(paste(contig$strand1,contig$direction1) %in% c("+ R","+ U","* R","* U")  
-     && paste(contig$strand2,contig$direction2) %in% c("+ R","+ R","* R","* U") ) {
-    seg1chr=contig$chrom2; seg1start=contig$start2-breakSlopSize+1; seg1end=contig$end2; seg1rc=FALSE
-    seg2chr=contig$chrom1; seg2start=contig$start1; seg2end=contig$end1+breakSlopSize-1; seg2rc=TRUE
-    contigSeqs = Biostrings::append(contigSeqs, formContig(seg1chr,seg1start,seg1end,seg1rc,seg2chr,seg2start,seg2end,seg2rc,paste("contig-",i,"(R2+,R1+)|",sep=""),contig$type,contig$support))
-  }
-  #generate (-,L1) x (-,L2) contig for compatible modes
-  # [rc(seg1)] | rc(L1-) => x <= L2- | [seg2]
-  if(paste(contig$strand1,contig$direction1) %in% c("- L","- U","* L","* U")  
-     && paste(contig$strand2,contig$direction2) %in% c("- L","- U","* L","* U") ) {
-    seg1chr=contig$chrom1; seg1start=contig$start1-breakSlopSize+1; seg1end=contig$end1; seg1rc=TRUE
-    seg2chr=contig$chrom2; seg2start=contig$start2; seg2end=contig$end2+breakSlopSize-1; seg2rc=FALSE
-    contigSeqs = Biostrings::append(contigSeqs, formContig(seg1chr,seg1start,seg1end,seg1rc,seg2chr,seg2start,seg2end,seg2rc,paste("contig-",i,"(L1-,L2-)|",sep=""),contig$type,contig$support))
-  }
-  #generate (-,L2) x (-,L1) contig for compatible modes
-  # [rc(seg1)] | rc(L2-) => x <= L1- | [seg2]
-  if(paste(contig$strand1,contig$direction1) %in% c("- L","- U","* L","* U")  
-     && paste(contig$strand2,contig$direction2) %in% c("- L","- U","* L","* U") ) {
-    seg1chr=contig$chrom2; seg1start=contig$start2-breakSlopSize+1; seg1end=contig$end2; seg1rc=TRUE
-    seg2chr=contig$chrom1; seg2start=contig$start1; seg2end=contig$end1+breakSlopSize-1; seg2rc=FALSE
-    contigSeqs = Biostrings::append(contigSeqs, formContig(seg1chr,seg1start,seg1end,seg1rc,seg2chr,seg2start,seg2end,seg2rc,paste("contig-",i,"(L2-,L1-)|",sep=""),contig$type,contig$support))
-  }
-  
-  contigSeqs
-}
-
-#contigSeqs[[1]] = retrieveContig(1, contigs, breakSlopSize, padding, refSeq)
-
-#need to work on this
-contigSeqs = Biostrings::DNAStringSet(unlist(lapply(seq_along(contigs),"retrieveContig", contigs, breakSlopSize, padding, refSeq)))
-
-#output to fasta
-message("write contigs to:", paste(plotPrefix,"rdp","fas",sep="."))
-Biostrings::writeXStringSet(contigSeqs, file=paste(plotPrefix,"rdp","fas",sep="."), format="fasta")
-
-#quit()
-#old proof-of-idea scripts
-#IMbr1=min(info[info$supportType=="rdpFR",]$start1)
-#IMbr2=min(info[info$supportType=="rdpFR",]$start2)
-#RRbr1=min(info[info$supportType=="rdpRR",]$start1)
-#RRbr2=min(info[info$supportType=="rdpRR",]$start2)
-#FFbr1=max(info[info$supportType=="rdpFF",]$start1)
-#FFbr2=max(info[info$supportType=="rdpFF",]$start2)
-
-#only trust the start location of mapping
-#hasSupportTypes=sapply(supportTypes, function(x) { any(grepl(x,info$supportType)) } )
-
-
-
-cat("plotMoleculeDone in",proc.time()[3]-ptm[3],"seconds! \n")
 

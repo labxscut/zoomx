@@ -326,10 +326,10 @@ if [[ ! -z $(testSubstring "Plot" $ZoomXRunOp) ]]; then
     maxSize=$(expr $(($maxPlot>$maxSize?$maxSize:$maxPlot)) - 1)
     if [[ $maxSize -ge 1 ]]; then
       for i in `seq 1 $maxSize`; do
-        getMolCMD="$ZOOMXPATH/../scripts/getMolecule.sh $resDir/$moleFile $datDir/$caseBam $i $plotDir/$moleFile.Plot $cisSize >>$logFile"
+        getMolCMD="$ZOOMXPATH/../scripts/getMolecule.sh $resDir/$moleFile $datDir/$caseBam $i $plotDir/$moleFile.Plot $cisSize  >>$logFile"
         if [[ -z $dryMode ]]; then echo $getMolCMD | bash; fi
         if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
-        plotMolCMD="$ZOOMXPATH/../scripts/plotMolecule.R $isUCSC $plotDir/$moleFile.Plot_$i $datDir/$caseBam.gridScan.cfg.json >>$logFile" 
+        plotMolCMD="$ZOOMXPATH/../scripts/plotMolecule.R $isUCSC $plotDir/$moleFile.Plot_$i $datDir/$caseBam.gridScan.cfg.json  >>$logFile" 
         if [[ -z $dryMode ]]; then echo $plotMolCMD | bash; fi
         if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
         echo "    [ '$getMolCMD', '$plotMolCMD' ],"
@@ -446,7 +446,7 @@ if [[ ! -z $(testSubstring "Diff" $ZoomXRunOp) || ! -z $(testSubstring "Share" $
     maxSize=$(expr $(($maxPlot>$maxSize?$maxSize:$maxPlot)) - 1)
     if [[ $maxSize -ge 1 ]]; then
       for i in `seq 1 $maxSize`; do
-        getMolCMD="$ZOOMXPATH/../scripts/getMolecule.sh $resDir/$moleFile $datDir/$caseBam $i $plotDir/$moleFile.Plot $cisSize>>$logFile"
+        getMolCMD="$ZOOMXPATH/../scripts/getMolecule.sh $resDir/$moleFile $datDir/$caseBam $i $plotDir/$moleFile.Plot $cisSize >>$logFile"
         if [[ -z $dryMode ]]; then echo $getMolCMD | bash; fi
         if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
         plotMolCMD="$ZOOMXPATH/../scripts/plotMolecule.R $isUCSC $plotDir/$moleFile.Plot_$i $datDir/$caseBam.gridScan.cfg.json >>$logFile" 
