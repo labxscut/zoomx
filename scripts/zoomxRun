@@ -330,10 +330,11 @@ if [[ ! -z $(testSubstring "Plot" $ZoomXRunOp) ]]; then
         if [[ -z $dryMode ]]; then echo $getMolCMD | bash; fi
         if [[ $mode -eq "somatic" && ! -z $(testSubstring "control" $ZoomXRunOp) ]]; then #output corresponding control region
           bgMolCMD="$ZOOMXPATH/../scripts/getMolecule.sh $resDir/$moleFile $datDir/$controlBam $i $plotDir/$moleFile.Plot $cisSize control >>$logFile 2>&1"
+          withControl="--withControl"
           if [[ -z $dryMode ]]; then echo $bgMolCMD | bash; fi
         fi
         if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
-        plotMolCMD="$ZOOMXPATH/../scripts/plotMolecule.R $isUCSC $plotDir/$moleFile.Plot_$i $datDir/$caseBam.gridScan.cfg.json  >>$logFile 2>&1" 
+        plotMolCMD="$ZOOMXPATH/../scripts/plotMolecule.R $isUCSC $withControl $plotDir/$moleFile.Plot_$i $datDir/$caseBam.gridScan.cfg.json  >>$logFile 2>&1" 
         if [[ -z $dryMode ]]; then echo $plotMolCMD | bash; fi
         if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
         echo "    [ '$getMolCMD', '$bgMolCMD', '$plotMolCMD' ],"
@@ -452,12 +453,13 @@ if [[ ! -z $(testSubstring "Diff" $ZoomXRunOp) || ! -z $(testSubstring "Share" $
       for i in `seq 1 $maxSize`; do
         getMolCMD="$ZOOMXPATH/../scripts/getMolecule.sh $resDir/$moleFile $datDir/$caseBam $i $plotDir/$moleFile.Plot $cisSize  case >>$logFile 2>&1"
         if [[ -z $dryMode ]]; then echo $getMolCMD | bash; fi
-        if [[ $mode -eq "somatic"]]; then #output corresponding control region
+        if [[ $mode -eq "somatic" ]]; then #output corresponding control region
           bgMolCMD="$ZOOMXPATH/../scripts/getMolecule.sh $resDir/$moleFile $datDir/$controlBam $i $plotDir/$moleFile.Plot $cisSize control >>$logFile 2>&1"
+          withControl="--withControl"
           if [[ -z $dryMode ]]; then echo $bgMolCMD | bash; fi
         fi
         if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
-        plotMolCMD="$ZOOMXPATH/../scripts/plotMolecule.R $isUCSC $plotDir/$moleFile.Plot_$i $datDir/$caseBam.gridScan.cfg.json >>$logFile 2>&1" 
+        plotMolCMD="$ZOOMXPATH/../scripts/plotMolecule.R $isUCSC $withControl $plotDir/$moleFile.Plot_$i $datDir/$caseBam.gridScan.cfg.json >>$logFile 2>&1" 
         if [[ -z $dryMode ]]; then echo $plotMolCMD | bash; fi
         if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
         echo "    [ '$getMolCMD', '$bgMolCMD', '$plotMolCMD' ],"

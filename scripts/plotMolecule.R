@@ -54,7 +54,7 @@ option_list2 <- list(
   make_option(c("-f", "--flushSD"), type="integer", default=5000,
               help="maximum of flushing sd [default %default]"),
   make_option(c("-g", "--gapSize"), type="integer", default=100000,
-              help="2 times the boundary padding bp [default %default]"),
+              help="2 times the boundary padding bp in molecule plot [default %default]"),
   make_option(c("-s", "--scaleSize"), type="integer", default=10000,
               help="boundary rounded to bp [default %default]"),
   make_option(c("-b", "--breakCI"), type="numeric", default=0.95,
@@ -62,12 +62,16 @@ option_list2 <- list(
   make_option(c("-r", "--reference"), default="hg37",
               help="use hg19 for UCSC build [default %default]"),
   make_option(c("-l", "--breakSlopSize"), type="integer", default=1000,
-              help="2 times the boundary padding bp [default %default]"),
+              help="2 times the boundary padding bp in read pair plot [default %default]"),
   make_option(c("-p", "--padding"), default="-",
               help="signature pattern for breakpoint [default %default]"),
   make_option(c("-m", "--includeDupMolecule"), action="store_true", default=FALSE,
               help="including duplicated molecules in the plots/tables [default %default]"),
   make_option(c("-u", "--isUCSC"), action="store_true", default=FALSE,
+              help="show verbose, [default %default]"),
+  make_option(c("-e", "--minAlleleFrequency"), type="numeric", default=0.05,
+              help="Hypothesized minimum alleleFrequency i.e. H0>alleleFrequency for Bayesian Factor to detect [default %default]"),
+  make_option(c("-w", "--withControl"), action="store_true", default=FALSE,
               help="show verbose, [default %default]"),
   make_option(c("-o", "--plotPrefix"), default="none",
               help="output prefix [default %default]"),
@@ -94,6 +98,8 @@ breakSlopSize = cmd$options$breakSlopSize
 padding = cmd$options$padding
 plotPrefix = cmd$options$plotPrefix
 includeDupMolecule = cmd$options$includeDupMolecule
+withControl = cmd$options$withControl
+minAlleleFraction = cmd$options$minAlleleFraction
 workDir=cmd$args[1]
 statsFile=cmd$args[2]
 
@@ -106,9 +112,11 @@ if(debug){
   #isUCSC=FALSE     #input has no chr in chromosome name
   #workDir=paste("~/ws/crcbrain/02_ZoomX","P05378_7175_mt.wg12.bam.dist.E25_P05378_7176_nt.wg12.bam.dist.E10.somatic.curate.Plot_1",sep="/")
   #statsFile=paste("~/ws/crcbrain/02_ZoomX","P05378_7175_mt.wg12.bam.gridScan.cfg.json",sep="/") 
+  #withControl=TRUE
   isUCSC=TRUE
   workDir="~/setup/zoomx/test/plots/NA12878.wg12.chr22-22M-24M.bam.dist.E45.refined.Plot_1"
   statsFile="~/setup/zoomx/test/data/NA12878.wg12.chr22-22M-24M.bam.gridScan.cfg.json"
+  withControl=FALSE
   includeDupMolecule=FALSE
   plotPrefix="none"
   reference="hg37"
@@ -129,102 +137,14 @@ bedpeCols=c("chr1","st1","ed1","chr2","st2","ed2","hp")
 bedpeClass=c("character","numeric","numeric","character","numeric","numeric","numeric")
 molCols=c("chr1","st1","ed1","barID","molSize","molLen","barMolNum","molID","molHP","molPS","molBX")
 molColsOld=c("chr1","st1","ed1","barID","molSize","molLen","barMolNum","molID","molHP","molPS")  #for backward compatibility
-refined=tryCatch(read.table("refined.bedpe",sep="\t",col.names=regCols),error=function(e) {NULL})
-refinedFR=tryCatch(read.table("refined.FR.bedpe",col.names=bedpeCols, colClasses=bedpeClass),error=function(e) {NULL})
-refinedRF=tryCatch(read.table("refined.RF.bedpe",col.names=bedpeCols, colClasses=bedpeClass),error=function(e) {NULL})
-refinedFF=tryCatch(read.table("refined.FF.bedpe",col.names=bedpeCols, colClasses=bedpeClass),error=function(e) {NULL})
-refinedRR=tryCatch(read.table("refined.RR.bedpe",col.names=bedpeCols, colClasses=bedpeClass),error=function(e) {NULL})
-refinedMI=tryCatch(read.table("refined.FR.bedpe",col.names=bedpeCols, colClasses=bedpeClass),error=function(e) {NULL})
-refinedReg1=tryCatch(read.table("refined.reg1.mol",col.names=molCols),error=function(e) {t=read.table("refined.reg1.mol",col.names=molColsOld);t[["molBx"]]=NA;t}, finally={NULL})
-refinedReg2=tryCatch(read.table("refined.reg2.mol",col.names=molCols),error=function(e) {t=read.table("refined.reg2.mol",col.names=molColsOld);t[["molBx"]]=NA;t}, finally={NULL})
-infoTab=refined
 
-chr1 = unique(infoTab$chr1)[1]
-chr2 = unique(infoTab$chr2)[1]
-refinedFRid=rjson::fromJSON(refined$FR)
-refinedRFid=rjson::fromJSON(refined$RF)
-refinedFFid=rjson::fromJSON(refined$FF)
-refinedRRid=rjson::fromJSON(refined$RR)
-
-sharedBarID = unique(refinedReg1$barID[refinedReg1$barID %in% refinedReg2$barID]) #shared barcodes
-mergedMolList = lapply(sharedBarID, function(b) { 
-  sel1=which(refinedReg1$barID==b)
-  sel2=which(refinedReg2$barID==b)
-  mdat=cbind(refinedReg1[sel1[1],c("chr1","st1","ed1")], refinedReg2[sel2[1],c("chr1","st1","ed1")])
-  colnames(mdat)=bedpeCols[1:6]
-  mdat$id=paste("molID",b,sep=":")
-  mdat$type="molecule"
-  mdat$barcode=refinedReg1[sel1[1],c("molBX")]
-  mdat$mi1=refinedReg1[sel1[1],c("molID")]
-  mdat$mi2=refinedReg2[sel2[1],c("molID")]
-  mdat
-})
-mergedMol = do.call("rbind", mergedMolList)                         #all molecules, i.e. BX
-mergedMI = mergedMol[mergedMol$mi1 != mergedMol$mi2, ]              #non-self-overlapping molecules
-if(nrow(mergedMI)>0) mergedMI$type = "molNSOV"
-mergedBI = mergedMol[mergedMol$mi1 == mergedMol$mi2, ]              #self-overlapping molecules
-if(nrow(mergedBI)>0) mergedBI$type = "molSOV"
-
-#following assume (chr1==chr2) => st1 <= st2 which is enforced in parse10x
-mergedFR = do.call("rbind", 
-                   apply(refinedFR[,1:6], 1, FUN = function(r, chr1) { 
-                     if( r[1]!=chr1 | (r[4]==chr1 & as.numeric(r[2])>as.numeric(r[5])) ) 
-                     { t=r[1:3]; r[1:3]=r[4:6]; r[4:6]=t; }
-                     as.data.frame(t(r)) 
-                  }, chr1) )
-if(!is.null(mergedFR)) { #set_colClass(mergedFR, c("character","integer","integer","character","integer","integer"));
-  mergedFR$id = paste("rdpFR",refinedFRid,sep=":"); mergedFR$type="rdpFR"; mergedFR$barcode=refinedFR$hp;
-  mergedFR$mi1 = 0; mergedFR$mi2 = 0}
-message("mergedFR"); print(mergedFR)
-
-mergedRF = do.call("rbind", 
-                   apply(refinedRF[,1:6], 1, FUN = function(r, chr1) { 
-                     if( r[1]!=chr1 | (r[4]==chr1 & as.numeric(r[2])>as.numeric(r[5])) ) 
-                     { t=r[1:3]; r[1:3]=r[4:6]; r[4:6]=t; }
-                     as.data.frame(t(r)) 
-                   }, chr1) )
-if(!is.null(mergedRF)) { #set_colClass(mergedFR, c("character","integer","integer","character","integer","integer"));
-  mergedRF$id = paste("rdpRF",refinedRFid,sep=":"); mergedRF$type="rdpRF"; mergedRF$barcode=refinedRF$hp;
-  mergedRF$mi1 = 0; mergedRF$mi2 = 0}
-message("mergedRF"); print(mergedRF)
-
-mergedFF = do.call("rbind", 
-                   apply(refinedFF[,1:6], 1, FUN = function(r, chr1) { 
-                     if( r[1]!=chr1 | (r[4]==chr1 & as.numeric(r[2])>as.numeric(r[5])) ) { t=r[1:3]; r[1:3]=r[4:6]; r[4:6]=t; }
-                                                                                  as.data.frame(t(r)) }, chr1))
-if(!is.null(mergedFF)) { #set_colClass(mergedFF, c("character","integer","integer","character","integer","integer")); 
-                         mergedFF$id = paste("rdpFF",refinedFFid,sep=":"); mergedFF$type="rdpFF"; mergedFF$barcode=refinedFF$hp;
-                         mergedFF$mi1 = 0; mergedFF$mi2 = 0} 
-message("mergedFF"); print(mergedFF)
-
-mergedRR = do.call("rbind", 
-                   apply(refinedRR[,1:6], 1, FUN = function(r, chr1) { 
-                     if( r[1]!=chr1 | (r[4]==chr1 & as.numeric(r[2])>as.numeric(r[5])) ) { t=r[1:3]; r[1:3]=r[4:6]; r[4:6]=t; } 
-                   as.data.frame(t(r)) }, chr1))
-if(!is.null(mergedRR)) { #set_colClass(mergedRR, c("character","integer","integer","character","integer","integer")); 
-                         mergedRR$id = paste("rdpRR",refinedRRid,sep=":"); mergedRR$type="rdpRR"; mergedRR$barcode=refinedRR$hp;
-                         mergedRR$mi1 = 0; mergedRR$mi2 = 0}
-message("mergedRR"); print(mergedRR)
-
-
-# add "chr" for non UCSC format, required step to use BSgenome
-if(!isUCSC & nrow(refined)>0) {refined$chr1=paste("chr",refined$chr1,sep="")}
-if(!isUCSC & nrow(refined)>0) {refined$chr2=paste("chr",refined$chr2,sep="")}
-if(!isUCSC & nrow(refinedReg1)>0) {refinedReg1$chr1=paste("chr",refinedReg1$chr1,sep="")}
-if(!isUCSC & nrow(refinedReg2)>0) {refinedReg2$chr1=paste("chr",refinedReg2$chr1,sep="")}
-if(!isUCSC & !is.null(mergedFR)) {mergedFR$chr1=paste("chr",mergedFR$chr1,sep="")
-                                 mergedFR$chr2=paste("chr",mergedFR$chr2,sep="")}
-if(!isUCSC & !is.null(mergedRF)) {mergedRF$chr1=paste("chr",mergedRF$chr1,sep="")
-                                  mergedRF$chr2=paste("chr",mergedRF$chr2,sep="")}
-if(!isUCSC & !is.null(mergedFF)) {mergedFF$chr1=paste("chr",mergedFF$chr1,sep="")
-                                 mergedFF$chr2=paste("chr",mergedFF$chr2,sep="")}
-if(!isUCSC & !is.null(mergedRR)) {mergedRR$chr1=paste("chr",mergedRR$chr1,sep="")
-                                 mergedRR$chr2=paste("chr",mergedRR$chr2,sep="")}
-if(!isUCSC & nrow(mergedMI)>0) {mergedMI$chr1=paste("chr",mergedMI$chr1,sep="")
-                                   mergedMI$chr2=paste("chr",mergedMI$chr2,sep="")}
-if(!isUCSC & nrow(mergedBI)>0) {mergedBI$chr1=paste("chr",mergedBI$chr1,sep="")
-                                  mergedBI$chr2=paste("chr",mergedBI$chr2,sep="")}
-
+#read outs
+if(withControl){
+  suffixes = c("case", "control")
+} else {
+  suffixes = c("case")
+}
+message("suffixes:",suffixes)
 
 strandDf=c("1","-1",".")
 strandGR=c("+","-","*")
@@ -237,172 +157,325 @@ names(supportColors)=supportGR
 strandColors=RColorBrewer::brewer.pal(3,"Set2")
 names(strandColors)=strandGR
 
-# print(mergedRF)
-# print(mergedFF)
-# print(mergedRR)
-# print(mergedBI)
-# print(mergedMI)
-
-mergedAll=rbind(mergedFR,mergedRF,mergedFF,mergedRR,mergedBI,mergedMI)
-mergedAll$strand1=strand1Info[match(mergedAll$type, supportType)]
-mergedAll$strand2=strand2Info[match(mergedAll$type, supportType)]
-mergedAll$supportType=mergedAll$type
-GRcols=c("chrom1",      "start1", "end1",   "chrom2",   "start2", "end2",   "name",     "score",    "barcode",  "mi1",      "mi2",      "strand1",  "strand2",  "supportType")
-GRclasses=c("character","numeric","numeric","character","numeric","numeric","character","character","character","character","character","character","character","character")
-colnames(mergedAll)=GRcols
-mergedAll$score = 1
-mergedAll = set_colClass(mergedAll, GRclasses)
-
-if(!includeDupMolecule) {  
-  sel = (mergedAll$supportType != "molSOV") #ecluding self-overlapping molecules
-}
-mergedAll=mergedAll[sel,]
-
-rawReg1St = min(refined$start1,refinedReg1$st1)
-rawReg1Ed = max(refined$end1,refinedReg1$ed1)
-rawReg2St = min(refined$start2,refinedReg2$st1)
-rawReg2Ed = max(refined$end2,refinedReg2$ed1)
-scaledReg1St = floor(rawReg1St/scaleSize)*scaleSize - gapSize/2
-scaledReg1Ed = ceiling(rawReg1Ed/scaleSize)*scaleSize + gapSize/2
-scaledReg2St = floor(rawReg2St/scaleSize)*scaleSize - gapSize/2
-scaledReg2Ed = ceiling(rawReg2Ed/scaleSize)*scaleSize + gapSize/2
-boundaryReg12 = c(scaledReg1St,scaledReg1Ed,scaledReg2St,scaledReg2Ed)
-shiftReg1St = 1    #Mark Reg1 st point 1 as (chr1: scaledReg1St)
-shiftReg1Ed = scaledReg1Ed - scaledReg1St #Reg1 ed point scaledReg1Ed-scaledReg2St as (chr1: scaledReg1Ed) 
-shiftReg2St = shiftReg1Ed + 1   #Mark Reg2 st point shiftReg1Ed+1 as (chr2: scaledReg2St)
-shiftReg2Ed = shiftReg1Ed + (scaledReg2Ed - scaledReg2St) #Mark as (chr2: scaledReg2Ed)
-shiftReg12 = c(shiftReg1St,shiftReg1Ed,shiftReg2St,shiftReg2Ed)
-
-convertedAll = mergedAll  #molecule only
-convertedAll$chrom1 = "chrA"
-convertedAll$start1 = convertedAll$start1 - scaledReg1St + 1
-convertedAll$end1 = convertedAll$end1 - scaledReg1St + 150
-convertedAll$chrom2 = "chrA"
-convertedAll$start2 = convertedAll$start2 - scaledReg2St + shiftReg2St + 1
-convertedAll$end2 = convertedAll$end2 - scaledReg2St + shiftReg2St +150
-convertedAll$supportType = supportType[match(convertedAll$supportType,supportType)]
-convertedAll$strand1 = strandGR[match(convertedAll$strand1,strandDf)]
-convertedAll$strand2 = strandGR[match(convertedAll$strand2,strandDf)]
-flushSDReg1 = c(sd(convertedAll$start1),sd(convertedAll$end1))
-flushSDReg2 = c(sd(convertedAll$start2),sd(convertedAll$end2))
-leftBreakReg1 = if(min(flushSDReg1)<flushSD) TRUE else NA
-leftBreakReg2 = if(min(flushSDReg2)<flushSD) TRUE else NA
-if(!is.na(leftBreakReg1)) leftBreakReg1 = flushSDReg1[1] < flushSDReg1[2]
-if(!is.na(leftBreakReg2)) leftBreakReg2 = flushSDReg2[1] < flushSDReg2[2]
-# leftBreak: TRUE iff left edge of Reg1 is break, FALSE if right edge, NA if break is middle
-# breakpoint inferred using all molecules and read pairs available
-breakReg1 = round(if(is.na(leftBreakReg1)) { median(c(convertedAll$start1,convertedAll$end1)) } else if (leftBreakReg1) { quantile(convertedAll$start1,1-breakCI) } else { quantile(convertedAll$end1,breakCI) })
-breakReg1CILow = min(convertedAll$start1)
-breakReg1CIHigh = max(convertedAll$end1)
-breakReg2 = round(if(is.na(leftBreakReg2)) { median(c(convertedAll$start2,convertedAll$end2)) } else if (leftBreakReg2) { quantile(convertedAll$start2,1-breakCI) } else { quantile(convertedAll$end2,breakCI) })
-breakReg2CILow = min(convertedAll$start2)
-breakReg2CIHigh = max(convertedAll$end2)
-
-cat("gr...\n")
-#print(convertedAll[convertedAll$end1>convertedAll$start2,c(1,2,3,4,5,6)])
-#print(mergedAll[convertedAll$end1>convertedAll$start2,c(1,2,3,4,5,6)])
-gr <- GRanges(seqnames = c(convertedAll$chrom1, convertedAll$chrom2), 
-              ranges = IRanges::IRanges(start = c(convertedAll$start1, convertedAll$start2), 
-                               end = c(convertedAll$end1, convertedAll$end2)),
-              #strand = factor(c(as.character(convertedAll$strand1),as.character(convertedAll$strand2)), levels=strandGR),
-              strand = c(convertedAll$strand1,convertedAll$strand2),
-              value = rep(0,2*nrow(convertedAll)), 
-              score = c(convertedAll$score, convertedAll$score), 
-              supportType = c(convertedAll$supportType, convertedAll$supportType), 
-              pair = c(convertedAll$name, convertedAll$name))
-cat("grComp...\n")
-#print(convertedAll)
-grComp <- GRanges(seqnames = convertedAll$chrom1,
-                  ranges = IRanges::IRanges(start = convertedAll$end1, end=pmax(convertedAll$end1,convertedAll$start2)+1),
-                  strand = rep(NA,nrow(convertedAll)),
-                  value = rep(0,nrow(convertedAll)),
-                  score = rep(0,nrow(convertedAll)),
-                  supportType = convertedAll$supportType,
-                  pair = convertedAll$name)
-tickReg1 = c(shiftReg12[1]+gapSize/2, shiftReg12[2]-gapSize/2) 
-tickReg2 = c(shiftReg12[3]+gapSize/2, shiftReg12[4]-gapSize/2)
-tickLab1 = c(boundaryReg12[1]+gapSize/2, boundaryReg12[2]-gapSize/2) 
-tickLab2 = c(boundaryReg12[3]+gapSize/2, boundaryReg12[4]-gapSize/2)
-tickLab1 = paste(chr1,tickLab1,sep=":")
-tickLab2 = paste(chr2,tickLab2,sep=":")
-
-####plotMolecule-WriteOutput####
-cat("exporting...\n")
+refined=tryCatch(read.table("refined.bedpe",sep="\t",col.names=regCols),error=function(e) {NULL})
+infoTab=refined
+chr1 = unique(infoTab$chr1)[1]
+chr2 = unique(infoTab$chr2)[1]
 if(plotPrefix=="none") {
   plotPrefix=paste(refined[1:6],collapse="_")
 } else {
   plotPrefix=plotPrefix
 }
 
-#simply genotyping by short readpair
-if(infoTab$chr1!=infoTab$chr2) {
-  tmpSVType = "TRA"
-} else if(sum(grepl("rdp",mergedAll$supportType))>0) {
- tmpSVType = "" #default deletion
- if(sum(mergedAll$supportType %in% c("rdpRR","rdpFF"))>1) tmpSVType = paste("INV",tmpSVType)
- if(sum(mergedAll$supportType %in% c("rdpRF"))>1) tmpSVType = paste("DUP",tmpSVType)
- if(sum(mergedAll$supportType %in% c("rdpFR"))>1) tmpSVType = paste("DEL",tmpSVType)
-} else {
-  tmpSVType = "UNK"
+dataReadIn = function(i, suffixes) {
+  s = suffixes[i]
+  refinedReg1=tryCatch(read.table(paste("refined.reg1.mol",s,sep="."),col.names=molCols),error=function(e) {t=read.table(paste("refined.reg1.mol",s,sep="."),col.names=molColsOld);t[["molBx"]]=NA;t}, finally={NULL})
+  refinedReg2=tryCatch(read.table(paste("refined.reg2.mol",s,sep="."),col.names=molCols),error=function(e) {t=read.table(paste("refined.reg2.mol",s,sep="."),col.names=molColsOld);t[["molBx"]]=NA;t}, finally={NULL})
+  totalMol=nrow(refinedReg1)+nrow(refinedReg2)
+  sharedBarID = unique(refinedReg1$barID[refinedReg1$barID %in% refinedReg2$barID]) #shared barcodes
+  featureMol=length(sharedBarID)
+  mergedMolList = lapply(sharedBarID, function(b) { 
+    sel1=which(refinedReg1$barID==b)
+    sel2=which(refinedReg2$barID==b)
+    mdat=cbind(refinedReg1[sel1[1],c("chr1","st1","ed1")], refinedReg2[sel2[1],c("chr1","st1","ed1")])
+    colnames(mdat)=bedpeCols[1:6]
+    mdat$id=paste("molID",b,sep=":")
+    mdat$type="molecule"
+    mdat$barcode=refinedReg1[sel1[1],c("molBX")]
+    mdat$mi1=refinedReg1[sel1[1],c("molID")]
+    mdat$mi2=refinedReg2[sel2[1],c("molID")]
+    mdat
+  })
+  mergedMol = do.call("rbind", mergedMolList)                         #all molecules, i.e. BX
+  mergedMI = mergedMol[mergedMol$mi1 != mergedMol$mi2, ]              #non-self-overlapping molecules
+  if(nrow(mergedMI)>0) mergedMI$type = "molNSOV"
+  mergedBI = mergedMol[mergedMol$mi1 == mergedMol$mi2, ]              #self-overlapping molecules
+  if(nrow(mergedBI)>0) mergedBI$type = "molSOV"
+  
+  # add "chr" for non UCSC format, required step to use BSgenome
+  if(!isUCSC & nrow(refined)>0) {refined$chr1=paste("chr",refined$chr1,sep="")}
+  if(!isUCSC & nrow(refined)>0) {refined$chr2=paste("chr",refined$chr2,sep="")}
+  if(!isUCSC & nrow(refinedReg1)>0) {refinedReg1$chr1=paste("chr",refinedReg1$chr1,sep="")}
+  if(!isUCSC & nrow(refinedReg2)>0) {refinedReg2$chr1=paste("chr",refinedReg2$chr1,sep="")}
+  
+  # print(mergedRF)
+  # print(mergedFF)
+  # print(mergedRR)
+  mergedRF=NULL; mergedRR=NULL; mergedFR=NULL; mergedFF=NULL; supportRDP=0
+  if(s == "case") {
+    refinedFRid=rjson::fromJSON(refined$FR)
+    refinedRFid=rjson::fromJSON(refined$RF)
+    refinedFFid=rjson::fromJSON(refined$FF)
+    refinedRRid=rjson::fromJSON(refined$RR)
+    supportRDP=length(refinedFRid)+length(refinedRFid)+length(refinedFFid)+length(refinedRRid)
+
+    refinedFR=tryCatch(read.table(paste("refined.FR.bedpe",s,sep="."),col.names=bedpeCols, colClasses=bedpeClass),error=function(e) {NULL})
+    refinedRF=tryCatch(read.table(paste("refined.RF.bedpe",s,sep="."),col.names=bedpeCols, colClasses=bedpeClass),error=function(e) {NULL})
+    refinedFF=tryCatch(read.table(paste("refined.FF.bedpe",s,sep="."),col.names=bedpeCols, colClasses=bedpeClass),error=function(e) {NULL})
+    refinedRR=tryCatch(read.table(paste("refined.RR.bedpe",s,sep="."),col.names=bedpeCols, colClasses=bedpeClass),error=function(e) {NULL})
+    refinedMI=tryCatch(read.table(paste("refined.FR.bedpe",s,sep="."),col.names=bedpeCols, colClasses=bedpeClass),error=function(e) {NULL})
+
+    #following assume (chr1==chr2) => st1 <= st2 which is enforced in parse10x
+    mergedFR = do.call("rbind", 
+                       apply(refinedFR[,1:6], 1, FUN = function(r, chr1) { 
+                         if( r[1]!=chr1 | (r[4]==chr1 & as.numeric(r[2])>as.numeric(r[5])) ) 
+                         { t=r[1:3]; r[1:3]=r[4:6]; r[4:6]=t; }
+                         as.data.frame(t(r)) 
+                      }, chr1) )
+    if(!is.null(mergedFR)) { #set_colClass(mergedFR, c("character","integer","integer","character","integer","integer"));
+      mergedFR$id = paste("rdpFR",refinedFRid,sep=":"); mergedFR$type="rdpFR"; mergedFR$barcode=refinedFR$hp;
+      mergedFR$mi1 = 0; mergedFR$mi2 = 0}
+    message("mergedFR"); print(mergedFR)
+    
+    mergedRF = do.call("rbind", 
+                       apply(refinedRF[,1:6], 1, FUN = function(r, chr1) { 
+                         if( r[1]!=chr1 | (r[4]==chr1 & as.numeric(r[2])>as.numeric(r[5])) ) 
+                         { t=r[1:3]; r[1:3]=r[4:6]; r[4:6]=t; }
+                         as.data.frame(t(r)) 
+                       }, chr1) )
+    if(!is.null(mergedRF)) { #set_colClass(mergedFR, c("character","integer","integer","character","integer","integer"));
+      mergedRF$id = paste("rdpRF",refinedRFid,sep=":"); mergedRF$type="rdpRF"; mergedRF$barcode=refinedRF$hp;
+      mergedRF$mi1 = 0; mergedRF$mi2 = 0}
+    message("mergedRF"); print(mergedRF)
+    
+    mergedFF = do.call("rbind", 
+                       apply(refinedFF[,1:6], 1, FUN = function(r, chr1) { 
+                         if( r[1]!=chr1 | (r[4]==chr1 & as.numeric(r[2])>as.numeric(r[5])) ) { t=r[1:3]; r[1:3]=r[4:6]; r[4:6]=t; }
+                                                                                      as.data.frame(t(r)) }, chr1))
+    if(!is.null(mergedFF)) { #set_colClass(mergedFF, c("character","integer","integer","character","integer","integer")); 
+                             mergedFF$id = paste("rdpFF",refinedFFid,sep=":"); mergedFF$type="rdpFF"; mergedFF$barcode=refinedFF$hp;
+                             mergedFF$mi1 = 0; mergedFF$mi2 = 0} 
+    message("mergedFF"); print(mergedFF)
+    
+    mergedRR = do.call("rbind", 
+                       apply(refinedRR[,1:6], 1, FUN = function(r, chr1) { 
+                         if( r[1]!=chr1 | (r[4]==chr1 & as.numeric(r[2])>as.numeric(r[5])) ) { t=r[1:3]; r[1:3]=r[4:6]; r[4:6]=t; } 
+                       as.data.frame(t(r)) }, chr1))
+    if(!is.null(mergedRR)) { #set_colClass(mergedRR, c("character","integer","integer","character","integer","integer")); 
+                             mergedRR$id = paste("rdpRR",refinedRRid,sep=":"); mergedRR$type="rdpRR"; mergedRR$barcode=refinedRR$hp;
+                             mergedRR$mi1 = 0; mergedRR$mi2 = 0}
+    message("mergedRR"); print(mergedRR)
+  
+    if(!isUCSC & !is.null(mergedFR)) {mergedFR$chr1=paste("chr",mergedFR$chr1,sep="")
+                                     mergedFR$chr2=paste("chr",mergedFR$chr2,sep="")}
+    if(!isUCSC & !is.null(mergedRF)) {mergedRF$chr1=paste("chr",mergedRF$chr1,sep="")
+                                      mergedRF$chr2=paste("chr",mergedRF$chr2,sep="")}
+    if(!isUCSC & !is.null(mergedFF)) {mergedFF$chr1=paste("chr",mergedFF$chr1,sep="")
+                                     mergedFF$chr2=paste("chr",mergedFF$chr2,sep="")}
+    if(!isUCSC & !is.null(mergedRR)) {mergedRR$chr1=paste("chr",mergedRR$chr1,sep="")
+                                     mergedRR$chr2=paste("chr",mergedRR$chr2,sep="")}
+    if(!isUCSC & nrow(mergedMI)>0) {mergedMI$chr1=paste("chr",mergedMI$chr1,sep="")
+                                       mergedMI$chr2=paste("chr",mergedMI$chr2,sep="")}
+    if(!isUCSC & nrow(mergedBI)>0) {mergedBI$chr1=paste("chr",mergedBI$chr1,sep="")
+                                      mergedBI$chr2=paste("chr",mergedBI$chr2,sep="")}
+  }
+
+  mergedAll=rbind(mergedFR,mergedRF,mergedFF,mergedRR,mergedBI,mergedMI)
+  mergedAll$strand1=strand1Info[match(mergedAll$type, supportType)]
+  mergedAll$strand2=strand2Info[match(mergedAll$type, supportType)]
+  mergedAll$supportType=mergedAll$type
+  GRcols=c("chrom1",      "start1", "end1",   "chrom2",   "start2", "end2",   "name",     "score",    "barcode",  "mi1",      "mi2",      "strand1",  "strand2",  "supportType")
+  GRclasses=c("character","numeric","numeric","character","numeric","numeric","character","character","character","character","character","character","character","character")
+  colnames(mergedAll)=GRcols
+  mergedAll$score = 1
+  mergedAll = set_colClass(mergedAll, GRclasses)
+
+  if(!includeDupMolecule) {  
+    sel = (mergedAll$supportType != "molSOV") #ecluding self-overlapping molecules
+  }
+  mergedAll=mergedAll[sel,]
+
+  rawReg1St = min(refined$start1,refinedReg1$st1)
+  rawReg1Ed = max(refined$end1,refinedReg1$ed1)
+  rawReg2St = min(refined$start2,refinedReg2$st1)
+  rawReg2Ed = max(refined$end2,refinedReg2$ed1)
+  scaledReg1St = floor(rawReg1St/scaleSize)*scaleSize - gapSize/2
+  scaledReg1Ed = ceiling(rawReg1Ed/scaleSize)*scaleSize + gapSize/2
+  scaledReg2St = floor(rawReg2St/scaleSize)*scaleSize - gapSize/2
+  scaledReg2Ed = ceiling(rawReg2Ed/scaleSize)*scaleSize + gapSize/2
+  boundaryReg12 = c(scaledReg1St,scaledReg1Ed,scaledReg2St,scaledReg2Ed)
+  shiftReg1St = 1    #Mark Reg1 st point 1 as (chr1: scaledReg1St)
+  shiftReg1Ed = scaledReg1Ed - scaledReg1St #Reg1 ed point scaledReg1Ed-scaledReg2St as (chr1: scaledReg1Ed) 
+  shiftReg2St = shiftReg1Ed + 1   #Mark Reg2 st point shiftReg1Ed+1 as (chr2: scaledReg2St)
+  shiftReg2Ed = shiftReg1Ed + (scaledReg2Ed - scaledReg2St) #Mark as (chr2: scaledReg2Ed)
+  shiftReg12 = c(shiftReg1St,shiftReg1Ed,shiftReg2St,shiftReg2Ed)
+  
+  convertedAll = mergedAll  #molecule only
+  convertedAll$chrom1 = "chrA"
+  convertedAll$start1 = convertedAll$start1 - scaledReg1St + 1
+  convertedAll$end1 = convertedAll$end1 - scaledReg1St + 150
+  convertedAll$chrom2 = "chrA"
+  convertedAll$start2 = convertedAll$start2 - scaledReg2St + shiftReg2St + 1
+  convertedAll$end2 = convertedAll$end2 - scaledReg2St + shiftReg2St +150
+  convertedAll$supportType = supportType[match(convertedAll$supportType,supportType)]
+  convertedAll$strand1 = strandGR[match(convertedAll$strand1,strandDf)]
+  convertedAll$strand2 = strandGR[match(convertedAll$strand2,strandDf)]
+  flushSDReg1 = c(sd(convertedAll$start1),sd(convertedAll$end1))
+  flushSDReg2 = c(sd(convertedAll$start2),sd(convertedAll$end2))
+  leftBreakReg1 = if(min(flushSDReg1)<flushSD) TRUE else NA
+  leftBreakReg2 = if(min(flushSDReg2)<flushSD) TRUE else NA
+  if(!is.na(leftBreakReg1)) leftBreakReg1 = flushSDReg1[1] < flushSDReg1[2]
+  if(!is.na(leftBreakReg2)) leftBreakReg2 = flushSDReg2[1] < flushSDReg2[2]
+  # leftBreak: TRUE iff left edge of Reg1 is break, FALSE if right edge, NA if break is middle
+  # breakpoint inferred using all molecules and read pairs available
+  breakReg1 = round(if(is.na(leftBreakReg1)) { median(c(convertedAll$start1,convertedAll$end1)) } else if (leftBreakReg1) { quantile(convertedAll$start1,1-breakCI) } else { quantile(convertedAll$end1,breakCI) })
+  breakReg1CILow = min(convertedAll$start1)
+  breakReg1CIHigh = max(convertedAll$end1)
+  breakReg2 = round(if(is.na(leftBreakReg2)) { median(c(convertedAll$start2,convertedAll$end2)) } else if (leftBreakReg2) { quantile(convertedAll$start2,1-breakCI) } else { quantile(convertedAll$end2,breakCI) })
+  breakReg2CILow = min(convertedAll$start2)
+  breakReg2CIHigh = max(convertedAll$end2)
+
+  cat("gr...\n")
+  #print(convertedAll[convertedAll$end1>convertedAll$start2,c(1,2,3,4,5,6)])
+  #print(mergedAll[convertedAll$end1>convertedAll$start2,c(1,2,3,4,5,6)])
+  gr <- GRanges(seqnames = c(convertedAll$chrom1, convertedAll$chrom2), 
+                ranges = IRanges::IRanges(start = c(convertedAll$start1, convertedAll$start2), 
+                                 end = c(convertedAll$end1, convertedAll$end2)),
+                #strand = factor(c(as.character(convertedAll$strand1),as.character(convertedAll$strand2)), levels=strandGR),
+                strand = c(convertedAll$strand1,convertedAll$strand2),
+                value = rep(0,2*nrow(convertedAll)), 
+                score = c(convertedAll$score, convertedAll$score), 
+                supportType = c(convertedAll$supportType, convertedAll$supportType), 
+                pair = c(convertedAll$name, convertedAll$name))
+  cat("grComp...\n")
+  #print(convertedAll)
+  grComp <- GRanges(seqnames = convertedAll$chrom1,
+                    ranges = IRanges::IRanges(start = convertedAll$end1, end=pmax(convertedAll$end1,convertedAll$start2)+1),
+                    strand = rep(NA,nrow(convertedAll)),
+                    value = rep(0,nrow(convertedAll)),
+                    score = rep(0,nrow(convertedAll)),
+                    supportType = convertedAll$supportType,
+                    pair = convertedAll$name)
+
+  tickReg1 = c(shiftReg12[1]+gapSize/2, shiftReg12[2]-gapSize/2) 
+  tickReg2 = c(shiftReg12[3]+gapSize/2, shiftReg12[4]-gapSize/2)
+  tickLab1 = c(boundaryReg12[1]+gapSize/2, boundaryReg12[2]-gapSize/2) 
+  tickLab2 = c(boundaryReg12[3]+gapSize/2, boundaryReg12[4]-gapSize/2)
+  tickLab1 = paste(chr1,tickLab1,sep=":")
+  tickLab2 = paste(chr2,tickLab2,sep=":")
+  
+  ####plotMolecule-WriteOutput####
+
+  cat("exporting...\n")
+  #simply genotyping by short readpair, requiring two read pairs at least
+  if(infoTab$chr1!=infoTab$chr2) {
+    tmpSVType = "TRA"
+  } else if(sum(grepl("rdp",mergedAll$supportType))>0) {
+   tmpSVType = "" #default deletion
+   if(sum(mergedAll$supportType %in% c("rdpRR","rdpFF"))>1) tmpSVType = paste("INV",tmpSVType)
+   if(sum(mergedAll$supportType %in% c("rdpRF"))>1) tmpSVType = paste("DUP",tmpSVType)
+   if(sum(mergedAll$supportType %in% c("rdpFR"))>1) tmpSVType = paste("DEL",tmpSVType)
+  } else {
+    tmpSVType = "UNK"
+  }
+  
+  infoTabNew = cbind(infoTab[,seq(7)], as.data.frame( list( breakpoint1=boundaryReg12[1]+unname(breakReg1[1]),
+                                                            breakpoint2=boundaryReg12[3]+unname(breakReg2[1])-shiftReg12[2],
+                                                            isLeftBreak1=leftBreakReg1,
+                                                            isLeftBreak2=leftBreakReg2,
+                                                            SVType=tmpSVType,
+                                                            AlleleFraction=sum(mergedAll$supportType=="molNSOV")/statsTab$Cem,
+                                                            ReadPair=supportRDP,
+                                                            MolCnt=sum(mergedAll$supportType=="molNSOV"),
+                                                            totalMol=totalMol,
+                                                            featureMol=featureMol,
+                                                            Sample=s)) )
+  
+  cat("plotting...\n")
+  cat("plotFile=",paste(workDir, paste(plotPrefix,"break",s,"pdf",sep="."),sep="/"),"\n")
+  pdf(file=paste(plotPrefix,"break","pdf",sep="."), width=16, height=12)
+  p = ggplot2::ggplot()+ggbio::geom_arrowrect(gr, ggplot2::aes(color=supportType, fill=strand, group=pair))
+  p = p + ggbio::geom_segment(grComp, ggplot2::aes(color=supportType, group=pair))
+  p = p + ggplot2::scale_color_manual(values=supportColors, na.value="black")
+  p = p + ggplot2::scale_fill_manual(values=strandColors, na.value="black")
+  p = p + ggplot2::scale_x_continuous("Genomic Region Pair", breaks=tickReg1, labels=tickLab1,
+                             limits=c(shiftReg12[1],shiftReg12[4]),
+                             sec.axis=ggplot2::sec_axis(~., breaks=tickReg2, labels=tickLab2))
+  p = p + ggplot2::geom_vline(xintercept=breakReg1, linetype="dotted") + ggplot2::geom_vline(xintercept=breakReg2, linetype="dotted")
+  p = p + ggplot2::geom_text(ggplot2::aes(x=breakReg1-gapSize/10, label=paste(infoTabNew$breakpoint1), y=100), colour="blue", angle=90)
+  p = p + ggplot2::geom_text(ggplot2::aes(x=breakReg2+gapSize/10, label=paste(infoTabNew$breakpoint2), y=100), colour="blue", angle=90)
+  #p = p + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 0, hjust = 1, color="red"))
+  print(p)
+  dev.off()
+
+  mergedAllFile = paste(plotPrefix,"support",s,"txt",sep=".")
+  write.table(mergedAll,file=mergedAllFile,col.names=TRUE,row.names=FALSE,sep="\t",quote=FALSE) #mergeAll
+  
+  jsonFile=file(paste(plotPrefix,"break",s,"json",sep="."))
+  writeLines(rjson::toJSON(list(reg1=chr1,
+                                break1=infoTabNew$breakpoint1,
+                                break1CILow=boundaryReg12[1]+unname(breakReg1CILow[1]),
+                                break1CIHigh=boundaryReg12[1]+unname(breakReg1CIHigh[1]),
+                                isLeftBreak1=leftBreakReg1,
+                                isLeftBreak2=leftBreakReg2,
+                                reg2=chr2,
+                                break2=infoTabNew$breakpoint2, 
+                                break2CILow=boundaryReg12[3]+unname(breakReg2CILow[1])-shiftReg12[2],
+                                break2CIHigh=boundaryReg12[3]+unname(breakReg2CIHigh[1])-shiftReg12[2],
+                                sharedBarcode=mergedMol$barcode,
+                                MolCnt=sum(mergedAll$supportType=="molNSOV"),
+                                SVType=tmpSVType,
+                                AlleleFraction=sum(mergedAll$supportType=="molNSOV")/statsTab$Cem,
+                                ReadPair=supportRDP,
+                                Sample=s
+  )),
+  con=jsonFile)
+  close(jsonFile)
+ 
+  return(list(mergedAll=mergedAll, infoTab=infoTabNew)) 
 }
+allData = lapply(seq_along(suffixes), dataReadIn, suffixes)
+names(allData)=suffixes
+
+#chr1  start1	end1	chr2	start2	end2	molcnt	breakpoint1	breakpoint2	SVType	AlleleFraction	ReadPair Sample
+infoTabNew = Reduce(rbind, lapply(allData,'[[',"infoTab"))
 
 infoFile = paste(plotPrefix,"info","txt",sep=".")
-infoTabNew = cbind(infoTab[,seq(7)], as.data.frame( list( breakpoint1=boundaryReg12[1]+unname(breakReg1[1]),
-                                                      breakpoint2=boundaryReg12[3]+unname(breakReg2[1])-shiftReg12[2],
-                                                      SVType=tmpSVType,
-                                                      AlleleFraction=sum(mergedAll$supportType=="molNSOV")/statsTab$Cem,
-                                                      ReadPair=length(refinedFRid)+length(refinedRFid)+length(refinedFFid)+length(refinedRRid),
-                                                      MolCnt=sum(mergedAll$supportType=="molNSOV")) ))
-message("infoFile=",infoFile); print(infoTabNew)
-write.table(infoTabNew,file=infoFile,col.names=FALSE,row.names=FALSE,sep="\t",quote=FALSE)
-#chr1  start1	end1	chr2	start2	end2	molcnt	breakpoint1	breakpoint2	SVType	AlleleFraction	ReadPair
+bayesPlot =  paste(plotPrefix,"bayes","pdf",sep=".")
 
-jsonFile=file(paste(plotPrefix,"break","json",sep="."))
-writeLines(rjson::toJSON(list(reg1=chr1,
-                       break1=infoTabNew$breakpoint1,
-                       break1CILow=boundaryReg12[1]+unname(breakReg1CILow[1]),
-                       break1CIHigh=boundaryReg12[1]+unname(breakReg1CIHigh[1]),
-                       isLeftBreak1=leftBreakReg1,
-                       isLeftBreak2=leftBreakReg2,
-                       reg2=chr2,
-                       break2=infoTabNew$breakpoint2, 
-                       break2CILow=boundaryReg12[3]+unname(breakReg2CILow[1])-shiftReg12[2],
-                       break2CIHigh=boundaryReg12[3]+unname(breakReg2CIHigh[1])-shiftReg12[2],
-                       sharedBarcode=mergedMol$barcode,
-                       MolCnt=sum(mergedAll$supportType=="molNSOV"),
-                       SVType=tmpSVType,
-                       AlleleFraction=sum(mergedAll$supportType=="molNSOV")/statsTab$Cem,
-                       ReadPair=length(refinedFRid)+length(refinedRFid)+length(refinedFFid)+length(refinedRRid)
-                       )),
-                       con=jsonFile)
-close(jsonFile)
+#do the bayesian statistics here:
+#objectiveFrequency = 0.05 # H0[0,objectiveFrequency] vs H1[objectiveFrequency,1]
+if(length(suffixes)==2) {
+  alpha0=1; beta0=1; # pseudo count, #of success, #of failures
+  alpha1=alpha0+infoTabNew[2,]$featureMol #adjusted prior # of success
+  beta1=beta0+infoTabNew[2,]$totalMol-2*infoTabNew[2,]$featureMol #adjusted prior # of failure; two times bc molecule counted twice
+  d <- data.frame(s = infoTabNew[1,]$featureMol, k = infoTabNew[1,]$totalMol-2*infoTabNew[1,]$featureMol)
+  Prior <- set_prior(paste("beta(",alpha1,",", beta1,")",sep=""), class = "b", lb = 0, ub = 1)
+  m <- brms::brm(s | trials(k) ~ 0 + intercept, 
+           family = binomial(link="identity"),
+           prior = Prior,
+           data = d,
+           sample_prior = TRUE,
+           iter = 1e4,
+           cores = 4)
+  samples <- posterior_samples(m, "b")
+  h <- hypothesis(m, paste("intercept >",minAlleleFraction)) #specifies H0
+  BF01=h$hypothesis$Evid.Ratio #BF01, additional evidence of H0 vs H1
+  Star=h$hypothesis$Star
+  infoTabNew$minAlleleFraction=minAlleleFraction
+  infoTabNew$BF01=BF01
+  infoTabNew$Star=Star
+  pdf(file=bayesPlot)
+  plot(h)
+  dev.off()
+} else {
+  infoTabNew$minAlleleFraction=minAlleleFraction
+  infoTabNew$BF01=NA
+  infoTabNew$Star=NA
+}
 
-cat("plotting...\n")
-cat("plotFile=",paste(workDir, paste(plotPrefix,"break","pdf",sep="."),sep="/"),"\n")
-pdf(file=paste(plotPrefix,"break","pdf",sep="."), width=16, height=12)
-p = ggplot2::ggplot()+ggbio::geom_arrowrect(gr, ggplot2::aes(color=supportType, fill=strand, group=pair))
-p = p + ggbio::geom_segment(grComp, ggplot2::aes(color=supportType, group=pair))
-p = p + ggplot2::scale_color_manual(values=supportColors, na.value="black")
-p = p + ggplot2::scale_fill_manual(values=strandColors, na.value="black")
-p = p + ggplot2::scale_x_continuous("Genomic Region Pair", breaks=tickReg1, labels=tickLab1,
-                           limits=c(shiftReg12[1],shiftReg12[4]),
-                           sec.axis=ggplot2::sec_axis(~., breaks=tickReg2, labels=tickLab2))
-p = p + ggplot2::geom_vline(xintercept=breakReg1, linetype="dotted") + ggplot2::geom_vline(xintercept=breakReg2, linetype="dotted")
-p = p + ggplot2::geom_text(ggplot2::aes(x=breakReg1-gapSize/10, label=paste(infoTabNew$breakpoint1), y=100), colour="blue", angle=90)
-p = p + ggplot2::geom_text(ggplot2::aes(x=breakReg2+gapSize/10, label=paste(infoTabNew$breakpoint2), y=100), colour="blue", angle=90)
-#p = p + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 0, hjust = 1, color="red"))
-print(p)
-dev.off()
-
-mergedAllFile = paste(plotPrefix,"support","txt",sep=".")
-write.table(mergedAll,file=mergedAllFile,col.names=TRUE,row.names=FALSE,sep="\t",quote=FALSE) #mergeAll 
+message("infoFile=",workDir,"/",infoFile); print(infoTabNew)
+write.table(infoTabNew,file=infoFile,col.names=TRUE,row.names=FALSE,sep="\t",quote=FALSE)
 
 ####rdpBreakpoint-PlotRdp####
+#case only
 callInfo=refined
 colScheme="Dark2"
 colors=RColorBrewer::brewer.pal(length(supportType), colScheme)
 names(colors)=supportType
-info = mergedAll[!grepl("mol",mergedAll$supportType),]
+info = allData[["case"]][["mergedAll"]]
+infoTab = allData[["case"]][["infoTab"]]
+info = info[!grepl("mol",info$supportType),]
 
 if(reference=="hg38") {
   refSeq = BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38
@@ -456,7 +529,7 @@ prow <- cowplot::plot_grid( plotlist = plotGrobs2,
 )
 lrow <- cowplot::ggdraw() + cowplot::draw_grob(legend) #this only draws the legend, all aes has to be predefined.
 pall = cowplot::plot_grid( prow, lrow, ncol=1, rel_heights=c(1,legendHeight))
-message("saving support plots to:", paste(plotPrefix,"rdp","pdf",sep=".") )
+message("saving support plots to:", paste(plotPrefix,"rdp","case","pdf",sep=".") )
 cowplot::save_plot(paste(plotPrefix,"rdp","pdf",sep="."), pall, base_height = 10, base_aspect_ratio = 2.1)
 
 ####rdpBreakpoint-InferContig####
@@ -475,8 +548,8 @@ cowplot::save_plot(paste(plotPrefix,"rdp","pdf",sep="."), pall, base_height = 10
 #we first group by type
 #  in each group by type, 
 #  debug not finished
-direction1=ifelse(is.na(leftBreakReg1), "U", ifelse(leftBreakReg1, "L", "R"))
-direction2=ifelse(is.na(leftBreakReg2), "U", ifelse(leftBreakReg2, "L", "R"))
+direction1=ifelse(is.na(infoTab$leftBreakReg1), "U", ifelse(infoTab$leftBreakReg1, "L", "R"))
+direction2=ifelse(is.na(infoTab$leftBreakReg2), "U", ifelse(infoTab$leftBreakReg2, "L", "R"))
 contigs=list()
 for(i in seq_along(supportType)) {
   # i=1; i=2; i=3; i=4
@@ -600,7 +673,7 @@ for(i in seq_along(supportType)) {
 cat("writing contig table...\n")
 contigsDF = Reduce(rbind, lapply(contigs,as.data.frame)) #save contigs
 contigsDF = cbind(contigsDF, callInfo)
-write.table(contigsDF, file=paste(plotPrefix,"rdp","ctg",sep="."), sep="\t", quote=F, row.names=F, col.names=F)
+write.table(contigsDF, file=paste(plotPrefix,"rdp","case","ctg",sep="."), sep="\t", quote=F, row.names=F, col.names=F)
 
 cat("getting contig seqs...\n")
 contigSeqs = x <- vector(mode = "list", length = length(contigs))
@@ -717,8 +790,8 @@ retrieveContig = function(i, contigs, breakSlopSize, padding, refSeq) {
 contigSeqs = Biostrings::DNAStringSet(unlist(lapply(seq_along(contigs),"retrieveContig", contigs, breakSlopSize, padding, refSeq)))
 
 #output to fasta
-message("write contigs to:", paste(plotPrefix,"rdp","fas",sep="."))
-Biostrings::writeXStringSet(contigSeqs, file=paste(plotPrefix,"rdp","fas",sep="."), format="fasta")
+message("write contigs to:", paste(plotPrefix,"rdp","case","fas",sep="."))
+Biostrings::writeXStringSet(contigSeqs, file=paste(plotPrefix,"rdp","case","fas",sep="."), format="fasta")
 
 #quit()
 #old proof-of-idea scripts
@@ -818,3 +891,35 @@ cat("plotMoleculeDone in",proc.time()[3]-ptm[3],"seconds! \n")
 
 #print(contigs)
 
+
+#quick calculation of these numbers
+#caseFeatureMol=31 #cat refined.reg1.mol.case refined.reg2.mol.case | cut -f11 | sort | uniq -c | grep 2 | wc -l
+#caseTotalMol=37+44-31=50 #`cat refined.reg1.mol.case | wc -l` + `cat refined.reg2.mol.case | wc -l` - caseFeatureMol
+#controlFeatureMol=0 #cat refined.reg1.mol.control refined.reg2.mol.control | cut -f11 | sort | uniq -c | grep 2 | wc -l
+#controlTotalMol=12+7-0=19 #`cat refined.reg1.mol.control | wc -l` + `cat refined.reg2.mol.control | wc -l` - controlFeatureMol
+#calcPosteriorForProportion(caseFeatureMol, caseTotalMol, controlTotalMol-controlFeatureMol+1,controlFeatureMol+1) = calcPosteriorForProportion(31, 50, 20, 1)
+#d <- data.frame(s = 31, k = 50)
+# pd <- tibble(
+#   x = seq(0, 1, by = .01),
+#   Prior = dbeta(x, alpha1, beta1)
+# )
+# ggplot(pd, aes(x, Prior)) +
+#   geom_line() +
+#   coord_cartesian(xlim = 0:1, ylim = c(0, 6), expand = 0) +
+#   labs(y = "Density", x = bquote(theta))
+# 
+# pd$Posterior <- dbeta(pd$x, 31+alpha1, (50-31)+beta1)
+# pdw <- gather(pd, key=Type, value=density, Prior:Posterior)
+#   
+# ggplot(pdw, aes(x, density, col=Type)) +
+#   geom_line() +
+#   annotate("point", x=c(.5, .5), y = c(pdw$density[pdw$x==.5])) +
+#   annotate("label", x=c(.5, .5), 
+#   y = pdw$density[pdw$x==.5], 
+#   label = round(pdw$density[pdw$x==.5], 3),
+#   vjust=-.5)
+# 
+# filter(pd, x >=objectiveFrequency) %>% 
+#   mutate(BF01 = Posterior/Prior,
+#          BF10 = 1/BF01) %>% 
+#   round(3)

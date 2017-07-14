@@ -46,26 +46,28 @@ bedtools intersect -u -a $inPrefix.multiFragBar.bed.a0 -b $outDir/refined.reg1.b
 echo "bedtools intersect -u -a $inPrefix.multiFragBar.bed.a0 -b $outDir/refined.reg2.bed >$outDir/refined.reg2.mol.$suffix"
 bedtools intersect -u -a $inPrefix.multiFragBar.bed.a0 -b $outDir/refined.reg2.bed >$outDir/refined.reg2.mol.$suffix
 ###
-###
-FRcol=8
-RFcol=9
-FFcol=10
-RRcol=11
-echo "head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$FRcol | grep -o '[0-9]\+' | sed '/^$/d' | sed -e 's/$/p/g' | tr '\n' ';' >$outDir/refined.rindex.FR.$suffix"
-head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$FRcol | grep -o '[0-9]\+' | sed '/^$/d' |  sed -e 's/$/p/g' | tr '\n' ';' >$outDir/refined.rindex.FR.$suffix
-echo "head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$RFcol | grep -o '[0-9]\+' | sed '/^$/d' | sed -e 's/$/p/g' | tr '\n' ';' >$outDir/refined.rindex.RF.$suffix"
-head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$RFcol | grep -o '[0-9]\+' | sed '/^$/d' |  sed -e 's/$/p/g' | tr '\n' ';' >$outDir/refined.rindex.RF.$suffix
-echo "head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$FFcol | grep -o '[0-9]\+' | sed '/^$/d' |  sed -e 's/$/p/g' | tr '\n' ';' >$outDir/refined.rindex.FF.$suffix"
-head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$FFcol | grep -o '[0-9]\+' | sed '/^$/d' |  sed -e 's/$/p/g' | tr '\n' ';' >$outDir/refined.rindex.FF.$suffix
-echo "head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$RRcol | grep -o '[0-9]\+' | sed '/^$/d' |  sed -e 's/$/p/g' | tr '\n' >$outDir/refined.rindex.RR.$suffix"
-head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$RRcol | grep -o '[0-9]\+' |  sed '/^$/d' | sed -e 's/$/p/g' | tr '\n' ';' >$outDir/refined.rindex.RR.$suffix
-###
-echo "sed -n -f $outDir/refined.rindex.FR.$suffix $inPrefix.geq$cisSize.FR.bedpe >$outDir/refined.FR.bedpe.$suffix"
-sed -n -f $outDir/refined.rindex.FR.$suffix $inPrefix.geq$cisSize.FR.bedpe >$outDir/refined.FR.bedpe.$suffix
-echo "sed -n -f $outDir/refined.rindex.RF.$suffix $inPrefix.geq$cisSize.RF.bedpe >$outDir/refined.RF.bedpe.$suffix"
-sed -n -f $outDir/refined.rindex.RF.$suffix $inPrefix.geq$cisSize.RF.bedpe >$outDir/refined.RF.bedpe.$suffix
-echo "sed -n -f $outDir/refined.rindex.FF.$suffix $inPrefix.geq$cisSize.FF.bedpe >$outDir/refined.FF.bedpe.$suffix"
-sed -n -f $outDir/refined.rindex.FF.$suffix $inPrefix.geq$cisSize.FF.bedpe >$outDir/refined.FF.bedpe.$suffix
-echo "sed -n -f $outDir/refined.rindex.RR.$suffix $inPrefix.geq$cisSize.RR.bedpe >$outDir/refined.RR.bedpe.$suffix"
-sed -n -f $outDir/refined.rindex.RR.$suffix $inPrefix.geq$cisSize.RR.bedpe >$outDir/refined.RR.bedpe.$suffix
+### only produce these files for case suffix
+if [[ $suffix -eq "case" ]]; then
+  FRcol=8
+  RFcol=9
+  FFcol=10
+  RRcol=11
+  echo "head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$FRcol | grep -o '[0-9]\+' | sed '/^$/d' | sed -e 's/$/p/g' | tr '\n' ';' >$outDir/refined.rindex.FR.$suffix"
+  head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$FRcol | grep -o '[0-9]\+' | sed '/^$/d' |  sed -e 's/$/p/g' | tr '\n' ';' >$outDir/refined.rindex.FR.$suffix
+  echo "head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$RFcol | grep -o '[0-9]\+' | sed '/^$/d' | sed -e 's/$/p/g' | tr '\n' ';' >$outDir/refined.rindex.RF.$suffix"
+  head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$RFcol | grep -o '[0-9]\+' | sed '/^$/d' |  sed -e 's/$/p/g' | tr '\n' ';' >$outDir/refined.rindex.RF.$suffix
+  echo "head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$FFcol | grep -o '[0-9]\+' | sed '/^$/d' |  sed -e 's/$/p/g' | tr '\n' ';' >$outDir/refined.rindex.FF.$suffix"
+  head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$FFcol | grep -o '[0-9]\+' | sed '/^$/d' |  sed -e 's/$/p/g' | tr '\n' ';' >$outDir/refined.rindex.FF.$suffix
+  echo "head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$RRcol | grep -o '[0-9]\+' | sed '/^$/d' |  sed -e 's/$/p/g' | tr '\n' >$outDir/refined.rindex.RR.$suffix"
+  head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$RRcol | grep -o '[0-9]\+' |  sed '/^$/d' | sed -e 's/$/p/g' | tr '\n' ';' >$outDir/refined.rindex.RR.$suffix
+  ###
+  echo "sed -n -f $outDir/refined.rindex.FR.$suffix $inPrefix.geq$cisSize.FR.bedpe >$outDir/refined.FR.bedpe.$suffix"
+  sed -n -f $outDir/refined.rindex.FR.$suffix $inPrefix.geq$cisSize.FR.bedpe >$outDir/refined.FR.bedpe.$suffix
+  echo "sed -n -f $outDir/refined.rindex.RF.$suffix $inPrefix.geq$cisSize.RF.bedpe >$outDir/refined.RF.bedpe.$suffix"
+  sed -n -f $outDir/refined.rindex.RF.$suffix $inPrefix.geq$cisSize.RF.bedpe >$outDir/refined.RF.bedpe.$suffix
+  echo "sed -n -f $outDir/refined.rindex.FF.$suffix $inPrefix.geq$cisSize.FF.bedpe >$outDir/refined.FF.bedpe.$suffix"
+  sed -n -f $outDir/refined.rindex.FF.$suffix $inPrefix.geq$cisSize.FF.bedpe >$outDir/refined.FF.bedpe.$suffix
+  echo "sed -n -f $outDir/refined.rindex.RR.$suffix $inPrefix.geq$cisSize.RR.bedpe >$outDir/refined.RR.bedpe.$suffix"
+  sed -n -f $outDir/refined.rindex.RR.$suffix $inPrefix.geq$cisSize.RR.bedpe >$outDir/refined.RR.bedpe.$suffix
+fi
 echo "getMolecule.sh Done"
