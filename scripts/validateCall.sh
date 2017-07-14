@@ -9,9 +9,10 @@ fi
 
 reg=$1
 zoomx=$2
+dir="ref"
 
-pacbio="NA12878.pacbio_fr_MountSinai.bwa-sw.20140211.bam"
-moleculo="NA12878.moleculo.bwa-mem.20140110.bam"
+pacbio="$dir/NA12878.pacbio_fr_MountSinai.bwa-sw.20140211.bam"
+moleculo="$dir/NA12878.moleculo.bwa-mem.20140110.bam"
 regArray=($(echo $reg | tr ":-" "\t"))
 rstring=$(date +%s) #random string from date
 echo "===validateRegion==="
@@ -38,26 +39,26 @@ bedtools bamtobed -bedpe -i $moleculo.reg.bam >$moleculo.reg.bam.bedpe
 bedtools intersect -u -a $moleculo.reg.bam.bedpe -b $tmpfile
 
 echo "===cloneByClone==="
-file="NA12878_Kidd2008_hg19.bed"
+file="$ref/NA12878_Kidd2008_hg19.bed"
 bedtools intersect -u -a $file -b $tmpfile2
 
 echo "===arrayCGH==="
-file="NA12878_Conrad2010_hg19.bed"
+file="$ref/NA12878_Conrad2010_hg19.bed"
 bedtools intersect -u -a $file -b $tmpfile2
 
 echo "===conventionalWGS==="
-file="NA12878_Pacbio_Moleculo_Lumpy.bedpe"
+file="$ref/NA12878_Pacbio_Moleculo_Lumpy.bedpe"
 bedtools intersect -u -a $file -b $tmpfile2
 
 echo "===Hybrid==="
-file="NA12878_1KG_SV.vcf.hg19.bed"
+file="$ref/NA12878_1KG_SV.vcf.hg19.bed"
 bedtools intersect -u -a $file -b $tmpfile2
 
-echo "===10xCalls==="
-file="NA12878_WGS_210_large_sv_calls.bedpe"
-bedtools intersect -u -a $file -b $tmpfile2
-
-echo "===10xCandidates==="
-file="NA12878_WGS_210_large_sv_candidates.bedpe"
-bedtools intersect -u -a $file -b $tmpfile2
+#echo "===10xCalls==="
+#file="NA12878_WGS_210_large_sv_calls.bedpe"
+#bedtools intersect -u -a $file -b $tmpfile2
+#
+#echo "===10xCandidates==="
+#file="NA12878_WGS_210_large_sv_candidates.bedpe"
+#bedtools intersect -u -a $file -b $tmpfile2
 
