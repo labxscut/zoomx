@@ -124,7 +124,10 @@ def main(args):
   
   callLabels=["chr1","start1","end1","chr2","start2","end2","barcnt"]
   callTypes=["string",numpy.int64,numpy.int64,"string",numpy.int64,numpy.int64,numpy.int64]
-  bedpeLabels=["chr1","start1","end1","chr2","start2","end2","hp"]
+  mergeLabels=["chr1","start1","end1","chr2","start2","end2","name","barcnt"]
+  mergeTypes=["string",numpy.int64,numpy.int64,"string",numpy.int64,numpy.int64,"string",numpy.int64]
+  rdpLabels=["chr1","start1","end1","chr2","start2","end2","hp"]
+  rdpTypes=["string",numpy.int64,numpy.int64,"string",numpy.int64,numpy.int64,numpy.int64]
   bed1Labels=["chr1","start1","end1","barcnt","index"]
   bed2Labels=["chr2","start2","end2","barcnt","index"]
   clust1Labels=["chr1","start1","end1","barcnt","index","clust"]
@@ -159,9 +162,9 @@ def main(args):
 
   rawCalls=pandas.read_table(tmpBedpeFile, names=callLabels,dtype=dict(zip(callLabels,callTypes))) #reload after filter
   rawCalls['index']=xrange(0,rawCalls.shape[0]) #add index to bedpe file, index is fixed here
-  rawCalls.to_csv(tmpBedpeFile,header=False, sep="\t", index=False) #no more modificaiton to rawCalls from here
+  rawCalls.to_csv(tmpBedpeFile,header=False, sep="\t", index=False) #no more add/remove entries of rawCalls from here
 
-  mergeBedpe=pandas.DataFrame(dict(zip(callLabels,[ [] for i in range(len(callLabels)) ])), columns=callLabels)
+  mergeBedpe=pandas.DataFrame(dict(zip(mergeLabels,[ [] for i in range(len(mergeLabels)) ])), columns=mergeLabels)
   if (len(rawCalls) > 0):
     nRawCalls = len(rawCalls)
     #pairtopair overlapping
@@ -209,9 +212,10 @@ def main(args):
       mergeStart2[ci]=min(rawCalls.iloc[ri]['start2'])
       mergeEnd2[ci]=max(rawCalls.iloc[ri]['end2'])
       mergeMolCnt[ci]=max(rawCalls.iloc[ri]['barcnt']) #
-    
-    mergeBedpe=pandas.DataFrame(dict(zip(callLabels,[mergeChr1,mergeStart1,mergeEnd1,mergeChr2,mergeStart2,mergeEnd2,mergeMolCnt])),\
-      columns=callLabels) # natually sorted, good!
+
+    mergeName=["call_"+str(x) for x in xrange(1,len(mergeChr1)+1)]
+    mergeBedpe=pandas.DataFrame(dict(zip(mergeLabels,[mergeChr1,mergeStart1,mergeEnd1,mergeChr2,mergeStart2,mergeEnd2,mergeName,mergeMolCnt])),\
+      columns=mergeLabels) # natually sorted, good!
     mergeBedpe=mergeBedpe.sort_values(by=['barcnt'],ascending=False)
 
   mergeBedpeFile=".".join([outPrefix,"merged"])
@@ -221,27 +225,27 @@ def main(args):
   end_time=time.time()
   sys.stderr.write("output merged done:{}s\n".format(end_time-start_time))
   
-  if mergeOnly:   #quit now if only merging events
+  if not mergeOnly:   #quit now if only merging events, mergeBedpe has 8 cols
     quit()
   
   sys.stderr.write("attaching short read support\n")
   sys.stderr.write("merging FR rdp\n")
-  frSupport = lib10x.ParallelIdentifySupportRDP(mergeBedpe, frBedpeFile, callLabels, callTypes, numprocs, debug)
+  frSupport = lib10x.ParallelIdentifySupportRDP(mergeBedpe, frBedpeFile, rdpLabels, rdpTypes, numprocs, debug)
   end_time=time.time()
   sys.stderr.write("merging FR done:{}s\n".format(end_time-start_time))
 
   sys.stderr.write("merging RF rdp\n")
-  rfSupport = lib10x.ParallelIdentifySupportRDP(mergeBedpe, rfBedpeFile, callLabels, callTypes, numprocs, debug)
+  rfSupport = lib10x.ParallelIdentifySupportRDP(mergeBedpe, rfBedpeFile, rdpLabels, rdpTypes, numprocs, debug)
   end_time=time.time()
   sys.stderr.write("merging RF done:{}s\n".format(end_time-start_time))
   
   sys.stderr.write("merging FF rdp\n")
-  ffSupport = lib10x.ParallelIdentifySupportRDP(mergeBedpe, ffBedpeFile, callLabels, callTypes, numprocs, debug)
+  ffSupport = lib10x.ParallelIdentifySupportRDP(mergeBedpe, ffBedpeFile, rdpLabels, rdpTypes, numprocs, debug)
   end_time=time.time()
   sys.stderr.write("merging FF done:{}s\n".format(end_time-start_time))
   
   sys.stderr.write("merging RR rdp\n")
-  rrSupport = lib10x.ParallelIdentifySupportRDP(mergeBedpe, rrBedpeFile, callLabels, callTypes, numprocs, debug)
+  rrSupport = lib10x.ParallelIdentifySupportRDP(mergeBedpe, rrBedpeFile, rdpLabels, rdpTypes, numprocs, debug)
   end_time=time.time()
   sys.stderr.write("merging RR rdp:{}s\n".format(end_time-start_time))
 

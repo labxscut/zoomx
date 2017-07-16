@@ -61,37 +61,40 @@ import random
 
 def ThreadIdentifySupportRDP(info):
   #sys.stderr.write("in test thread\n")
+  #unique index column specified in info[4]
   bi=info[0]
   numCall=info[1]
-  df=info[2]
+  df=info[2]          
   tmpBedpeFile=info[3]
-  debug=info[4]
+  idxCol=info[4]
+  debug=info[5]
   sys.stderr.write("START: procssing "+str(bi+1)+" of "+str(numCall)+" events\n")
   singleBedpeFile=getTemporaryFile('bedpe_')
   tmpOverlapFile=getTemporaryFile('bedpe_')
-  df.to_csv(singleBedpeFile,header=False, sep="\t", index=False)
-  pair2pair_cmd="bedtools pairtopair -a %s -b %s | cut -f15 >%s" % (singleBedpeFile, tmpBedpeFile, tmpOverlapFile)
+  df.to_csv(singleBedpeFile,header=False, sep="\t", index=False) # 9 cols
+  pair2pair_cmd="bedtools pairtopair -a %s -b %s | cut -f%d >%s" % (singleBedpeFile, tmpBedpeFile, idxCol, tmpOverlapFile)
   if debug:
     sys.stderr.write("singleBedpeFile='"+str(singleBedpeFile)+"'\n")
     sys.stderr.write("pair2pair_cmd="+str(pair2pair_cmd)+"\n")
   if run_cmd(pair2pair_cmd) == False:
     sys.stderr.write("Error in running pair2pair overlapping..."); quit()
-  overlapCalls=pandas.read_table(tmpOverlapFile, names=["bedpe2"], dtype={'bedpe2':numpy.int32})
+  overlapCalls=pandas.read_table(tmpOverlapFile, names=["bedpe2"], dtype={'bedpe2':numpy.int64})
   sys.stderr.write("END: procssing "+str(bi+1)+" of "+str(numCall)+" events\n")
   support=list(set(list(overlapCalls['bedpe2']+1)))
   return support
 
-def ParallelIdentifySupportRDP(callDF, rdpBedpeFile, callLabels, callTypes, numprocs, debug):
+def ParallelIdentifySupportRDP(callDF, rdpBedpeFile, rdpLabels, rdpTypes, numprocs, debug):
   #sys.stderr.write("in test rdp\n")
-  rdpBedpe=pandas.read_table(rdpBedpeFile, names=callLabels, dtype=dict(zip(callLabels,callTypes)))
+  rdpBedpe=pandas.read_table(rdpBedpeFile, names=rdpLabels, dtype=dict(zip(rdpLabels,rdpTypes)))
   sel=rdpBedpe['chr2']=="="
   rdpBedpe.loc[sel,('chr2')]=rdpBedpe.loc[sel,('chr1')]
-  rdpBedpe['index']=xrange(0,rdpBedpe.shape[0]) #0-based index
-  tmpBedpeFile=getTemporaryFile('bedpe_')
+  rdpBedpe['index']=xrange(0,rdpBedpe.shape[0]) #0-based rdp index
+  tmpBedpeFile=getTemporaryFile('bedpe_')       #8 cols
   #if debug: sys.stderr.write("tmpBedpeFile='"+str(tmpBedpeFile)+"'\n")
-  rdpBedpe.to_csv(tmpBedpeFile,header=False, sep="\t", index=False)
+  rdpBedpe.to_csv(tmpBedpeFile,header=False, sep="\t", index=False) #9cols
   numCall=len(callDF)
-  info=[ [i, numCall, callDF.loc[i:i,:], tmpBedpeFile, debug] for i in range(0,numCall) ] #0-based call index
+  idxCol=callDF.shape[1]+len(rdpLabels)+1
+  info=[ [i, numCall, callDF.loc[i:i,:], tmpBedpeFile, idxCol, debug] for i in range(0,numCall) ] #0-based call index
   support=[ [] for i in range(0,numCall) ] #1-based merged call index
   pool=Pool(processes=int(numprocs))
   support = pool.map( ThreadIdentifySupportRDP, info)
@@ -107,7 +110,6 @@ def ParallelIdentifyNonSelfOverlapMole(callDF, moleBedFile, callLabels, callType
   return support
 
 def ThreadIdentifyNonSelfOverlapMole(info):
-  #sys.stderr.write("in test thread\n")
   bi=info[0]
   numCall=info[1]
   df=info[2]
@@ -891,7 +893,7 @@ def compute_lrt(w1b,x1b,y1b,z1b,w2b,x2b,y2b,z2b,nw1x1,ny1z1,nw2x2,ny2z2,b,DistrT
   #  sys.stderr.write("pair2pair_cmd="+str(pair2pair_cmd)+"\n")
   #  if lib10x.run_cmd(pair2pair_cmd) == False:
   #    sys.stderr.write("Error in running pair2pair overlapping..."); quit()
-  #  overlapCalls=pandas.read_table(tmpOverlapFile, names=["bedpe1","bedpe2"], dtype=numpy.int32)
+  #  overlapCalls=pandas.read_table(tmpOverlapFile, names=["bedpe1","bedpe2"], dtype=numpy.int64)
   #  ones=[1]*overlapCalls.shape[0]
   #  overlapGraph=scipy.sparse.coo_matrix((ones,(overlapCalls.iloc[:,0],overlapCalls.iloc[:,1])), shape=(len(mixBedpe),len(mixBedpe)))
   #  numComponents, components = scipy.sparse.csgraph.connected_components(overlapGraph)
@@ -924,6 +926,6 @@ def compute_lrt(w1b,x1b,y1b,z1b,w2b,x2b,y2b,z2b,nw1x1,ny1z1,nw2x2,ny2z2,b,DistrT
   #    sys.stderr.write("pair2pair_cmd="+str(pair2pair_cmd)+"\n")
   #    if lib10x.run_cmd(pair2pair_cmd) == False:
   #      sys.stderr.write("Error in running pair2pair overlapping..."); quit()
-  #    overlapCalls=pandas.read_table(tmpOverlapFile, names=["bedpe2"], dtype=numpy.int32)
+  #    overlapCalls=pandas.read_table(tmpOverlapFile, names=["bedpe2"], dtype=numpy.int64)
   #    support[bi] = list(overlapCalls['bedpe2']+1)
   #  return support
