@@ -132,7 +132,7 @@ if(debug){
 options(stringsAsFactors = FALSE)
 statsTab=rjson::fromJSON(paste(readLines(statsFile), collapse=""))
 setwd(workDir)
-regCols=c("chr1","start1","end1","chr2","start2","end2","barcnt","FR","RF","FF","RR","MI") # in refined
+regCols=c("chr1","start1","end1","chr2","start2","end2","name","barcnt","FR","RF","FF","RR","MI") # in refined
 bedpeCols=c("chr1","st1","ed1","chr2","st2","ed2","hp")
 bedpeClass=c("character","numeric","numeric","character","numeric","numeric","numeric")
 molCols=c("chr1","st1","ed1","barID","molSize","molLen","barMolNum","molID","molHP","molPS","molBX")

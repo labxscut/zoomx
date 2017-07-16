@@ -47,11 +47,13 @@ echo "bedtools intersect -u -a $inPrefix.multiFragBar.bed.a0 -b $outDir/refined.
 bedtools intersect -u -a $inPrefix.multiFragBar.bed.a0 -b $outDir/refined.reg2.bed >$outDir/refined.reg2.mol.$suffix
 ###
 ### only produce these files for case suffix
+### first eight columns are fixed now as specified in bedpe format
+### 
 if [[ $suffix -eq "case" ]]; then
-  FRcol=8
-  RFcol=9
-  FFcol=10
-  RRcol=11
+  FRcol=9
+  RFcol=10
+  FFcol=11
+  RRcol=12
   echo "head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$FRcol | grep -o '[0-9]\+' | sed '/^$/d' | sed -e 's/$/p/g' | tr '\n' ';' >$outDir/refined.rindex.FR.$suffix"
   head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$FRcol | grep -o '[0-9]\+' | sed '/^$/d' |  sed -e 's/$/p/g' | tr '\n' ';' >$outDir/refined.rindex.FR.$suffix
   echo "head -n $headLineNum $inMolFile | tail -n $tailLineNum | cut -f$RFcol | grep -o '[0-9]\+' | sed '/^$/d' | sed -e 's/$/p/g' | tr '\n' ';' >$outDir/refined.rindex.RF.$suffix"
