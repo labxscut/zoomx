@@ -113,7 +113,6 @@ def main(args):
     sys.stderr.write("outPrefix="+str(outPrefix)+"\n")
     sys.stderr.write("bamFile="+str(bamFile)+"\n")
     sys.stderr.write("callFile="+str(callFile)+"\n")
-    sys.stderr.write("covFile="+str(covFile)+"\n")
     sys.stderr.write("frBedpeFile="+str(frBedpeFile)+"\n")
     sys.stderr.write("rfBedpeFile="+str(rfBedpeFile)+"\n")
     sys.stderr.write("ffBedpeFile="+str(ffBedpeFile)+"\n")
@@ -124,7 +123,7 @@ def main(args):
     sys.stderr.write("tempdir="+str(tempfile.tempdir)+"\n")
   
   callLabels=["chr1","start1","end1","chr2","start2","end2","barcnt"]
-  callTypes=["string",numpy.int32,numpy.int32,"string",numpy.int32,numpy.int32,numpy.int32]
+  callTypes=["string",numpy.int64,numpy.int64,"string",numpy.int64,numpy.int64,numpy.int64]
   bedpeLabels=["chr1","start1","end1","chr2","start2","end2","hp"]
   bed1Labels=["chr1","start1","end1","barcnt","index"]
   bed2Labels=["chr2","start2","end2","barcnt","index"]
@@ -134,24 +133,18 @@ def main(args):
   
   #rawCalls=pandas.read_table(callFile, names=callLabels)
   rawCalls=pandas.read_table(callFile,names=callLabels,dtype=dict(zip(callLabels,callTypes))) #only read cols 1-7
-  #keep only min barcnt and above
-  rawCalls=rawCalls[rawCalls['barcnt']>minMolCnt]
-  #add index to bedpe file
-  rawCalls['index']=xrange(0,rawCalls.shape[0])
-  sys.stderr.write("maxNum={}\n".format(maxNum))
-  #reduce rawCalls to maxNum allowed
+  rawCalls=rawCalls[rawCalls['barcnt']>minMolCnt] #keep only min barcnt and above
+  if (len(rawCalls) > maxNum): rawCalls=rawCalls[0:maxNum]
+  sys.stderr.write("maxNum={}\n".format(maxNum)) #reduce rawCalls to maxNum allowed
   sys.stderr.write("rawCalls={}\n".format(len(rawCalls)))
-  if (len(rawCalls) > maxNum):
-    rawCalls=rawCalls[0:maxNum]
 
-  mergeBedpe=pandas.DataFrame(dict(zip(callLabels,[ [] for i in range(len(callLabels)) ])), columns=callLabels)
   if (len(rawCalls) > 0):
     #save bedpe file for pairtopair overlapping
     tmpRawFile=lib10x.getTemporaryFile('bedpe_')
     if debug: sys.stderr.write("tmpRawFile='"+str(tmpRawFile)+"'\n")
     rawCalls.to_csv(tmpRawFile,header=False, sep="\t", index=False)
 
-    if (gapFile != "none"):
+    if (gapFile != "none"): #this removed additional rawCalls
       sys.stderr.write("filtering gap calls...\n")
       #do gapFile-based filtering of calls
       #assuming gapFile has already been padded
@@ -162,30 +155,36 @@ def main(args):
         sys.stderr.write("Error in running gapfilter overlapping..."); quit()
     else:
       tmpBedpeFile=tmpRawFile
-
     if debug: sys.stderr.write("tmpBedpeFile='"+str(tmpBedpeFile)+"'\n")
-    sys.stderr.write("tmpBedpeFile='"+str(tmpBedpeFile)+"'\n"); #quit()
 
+  rawCalls=pandas.read_table(tmpBedpeFile, names=callLabels,dtype=dict(zip(callLabels,callTypes))) #reload after filter
+  rawCalls['index']=xrange(0,rawCalls.shape[0]) #add index to bedpe file, index is fixed here
+  rawCalls.to_csv(tmpBedpeFile,header=False, sep="\t", index=False) #no more modificaiton to rawCalls from here
+
+  mergeBedpe=pandas.DataFrame(dict(zip(callLabels,[ [] for i in range(len(callLabels)) ])), columns=callLabels)
+  if (len(rawCalls) > 0):
+    nRawCalls = len(rawCalls)
     #pairtopair overlapping
-    sys.stderr.write("merging calls...\n")
+    sys.stderr.write("merging raw calls...\n")
+    sys.stderr.write("nRawCalls={}\n".format(nRawCalls))
     tmpOverlapFile=lib10x.getTemporaryFile('bedpe_')
-    pair2pair_cmd="bedtools pairtopair -is -a %s -b %s | cut -f8,16 >%s" % (tmpBedpeFile, tmpBedpeFile, tmpOverlapFile)
-
+    pair2pair_cmd="bedtools pairtopair -type both -is -slop 5 -a %s -b %s | cut -f8,16 >%s" % (tmpBedpeFile, tmpBedpeFile, tmpOverlapFile)
     if debug: sys.stderr.write("pair2pair_cmd="+str(pair2pair_cmd)+"\n")
+    if debug: sys.stderr.write("tmpOverlapFile='"+str(tmpOverlapFile)+"'\n")
     if lib10x.run_cmd(pair2pair_cmd) == False:
       sys.stderr.write("Error in running pair2pair overlapping..."); quit()
+
     end_time=time.time()
     sys.stderr.write("overlapping done:{}s\n".format(end_time-start_time))
-    
-    sys.stderr.write("tmpOverlapFile='"+str(tmpOverlapFile)+"'\n"); #quit()
+
     sys.stderr.write("loading overlapping graph...")
-    overlapCalls=pandas.read_table(tmpOverlapFile, names=["bedpe1","bedpe2"], dtype={'bedpe1':numpy.int32,'bedpe2':numpy.int32})
+    overlapCalls=pandas.read_table(tmpOverlapFile, names=["bedpe1","bedpe2"], dtype={'bedpe1':numpy.int64,'bedpe2':numpy.int64})
     #load pairtopair overlapping into a sparse matrix
     if debug:
       save['overlapCalls']=overlapCalls
     ones=[1]*overlapCalls.shape[0]
     sys.stderr.write("analyzing connecting component...")
-    overlapGraph=scipy.sparse.coo_matrix((ones,(overlapCalls.iloc[:,0],overlapCalls.iloc[:,1])), shape=(len(rawCalls),len(rawCalls)))
+    overlapGraph=scipy.sparse.coo_matrix((ones,(overlapCalls.iloc[:,0],overlapCalls.iloc[:,1])), shape=(nRawCalls,nRawCalls))
     if debug:
       save['overlapGraph']=overlapGraph
     #find connected components; only keep correctly ordered components
@@ -306,9 +305,9 @@ def main(args):
 #NumClust1=Clust.shape[0]
 #NumClust2=Clust.shape[1]
 #NumClust=NumClust1+NumClust2
-#Diag1=scipy.sparse.eye(NumClust1,dtype=numpy.int32,format='dok')
-#Diag2=scipy.sparse.eye(NumClust2,dtype=numpy.int32,format='dok')
-#ClustDOK=scipy.sparse.dok_matrix(Clust>=1,dtype=numpy.int32)
+#Diag1=scipy.sparse.eye(NumClust1,dtype=numpy.int64,format='dok')
+#Diag2=scipy.sparse.eye(NumClust2,dtype=numpy.int64,format='dok')
+#ClustDOK=scipy.sparse.dok_matrix(Clust>=1,dtype=numpy.int64)
 #GraphCOO=scipy.sparse.hstack([scipy.sparse.vstack([Diag1,ClustDOK]), scipy.sparse.vstack([ClustDOK.transpose(),Diag2])]) #this action converts DOK to COO
 #NumGraphComponent,GraphComponent=scipy.sparse.csgraph.connected_components(GraphCOO)
 ## output clusters in bedpe format
@@ -366,10 +365,10 @@ def run():
   parser.add_argument("call", help="SV call bedpefile, in bedpe format") 
   parser.add_argument("cfg",help="parameter config file, in JSON format")
   parser.add_argument("-g","--gapFile", default="none",help="bedfile of boundaries of known gaps >5K + slop(if any)")
-  parser.add_argument("-m","--maxNum", default=numpy.iinfo(numpy.int32).max,type=int,
+  parser.add_argument("-m","--maxNum", default=numpy.iinfo(numpy.int64).max,type=int,
     help="max number of events to process (reduce this if time constrained)")
   parser.add_argument("-e","--altExpect", default=25,type=int, help="minimum mixture fraction for alternative, specify a percentage between 10-100, default 25")
-  parser.add_argument("-f","--forcedExpect",default=2,type=int, help="forced minimum molecule support for SV events")
+  parser.add_argument("-f","--forcedExpect",default=10,type=int, help="forced minimum molecule support for SV events: default %(default)s")
   parser.add_argument("-i","--frBedpeFile", default="none",help="impp FR read file in bedpe, default=bam.FR.bedpe")
   parser.add_argument("-j","--ffBedpeFile", default="none",help="disc FF read file in bedpe, default=bam.FF.bedpe")
   parser.add_argument("-k","--rrBedpeFile", default="none",help="splt RR read file in bedpe, default=bam.RR.bedpe")
@@ -381,7 +380,7 @@ def run():
   parser.add_argument("-n","--numprocs",default=1,type=int,help="number of parallele process")
   parser.add_argument("-d","--tempdir", dest="tempdir",\
     default=os.path.join(os.environ['HOME'],'zoomx_'+lib10x.randascii(4)),\
-    help="root dir for keeping temporary files, default (last 4 digits random): %(default)s")
+    help="root dir for keeping temporary files, default (last 4 digits random): default: %(default)s")
   try:
     args = parser.parse_args()
   except SystemExit:
