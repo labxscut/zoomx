@@ -141,8 +141,9 @@ def main(args):
   sys.stderr.write("maxNum={}\n".format(maxNum)) #reduce rawCalls to maxNum allowed
   sys.stderr.write("rawCalls={}\n".format(len(rawCalls)))
 
+  tmpBedpeFile=None
   if (len(rawCalls) > 0):
-    #save bedpe file for pairtopair overlapping
+    #save tmpBedpefile for pairtopair overlapping
     tmpRawFile=lib10x.getTemporaryFile('bedpe_')
     if debug: sys.stderr.write("tmpRawFile='"+str(tmpRawFile)+"'\n")
     rawCalls.to_csv(tmpRawFile,header=False, sep="\t", index=False)
@@ -158,11 +159,11 @@ def main(args):
         sys.stderr.write("Error in running gapfilter overlapping..."); quit()
     else:
       tmpBedpeFile=tmpRawFile
-    if debug: sys.stderr.write("tmpBedpeFile='"+str(tmpBedpeFile)+"'\n")
 
-  rawCalls=pandas.read_table(tmpBedpeFile, names=callLabels,dtype=dict(zip(callLabels,callTypes))) #reload after filter
-  rawCalls['index']=xrange(0,rawCalls.shape[0]) #add index to bedpe file, index is fixed here
-  rawCalls.to_csv(tmpBedpeFile,header=False, sep="\t", index=False) #no more add/remove entries of rawCalls from here
+    rawCalls=pandas.read_table(tmpBedpeFile, names=callLabels,dtype=dict(zip(callLabels,callTypes))) #reload after filter
+    rawCalls['index']=xrange(0,rawCalls.shape[0]) #add index to bedpe file, index is fixed here
+    rawCalls.to_csv(tmpBedpeFile,header=False, sep="\t", index=False) #no more add/remove entries of rawCalls from here
+    if debug: sys.stderr.write("tmpBedpeFile='"+str(tmpBedpeFile)+"'\n")
 
   mergeBedpe=pandas.DataFrame(dict(zip(mergeLabels,[ [] for i in range(len(mergeLabels)) ])), columns=mergeLabels)
   if (len(rawCalls) > 0):
@@ -225,7 +226,7 @@ def main(args):
   end_time=time.time()
   sys.stderr.write("output merged done:{}s\n".format(end_time-start_time))
   
-  if not mergeOnly:   #quit now if only merging events, mergeBedpe has 8 cols
+  if mergeOnly:   #quit now if only merging events, mergeBedpe has 8 cols
     quit()
   
   sys.stderr.write("attaching short read support\n")
