@@ -214,68 +214,68 @@ dataReadIn = function(i, suffixes) {
     refinedRRid=rjson::fromJSON(refined$RR)
     supportRDP=length(refinedFRid)+length(refinedRFid)+length(refinedFFid)+length(refinedRRid)
 
-   refinedFR=tryCatch(read.table(paste("refined.FR.bedpe",s,sep="."),col.names=bedpeCols, colClasses=bedpeClass),error=function(e) {NULL})
-   refinedRF=tryCatch(read.table(paste("refined.RF.bedpe",s,sep="."),col.names=bedpeCols, colClasses=bedpeClass),error=function(e) {NULL})
-   refinedFF=tryCatch(read.table(paste("refined.FF.bedpe",s,sep="."),col.names=bedpeCols, colClasses=bedpeClass),error=function(e) {NULL})
-   refinedRR=tryCatch(read.table(paste("refined.RR.bedpe",s,sep="."),col.names=bedpeCols, colClasses=bedpeClass),error=function(e) {NULL})
-   refinedMI=tryCatch(read.table(paste("refined.FR.bedpe",s,sep="."),col.names=bedpeCols, colClasses=bedpeClass),error=function(e) {NULL})
+    refinedFR=tryCatch(read.table(paste("refined.FR.bedpe",s,sep="."),col.names=bedpeCols, colClasses=bedpeClass),error=function(e) {NULL})
+    refinedRF=tryCatch(read.table(paste("refined.RF.bedpe",s,sep="."),col.names=bedpeCols, colClasses=bedpeClass),error=function(e) {NULL})
+    refinedFF=tryCatch(read.table(paste("refined.FF.bedpe",s,sep="."),col.names=bedpeCols, colClasses=bedpeClass),error=function(e) {NULL})
+    refinedRR=tryCatch(read.table(paste("refined.RR.bedpe",s,sep="."),col.names=bedpeCols, colClasses=bedpeClass),error=function(e) {NULL})
+    refinedMI=tryCatch(read.table(paste("refined.FR.bedpe",s,sep="."),col.names=bedpeCols, colClasses=bedpeClass),error=function(e) {NULL})
 
-   #following assume (chr1==chr2) => st1 <= st2 in rdp output which is enforced by parse10x
-   mergedFR = do.call("rbind", 
+    #following assume (chr1==chr2) => st1 <= st2 in rdp output which is enforced by parse10x
+    mergedFR = do.call("rbind", 
                        apply(refinedFR[,1:6], 1, FUN = function(r, chr1) { 
                          if( r[1]!=chr1 | (r[4]==chr1 & as.numeric(r[2])>as.numeric(r[5])) ) 
                          { t=r[1:3]; r[1:3]=r[4:6]; r[4:6]=t; }
                          as.data.frame(t(r)) 
                       }, chr1) )
-   mergedFR = as.data.frame(mergedFR)
-   if(nrow(mergedFR)>0) { #set_colClass(mergedFR, c("character","integer","integer","character","integer","integer"));
+    mergedFR = as.data.frame(mergedFR)
+    if(nrow(mergedFR)>0) { #set_colClass(mergedFR, c("character","integer","integer","character","integer","integer"));
       mergedFR$id = paste("rdpFR",refinedFRid,sep=":"); mergedFR$type="rdpFR"; mergedFR$barcode=refinedFR$hp;
       mergedFR$mi1 = 0; mergedFR$mi2 = 0}
-   message("mergedFR"); print(mergedFR)
+    message("mergedFR"); print(mergedFR)
     
-   mergedRF = do.call("rbind", 
+    mergedRF = do.call("rbind", 
                        apply(refinedRF[,1:6], 1, FUN = function(r, chr1) { 
                          if( r[1]!=chr1 | (r[4]==chr1 & as.numeric(r[2])>as.numeric(r[5])) ) 
                          { t=r[1:3]; r[1:3]=r[4:6]; r[4:6]=t; }
                          as.data.frame(t(r)) 
                        }, chr1) )
-   if(nrow(mergedRF)>0) { #set_colClass(mergedFR, c("character","integer","integer","character","integer","integer"));
+    mergedRF = as.data.frame(mergedRF)
+    if(nrow(mergedRF)>0) { #set_colClass(mergedFR, c("character","integer","integer","character","integer","integer"));
       mergedRF$id = paste("rdpRF",refinedRFid,sep=":"); mergedRF$type="rdpRF"; mergedRF$barcode=refinedRF$hp;
       mergedRF$mi1 = 0; mergedRF$mi2 = 0}
-   mergedRF = as.data.frame(mergedRF)
-   message("mergedRF"); print(mergedRF)
+    message("mergedRF"); print(mergedRF)
     
-   mergedFF = do.call("rbind", 
+    mergedFF = do.call("rbind", 
                        apply(refinedFF[,1:6], 1, FUN = function(r, chr1) { 
                          if( r[1]!=chr1 | (r[4]==chr1 & as.numeric(r[2])>as.numeric(r[5])) ) { t=r[1:3]; r[1:3]=r[4:6]; r[4:6]=t; }
                                                                                       as.data.frame(t(r)) }, chr1))
-   mergedFF = as.data.frame(mergedFF)
-   if(nrow(mergedFF)>0) { #set_colClass(mergedFF, c("character","integer","integer","character","integer","integer")); 
+    mergedFF = as.data.frame(mergedFF)
+    if(nrow(mergedFF)>0) { #set_colClass(mergedFF, c("character","integer","integer","character","integer","integer")); 
                              mergedFF$id = paste("rdpFF",refinedFFid,sep=":"); mergedFF$type="rdpFF"; mergedFF$barcode=refinedFF$hp;
                              mergedFF$mi1 = 0; mergedFF$mi2 = 0} 
-   message("mergedFF"); print(mergedFF)
+    message("mergedFF"); print(mergedFF)
     
-   mergedRR = do.call("rbind", 
+    mergedRR = do.call("rbind", 
                        apply(refinedRR[,1:6], 1, FUN = function(r, chr1) { 
                          if( r[1]!=chr1 | (r[4]==chr1 & as.numeric(r[2])>as.numeric(r[5])) ) { t=r[1:3]; r[1:3]=r[4:6]; r[4:6]=t; } 
                        as.data.frame(t(r)) }, chr1))
-   mergedRR = as.data.frame(mergedRR)
-   if(nrow(mergedRR)>0) { #set_colClass(mergedRR, c("character","integer","integer","character","integer","integer")); 
+    mergedRR = as.data.frame(mergedRR)
+    if(nrow(mergedRR)>0) { #set_colClass(mergedRR, c("character","integer","integer","character","integer","integer")); 
                              mergedRR$id = paste("rdpRR",refinedRRid,sep=":"); mergedRR$type="rdpRR"; mergedRR$barcode=refinedRR$hp;
                              mergedRR$mi1 = 0; mergedRR$mi2 = 0}
-   message("mergedRR"); print(mergedRR)
+    message("mergedRR"); print(mergedRR)
   
-   if(!isUCSC & nrow(mergedFR)>0) {mergedFR$chr1=paste("chr",mergedFR$chr1,sep="")
+    if(!isUCSC & nrow(mergedFR)>0) {mergedFR$chr1=paste("chr",mergedFR$chr1,sep="")
                                      mergedFR$chr2=paste("chr",mergedFR$chr2,sep="")}
-   if(!isUCSC & nrow(mergedRF)>0) {mergedRF$chr1=paste("chr",mergedRF$chr1,sep="")
+    if(!isUCSC & nrow(mergedRF)>0) {mergedRF$chr1=paste("chr",mergedRF$chr1,sep="")
                                       mergedRF$chr2=paste("chr",mergedRF$chr2,sep="")}
-   if(!isUCSC & nrow(mergedFF)>0) {mergedFF$chr1=paste("chr",mergedFF$chr1,sep="")
+    if(!isUCSC & nrow(mergedFF)>0) {mergedFF$chr1=paste("chr",mergedFF$chr1,sep="")
                                      mergedFF$chr2=paste("chr",mergedFF$chr2,sep="")}
-   if(!isUCSC & nrow(mergedRR)>0) {mergedRR$chr1=paste("chr",mergedRR$chr1,sep="")
+    if(!isUCSC & nrow(mergedRR)>0) {mergedRR$chr1=paste("chr",mergedRR$chr1,sep="")
                                      mergedRR$chr2=paste("chr",mergedRR$chr2,sep="")}
-   if(!isUCSC & nrow(mergedMI)>0) {mergedMI$chr1=paste("chr",mergedMI$chr1,sep="")
+    if(!isUCSC & nrow(mergedMI)>0) {mergedMI$chr1=paste("chr",mergedMI$chr1,sep="")
                                        mergedMI$chr2=paste("chr",mergedMI$chr2,sep="")}
-   if(!isUCSC & nrow(mergedBI)>0) {mergedBI$chr1=paste("chr",mergedBI$chr1,sep="")
+    if(!isUCSC & nrow(mergedBI)>0) {mergedBI$chr1=paste("chr",mergedBI$chr1,sep="")
                                       mergedBI$chr2=paste("chr",mergedBI$chr2,sep="")}
 
   } #end of getting all rdps
