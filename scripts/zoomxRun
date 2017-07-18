@@ -449,7 +449,7 @@ if [[ ! -z $(testSubstring "Diff" $ZoomXRunOp) || ! -z $(testSubstring "Share" $
     maxSize=$(expr $(($maxPlot>$maxSize?$maxSize:$maxPlot)) - 1)
     if [[ $maxSize -ge 1 ]]; then
       for i in `seq 1 $maxSize`; do
-        getMolCMD="$ZOOMXPATH/../scripts/getMolecule.sh $resDir/$moleFile $datDir/$caseBam $i $plotDir/$moleFile.Plot $cisSize  case >>$logFile 2>&1"
+        getMolCMD="$ZOOMXPATH/../scripts/getMolecule.sh $resDir/$moleFile $datDir/$caseBam $i $plotDir/$moleFile.Plot $cisSize case >>$logFile 2>&1"
         if [[ -z $dryMode ]]; then echo $getMolCMD | bash; fi
         if [[ $mode -eq "somatic" ]]; then #output corresponding control region
           bgMolCMD="$ZOOMXPATH/../scripts/getMolecule.sh $resDir/$moleFile $datDir/$controlBam $i $plotDir/$moleFile.Plot $cisSize control >>$logFile 2>&1"

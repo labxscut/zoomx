@@ -49,7 +49,8 @@ bedtools intersect -u -a $inPrefix.multiFragBar.bed.a0 -b $outDir/refined.reg2.b
 ### only produce these files for case suffix
 ### first eight columns are fixed now as specified in bedpe format
 ### 
-if [[ $suffix -eq "case" ]]; then
+if [[ $suffix = "case" ]]; then
+  echo "#generating rdp for" $suffix
   FRcol=9
   RFcol=10
   FFcol=11
