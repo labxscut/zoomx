@@ -71,8 +71,8 @@ TRYOUT
    
       cd  ~/setup/zoomx/test 
       ./clean
-      ./germline3.run # see more notes inline within this bash script
-      ./somatic7.run  # see more notes inline within this bash script
+      ../scripts/zoomxStage germline10.cfg # germline test, see more notes inline within this bash script
+      ../scripts/zoomxStage somatic10.cfg  # somatic test, see more notes inline within this bash script
 
   *VirtualMachine*:
 
@@ -102,17 +102,16 @@ INSTALL
       samtools executables have to be in $PATH and within the sve_py virtual env
       NOTE: this is independent of the samtools api comes with Pysam. 
       
-      
     Bedtools (>2.20) http://bedtools.org
       bedtools executables have to be in $PATH and within the sve_py virtual env
    
     A script to confirm all dependencies are met is here:
 
-      https://bitbucket.org/charade/zoomx/raw/master/test/testDependency.sh   
+      https://bitbucket.org/charade/zoomx/raw/master/test/test_dep.sh   
    
-    An example dependency install script for Ubuntu is here:
+    An example dependency install script from the latest Ubuntu docker container is here:
 
-      https://bitbucket.org/charade/zoomx/raw/master/test/ubuntu.install   
+      https://bitbucket.org/charade/zoomx/raw/master/test/Dockerfile
 
     
   *Installation Free*:
