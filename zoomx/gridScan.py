@@ -389,6 +389,8 @@ def main(args):
   #make sure the initialized lists are separate
   #print >>sys.stderr, "M=", M
   
+  #this is to avoid memeory bottle neck, to parallelization is not needed
+  #however, it is realized that dividing into small pieces also improves speed, set to 20 pieces by default
   for i in xrange(0,numSub):
     for j in xrange(0,numSub):
       gtk1_time = time.time()
@@ -453,28 +455,29 @@ def main(args):
   M_data = M_data.reindex()
   
   #output possible duplications
-  M_data_dup_idx = numpy.logical_and(numpy.abs(M_data['grid1']-M_data['grid2'])==0, M_data['m12']>cutDUP).as_matrix()
-  if debug: print >>sys.stderr, "maximum possible duplication grids: ", sum(M_data_dup_idx)
-  if(sum(M_data_dup_idx)>maxDuplication):
-    maxc = max(M_data[M_data_dup_idx]['m12'])
-    cutc = 0
-    for c in range(0,maxc)[::-1]:
-      if sum(M_data[M_data_dup_idx]['m12']>c) > maxDuplication:
-        cutc = c+1 
-        break
-    M_data_dup_idx = numpy.logical_and(M_data['m12']>=cutc,M_data_dup_idx)
-    if debug: print >>sys.stderr, "limiting duplication grids to: ", cutc
+  #currently not supported
+  #M_data_dup_idx = numpy.logical_and(numpy.abs(M_data['grid1']-M_data['grid2'])==0, M_data['m12']>cutDUP).as_matrix()
+  #if debug: print >>sys.stderr, "maximum possible duplication grids: ", sum(M_data_dup_idx)
+  #if(sum(M_data_dup_idx)>maxDuplication):
+  #  maxc = max(M_data[M_data_dup_idx]['m12'])
+  #  cutc = 0
+  #  for c in range(0,maxc)[::-1]:
+  #    if sum(M_data[M_data_dup_idx]['m12']>c) > maxDuplication:
+  #      cutc = c+1 
+  #      break
+  #  M_data_dup_idx = numpy.logical_and(M_data['m12']>=cutc,M_data_dup_idx)
+  #  print >>sys.stderr, "maxDuplication limits duplication grids to minColCnt: ", cutc
 
-  M_data_dup = M_data[ M_data_dup_idx ]
-  if debug: print >>sys.stderr, "writing results to %s ..." % ".".join([outputPrefix,"M_data","dup","gz"])
-  M_data_dup.to_csv(".".join([outputPrefix,"dup","gz"]), sep="\t", index=False, compression="gzip")
-  
-  dfs = [grid1.iloc[M_data.iloc[M_data_dup_idx,0],:],grid2.iloc[M_data.iloc[M_data_dup_idx,1]],M_data.iloc[M_data_dup_idx,2].to_frame()]
-  for d in dfs: d.reset_index(drop=True, inplace=True) #very important
-  M_data_dup_bedpe=pandas.concat(dfs, names=bedpeLabels, axis=1)
+  #M_data_dup = M_data[ M_data_dup_idx ]
+  #if debug: print >>sys.stderr, "writing results to %s ..." % ".".join([outputPrefix,"M_data","dup","gz"])
+  #M_data_dup.to_csv(".".join([outputPrefix,"dup","gz"]), sep="\t", index=False, compression="gzip")
+  #
+  #dfs = [grid1.iloc[M_data.iloc[M_data_dup_idx,0],:],grid2.iloc[M_data.iloc[M_data_dup_idx,1]],M_data.iloc[M_data_dup_idx,2].to_frame()]
+  #for d in dfs: d.reset_index(drop=True, inplace=True) #very important
+  #M_data_dup_bedpe=pandas.concat(dfs, names=bedpeLabels, axis=1)
 
-  print >>sys.stderr, "writing results to %s ..." % ".".join([outputPrefix,"dup","bedpe"])
-  M_data_dup_bedpe.to_csv(open(".".join([outputPrefix,"dup","bedpe"]),'w'), sep="\t", index=False, header=False)
+  #print >>sys.stderr, "writing results to %s ..." % ".".join([outputPrefix,"dup","bedpe"])
+  #M_data_dup_bedpe.to_csv(open(".".join([outputPrefix,"dup","bedpe"]),'w'), sep="\t", index=False, header=False)
   
   M_data_jct_idx = numpy.logical_and(M_data['grid2']-M_data['grid1']>3, M_data['m12']>cutFDR).as_matrix()
   #output possible junctions, only keep grid1<grid2 entries
@@ -490,11 +493,11 @@ def main(args):
         cutc = c+1 
         break
     M_data_jct_idx = numpy.logical_and(M_data['m12']>=cutc,M_data_jct_idx)
-    if debug: print >>sys.stderr, "limiting junction grids to: ", cutc
+    print >>sys.stderr, "maxJunction limits junction grids to minMolCnt: ", cutc
 
   M_data_jct = M_data[ M_data_jct_idx ]
   if debug: print >>sys.stderr, "writing results to %s ..." % ".".join([outputPrefix,"jct","gz"])
-  M_data_jct.to_csv(".".join([outputPrefix,"jct","gz"]), sep="\t", index=False, compression="gzip")
+  if debug: M_data_jct.to_csv(".".join([outputPrefix,"jct","gz"]), sep="\t", index=False, compression="gzip")
   
   dfs = [grid1.iloc[M_data.iloc[M_data_jct_idx,0],range(0,3)],grid2.iloc[M_data.iloc[M_data_jct_idx,1],range(0,3)],M_data.iloc[M_data_jct_idx,2].to_frame()]
   #print dfs
@@ -620,7 +623,7 @@ def run():
   parser.add_argument("-x","--maxDuplication",type=int,default=10000000,help="maximum expected number of >gridSize duplications")
   parser.add_argument("-y","--maxJunction",type=int,default=10000000,help="maximum expected number of >gridSize junctions")
   parser.add_argument("-p","--aneuploidyAllowance",type=float,default=4,help="adjust background rate by known aneuploidy")
-  parser.add_argument("-n","--numSub",default=2,type=int,help="number of submatrix used for huge sparse matrices dot multiplication, memory=1/n^2")
+  parser.add_argument("-n","--numSub",default=20,type=int,help="number of submatrix used for huge sparse matrices dot multiplication, memory=1/n^2")
   parser.add_argument("-m","--maxTagFraction",type=float,default=-1,help="max tag fraction to be considerrred")
   parser.add_argument("-g","--genomeSize",type=int,default=3200000000,help="bp size of the whole genome")
   parser.add_argument("-r","--gridSize",type=int,default=10000,help="bp size of the unit grid")
