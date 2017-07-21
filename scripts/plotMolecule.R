@@ -459,43 +459,52 @@ names(allData)=suffixes
 
 #chr1  start1	end1	chr2	start2	end2	molcnt	breakpoint1	breakpoint2	SVType	AlleleFraction	ReadPair Sample
 infoTabNew = Reduce(rbind, lapply(allData,'[[',"infoTab"))
-
 infoFile = paste(plotPrefix,"info","txt",sep=".")
-bayesPlot =  paste(plotPrefix,"bayes","pdf",sep=".")
+infoTabOutput=infoTabNew
+if(length(suffixes)==2) {
+  #do the fisher exact test here, second row is control
+  zC=infoTabNew[2,]$featureMol
+  kC=infoTabNew[2,]$totalMol-2*infoTabNew[2,]$featureMol #nC-zC
+  zT=infoTabNew[1,]$featureMol
+  kT=infoTabNew[1,]$totalMol-1*infoTabNew[1,]$featureMol #nC-zC
+  t=fisher.test(rbind(c(zC,zT),c(kC,kT)), alternative="less")
+  infoTabOutput$fisherP=t$p.value
+}
 
 #do the bayesian statistics here:
 #objectiveFrequency = 0.05 # H0[0,objectiveFrequency] vs H1[objectiveFrequency,1]
+#bayesPlot =  paste(plotPrefix,"bayes","pdf",sep=".")
 #adapted from https://mvuorre.github.io/post/2017/bayes-factors-with-brms/
-if(length(suffixes)==2) { #second row is control, i.e. prior
-  alpha0=1; beta0=1; # pseudo count, #of success, #of failures
-  alpha1=alpha0+infoTabNew[2,]$featureMol #pseudo count adjusted prior # of success
-  beta1=beta0+infoTabNew[2,]$totalMol-2*infoTabNew[2,]$featureMol #psuedo count adjusted prior # of failure; two times bc molecule counted twice
-  d=data.frame(s = infoTabNew[1,]$featureMol, k = infoTabNew[1,]$totalMol - infoTabNew[1,]$featureMol) # s success of k tries
-  Prior=brms::set_prior(paste("beta(",alpha1,",", beta1,")",sep=""), class = "b", lb = 0, ub = 1)
-  m=brms::brm(s | trials(k) ~ 0 + intercept, family = binomial(link="identity"), prior = Prior, data = d, sample_prior = TRUE, iter = 1e4, cores = 1)
-  samples=brms::posterior_samples(m, "b")
-  h=brms::hypothesis(m, paste("intercept >", minAlleleFraction)) #specifies H0
-  BF01=h$hypothesis$Evid.Ratio #BF01, additional evidence of H0 vs H1
-  Star=h$hypothesis$Star
-  #Sample is 18
-  infoTabNew$minAlleleFraction=minAlleleFraction #19
-  infoTabNew$controlTotalMol=infoTabNew[2,]$totalMol #20
-  infoTabNew$controlFeatureMol=infoTabNew[2,]$featureMol #21
-  infoTabNew$BF01=BF01 #22
-  infoTabNew$Star=Star #23
-  pdf(file=bayesPlot)
-  plot(h)
-  dev.off()
-} else {
-  infoTabNew$minAlleleFraction=minAlleleFraction
-  infoTabNew$BF01=NA
-  infoTabNew$Star=NA
-  infoTabNew$controlTotalMol=NA
-  infoTabNew$controlFeatureMol=NA
-}
+# if(length(suffixes)==2) { #second row is control, i.e. prior
+#   alpha0=1; beta0=1; # pseudo count, #of success, #of failures
+#   alpha1=alpha0+infoTabNew[2,]$featureMol #pseudo count adjusted prior # of success
+#   beta1=beta0+infoTabNew[2,]$totalMol-2*infoTabNew[2,]$featureMol #psuedo count adjusted prior # of failure; two times bc molecule counted twice
+#   d=data.frame(s = infoTabNew[1,]$featureMol, k = infoTabNew[1,]$totalMol - infoTabNew[1,]$featureMol) # s success of k tries
+#   Prior=brms::set_prior(paste("beta(",alpha1,",", beta1,")",sep=""), class = "b", lb = 0, ub = 1)
+#   m=brms::brm(s | trials(k) ~ 0 + intercept, family = binomial(link="identity"), prior = Prior, data = d, sample_prior = TRUE, iter = 1e4, cores = 1)
+#   samples=brms::posterior_samples(m, "b")
+#   h=brms::hypothesis(m, paste("intercept >", minAlleleFraction)) #specifies H0
+#   BF01=h$hypothesis$Evid.Ratio #BF01, additional evidence of H0 vs H1
+#   Star=h$hypothesis$Star
+#   #Sample is 18
+#   infoTabNew$minAlleleFraction=minAlleleFraction #19
+#   infoTabNew$controlTotalMol=infoTabNew[2,]$totalMol #20
+#   infoTabNew$controlFeatureMol=infoTabNew[2,]$featureMol #21
+#   infoTabNew$BF01=BF01 #22
+#   infoTabNew$Star=Star #23
+#   pdf(file=bayesPlot)
+#   plot(h)
+#   dev.off()
+# } else {
+#   infoTabNew$minAlleleFraction=minAlleleFraction
+#   infoTabNew$BF01=NA
+#   infoTabNew$Star=NA
+#   infoTabNew$controlTotalMol=NA
+#   infoTabNew$controlFeatureMol=NA
+# }
 
 #infoTabNew=infoTabNew[c(names(infoTabNew)[1:17],names(infoTabNew)[22:23],names(infoTabNew)[18:21])]
-infoTabOutput=infoTabNew[,c(1:17,20:21,19,22:23,18)]
+#infoTabOutput=infoTabNew[,c(1:17,20:21,19,22:23,18)]
 message("infoFile=",workDir,"/",infoFile); print(infoTabOutput)
 write.table(infoTabOutput[1,],file=infoFile,col.names=TRUE,row.names=FALSE,sep="\t",quote=FALSE)
 

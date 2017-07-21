@@ -52,6 +52,7 @@ RUN mkdir -p $(Rscript -e 'cat(Sys.getenv("R_LIBS_USER"))')
 RUN Rscript -e 'install.packages("optparse",repos="http://cran.us.r-project.org")'  
 RUN Rscript -e 'install.packages("rjson",repos="http://cran.us.r-project.org")'  
 RUN Rscript -e 'install.packages("RColorBrewer",repos="http://cran.us.r-project.org")'  
+RUN Rscript -e 'install.packages("brms",repos="http://cran.us.r-project.org")'  
 #Bioconductor: GenomicRanges, ggbio, GenomeInfoDb
 RUN Rscript -e 'source("http://bioconductor.org/biocLite.R"); biocLite("rhdf5",ask=F)'
 RUN Rscript -e 'source("http://bioconductor.org/biocLite.R"); biocLite("GenomicRanges",ask=F)'
