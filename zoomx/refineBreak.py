@@ -210,15 +210,15 @@ def main(args):
     mergeEnd2=numpy.array([None] * numComponents, dtype="object")
     mergeMolCnt=numpy.array([None] * numComponents, dtype="object")
     for ci in range(numComponents): # return the max element to represent the component
-      ri=numpy.where(components == ci) # rows within in the same component
-      mergeMolCnt[ci]=max(rawCalls.iloc[ri]['barcnt']) #max molecule of this component
-      maxri=numpy.argmax(rawCalls.iloc[ri]['barcnt'])
+      ri=numpy.where(components == ci)                    # rows within in the same component
+      mergeMolCnt[ci]=max(rawCalls.iloc[ri]['barcnt'])    # max molecule of this component
+      maxri=numpy.argmax(rawCalls.iloc[ri]['barcnt'])     # which has max molecule
       mergeChr1[ci]=list(numpy.unique(rawCalls.iloc[ri]['chr1']))[0]
       mergeChr2[ci]=list(numpy.unique(rawCalls.iloc[ri]['chr2']))[0]
-      mergeStart1[ci]=rawCalls.iloc[ri]['start1'][maxri]
-      mergeEnd1[ci]=rawCalls.iloc[ri]['end1'][maxri]
-      mergeStart2[ci]=rawCalls.iloc[ri]['start2'][maxri]
-      mergeEnd2[ci]=rawCalls.iloc[ri]['end2'][maxri]
+      mergeStart1[ci]=rawCalls.iloc[ri]['start1'][maxri]  #take the entry has the max molecule, kill others
+      mergeEnd1[ci]=rawCalls.iloc[ri]['end1'][maxri]      #
+      mergeStart2[ci]=rawCalls.iloc[ri]['start2'][maxri]  #
+      mergeEnd2[ci]=rawCalls.iloc[ri]['end2'][maxri]      #
 
     mergeName=["call_"+str(x) for x in xrange(1,len(mergeChr1)+1)]
     mergeBedpe=pandas.DataFrame(dict(zip(mergeLabels,[mergeChr1,mergeStart1,mergeEnd1,mergeChr2,mergeStart2,mergeEnd2,mergeName,mergeMolCnt])), columns=mergeLabels) # natually sorted, good!

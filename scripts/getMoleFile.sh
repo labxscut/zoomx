@@ -1,22 +1,17 @@
 #!/bin/bash
-#to use this script need to set $cfgfile and $moleFile
-if [[ -z $1 ]]; then
-  cfgfile=$cfgfile
-else
-  cfgfile=$1
+if [[ -z $4 ]]; then 
+  echo usage: getMolecule.sh \$moleFile \$bamFile \$cisSize \$sampleType
+  exit
 fi
-if [[ -z $2 ]]; then
-  moleFile=$moleFile
-else
-  moleFile=$2
-fi
-source $cfgfile
-log=$moleFile.log.getMoleFile.$mydate
+moleFile=$1
+bamFile=$2
+cisSize=$3
+sampleType=$4
+cfgFile=$bamFile.gridScan.cfg.json        #output of gridScan configuraiton
+log=$moleFile.getMoleFile.log
 maxSize=$(cat $moleFile | wc -l)
-maxSize=$(expr $(($maxPlot>$maxSize?$maxSize:$maxPlot)) - 1)
 for i in `seq 1 $maxSize`; do
-  getMolCMD="$ZOOMXPATH/../scripts/getMolecule.sh $moleFile $outputPf/$caseBam $i $moleFile.Plot >>$log 2>&1"
-  echo $getMolCMD | bash
-  #plotMolCMD="$ZOOMXPATH/../scripts/plotMolecule.R $isUCSC $moleFile.Plot_$i >>$log 2>&1"
-  #echo $plotMolCMD | bash
+  getMolCMD="getMolecule.sh $moleFile $bamFile $i $moleFile.Plot $cisSize $sampleType >>$log 2>&1"
+  echo $getMolCMD
+  nohup $getMolCMD &
 done
