@@ -55,8 +55,8 @@ def main(args):
     maxTagFraction = args.maxTagFraction
     expectFalseDiscover = args.expectFalseDiscover
     aneuploidyAllowance = args.aneuploidyAllowance
-    maxDuplication = args.maxDuplication
     maxJunction = args.maxJunction
+    maxDuplication = args.maxDuplication
     genomeSize = args.genomeSize
     gridSize = args.gridSize
     numSub = args.numSub
@@ -620,8 +620,8 @@ def run():
   parser.add_argument("-s","--skipFile1",default="none",help="1st skipped grid regions BED formatted (optional)")
   parser.add_argument("-t","--skipFile2",default="same",help="2nd skipped grid regions BED formatted (optional)")
   parser.add_argument("-e","--expectFalseDiscover",type=int,default=10,help="expected false discovery allowed")
-  parser.add_argument("-x","--maxDuplication",type=int,default=10000000,help="maximum expected number of >gridSize duplications")
-  parser.add_argument("-y","--maxJunction",type=int,default=10000000,help="maximum expected number of >gridSize junctions")
+  parser.add_argument("-y","--maxJunction",type=int,default=1000000,help="maximum expected number of >gridSize junctions")
+  parser.add_argument("-x","--maxDuplication",type=int,default=1000000,help="maximum expected number of >gridSize duplications")
   parser.add_argument("-p","--aneuploidyAllowance",type=float,default=4,help="adjust background rate by known aneuploidy")
   parser.add_argument("-n","--numSub",default=20,type=int,help="number of submatrix used for huge sparse matrices dot multiplication, memory=1/n^2")
   parser.add_argument("-m","--maxTagFraction",type=float,default=-1,help="max tag fraction to be considerrred")

@@ -199,6 +199,7 @@ dataReadIn = function(i, suffixes) {
   message("mergedBI"); print(mergedBI)
   
   # add "chr" for non UCSC format, required step to use BSgenome
+  message("refined"); print(refined)
   if(!isUCSC & nrow(refined)>0) {refined$chr1=paste("chr",refined$chr1,sep="")}
   if(!isUCSC & nrow(refined)>0) {refined$chr2=paste("chr",refined$chr2,sep="")}
   if(!isUCSC & nrow(refinedReg1)>0) {refinedReg1$chr1=paste("chr",refinedReg1$chr1,sep="")}
