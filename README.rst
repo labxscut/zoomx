@@ -92,12 +92,10 @@ INSTALL
 
     R(>=3.3)  http://r-project.org
       
-      CRAN: optparse, rjson, RColorBrewer
+      CRAN: optparse, rjson, RColorBrewer, brms, rhdf5, cowplot
  
-      Bioconductor: IRanges, GenomicRanges, ggbio, GenomeInfoDb
+      Bioconductor: IRanges, GenomicRanges, ggbio, GenomeInfoDb, BSgenome.Hsapiens.UCSC.hg38, BSgenome.Hsapiens.UCSC.hg19
 
-      NOTE: using non-essential R scripts not listed in the EXECUTABLES section of this README file may incurr more dependencies, such as rhdf5, BSgenome.Hsapiens.UCSC.hg38, BSgenome.Hsapiens.UCSC.hg19, cowplot. 
-      
     Samtools (>0.19) http://samtools.org
       samtools executables have to be in $PATH and within the sve_py virtual env
       NOTE: this is independent of the samtools api comes with Pysam. 

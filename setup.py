@@ -13,25 +13,25 @@ subprocess.call(generateVersion, shell=True)
 
 """samtools"""
 
-print "cd htslib && autoheader && autoconf && ./configure && make"
-samtools_OK = os.system("cd htslib && autoheader && autoconf && ./configure && make") == 0
-print "cd samtools && autoconf -Wno-syntax && ./configure && make"
-samtools_OK = samtools_OK and os.system("cd samtools && autoconf -Wno-syntax && ./configure && make") == 0
-print "cp samtools/samtools %s" % sys.prefix
-samtools_OK = samtools_OK and os.system("cp samtools/samtools %s/bin" % sys.prefix) == 0
-if not samtools_OK:
-  sys.stderr.write("failed samtools installation, quit\n")
-  quit()
+#print "cd htslib && autoheader && autoconf && ./configure && make"
+#samtools_OK = os.system("cd htslib && autoheader && autoconf && ./configure && make") == 0
+#print "cd samtools && autoconf -Wno-syntax && ./configure && make"
+#samtools_OK = samtools_OK and os.system("cd samtools && autoconf -Wno-syntax && ./configure && make") == 0
+#print "cp samtools/samtools %s" % sys.prefix
+#samtools_OK = samtools_OK and os.system("cp samtools/samtools %s/bin" % sys.prefix) == 0
+#if not samtools_OK:
+#  sys.stderr.write("failed samtools installation, quit\n")
+#  quit()
 
 """bedtools"""
 
-print "cd bedtools2 && make"
-bedtools_OK = os.system("cd bedtools2 && make") == 0
-print "cp bedtools2/bin/* %s/bin" % sys.prefix
-bedtools_OK = bedtools_OK and os.system("cp bedtools2/bin/* %s/bin" % sys.prefix) == 0
-if not bedtools_OK:
-  sys.stderr.write("failed bedtools installation, quit\n")
-  quit()
+#print "cd bedtools2 && make"
+#bedtools_OK = os.system("cd bedtools2 && make") == 0
+#print "cp bedtools2/bin/* %s/bin" % sys.prefix
+#bedtools_OK = bedtools_OK and os.system("cp bedtools2/bin/* %s/bin" % sys.prefix) == 0
+#if not bedtools_OK:
+#  sys.stderr.write("failed bedtools installation, quit\n")
+#  quit()
 
 #"""scripts"""
 #print "cp scripts/* %s/bin" % sys.prefix
@@ -57,7 +57,7 @@ dist=setup(name="zoomx",
 	  		       'scripts/bedpe2loupe.sh', 'scripts/getSomatic.sh', \
                'scripts/plotStats.R', 'scripts/plotCircus.R', \
                'scripts/plotCumCov.R', 'scripts/plotDenCov.R', \
-               'scripts/filterMolecule.R', 'scripts/zoomxRun'],
+               'scripts/filterMolecule.R', 'scripts/zoomxRun', 'scripts/zoomxStage'],
     data_files = [('',['README.rst','LICENSE','VERSION.txt'])],
     entry_points = { 
       'console_scripts': [
