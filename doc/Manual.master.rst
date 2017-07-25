@@ -18,7 +18,7 @@ $ZOOMXPKG/zoomx/gridScan.py
 
   REPLACE_WITH_ZOOMX_GRIDSCAN_HELP
 
-$ZOOMXPKG/zoomx/gridScan.py
+$ZOOMXPKG/zoomx/refineBreak.py
 
 .. code:: bash
 
