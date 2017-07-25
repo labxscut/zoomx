@@ -114,10 +114,14 @@ INSTALL
     
   *Installation Free*:
 
-    ZoomX can be used without installation as long as required commands are all in $PATH.
+    ZoomX can be used without installation as long as required commands in proper versions are all in $PATH.
     see `Examples <https://bitbucket.org/charade/zoomx/wiki/Example>`__ and `Manuals <https://bitbucket.org/charade/zoomx/wiki/Manual>`__ for more informations
 
-  *Installation*
+  *Installation Docker*:
+    
+    A Dockerfile is provided to build zoomx enabled docker image from a standard Ubuntu docker image. 
+
+  *Installation Python / Virtual Python*
     
     You can install ZoomX as a standard package to your site python without virtualenv, in particular when all python dependencies are already met. If you take this approach, please adapt following virtualenv based installation to your need.
 
@@ -166,7 +170,9 @@ INSTALL
 EXECUTABLES      
 -----------
 
-  zoomxRun      --  a meta pipeline script runs ZoomX's other scripts given a configure file. see `Examples <https://bitbucket.org/charade/zoomx/wiki/Example>`__ .   
+  zoomxStage    --  a meta script to run zoomxRun with multiple specified stages.
+
+  zoomxRun      --  an interface script runs ZoomX's stage scripts given a configure file. see `Examples <https://bitbucket.org/charade/zoomx/wiki/Example>`__ .   
 
   parse10x      --  parsing 10X genomics (Chromium) bam. X.bam.bai has to be in place for X.bam.
     
