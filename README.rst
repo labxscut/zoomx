@@ -108,11 +108,6 @@ INSTALL
     A script to confirm all dependencies are met is here:
 
       https://bitbucket.org/charade/zoomx/raw/master/test/test_dep.sh   
-   
-    An example dependency install script from the latest Ubuntu docker container is here:
-
-      https://bitbucket.org/charade/zoomx/raw/master/test/Dockerfile
-
     
   *Installation Free*:
 
@@ -122,6 +117,8 @@ INSTALL
   *Installation Docker*:
     
     A Dockerfile is provided to build zoomx enabled docker image from a standard Ubuntu docker image. 
+
+      https://bitbucket.org/charade/zoomx/raw/master/Dockerfile
 
   *Installation Python / Virtual Python*
     

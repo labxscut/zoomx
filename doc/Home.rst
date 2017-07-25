@@ -71,8 +71,8 @@ TRYOUT
    
       cd  ~/setup/zoomx/test 
       ./clean
-      ./germline3.run # see more notes inline within this bash script
-      ./somatic7.run  # see more notes inline within this bash script
+      ../scripts/zoomxStage germline10.cfg # germline test, see more notes inline within this bash script
+      ../scripts/zoomxStage somatic10.cfg  # somatic test, see more notes inline within this bash script
 
   *VirtualMachine*:
 
@@ -92,35 +92,38 @@ INSTALL
 
     R(>=3.3)  http://r-project.org
       
-      CRAN: optparse, rjson, RColorBrewer
+      CRAN: optparse, rjson, RColorBrewer, brms, rhdf5, cowplot
  
-      Bioconductor: IRanges, GenomicRanges, ggbio, GenomeInfoDb
+      Bioconductor: IRanges, GenomicRanges, ggbio, GenomeInfoDb, BSgenome.Hsapiens.UCSC.hg38, BSgenome.Hsapiens.UCSC.hg19
 
-      NOTE: using non-essential R scripts not listed in the EXECUTABLES section of this README file may incurr more dependencies, such as rhdf5, BSgenome.Hsapiens.UCSC.hg38, BSgenome.Hsapiens.UCSC.hg19, cowplot. 
-      
     Samtools (>0.19) http://samtools.org
       samtools executables have to be in $PATH and within the sve_py virtual env
       NOTE: this is independent of the samtools api comes with Pysam. 
       
-      
     Bedtools (>2.20) http://bedtools.org
       bedtools executables have to be in $PATH and within the sve_py virtual env
+
+    To cope with their rare command interface change, working versions of Samtools and Bedtools are also provided with ZoomX. 
    
     A script to confirm all dependencies are met is here:
 
-      https://bitbucket.org/charade/zoomx/raw/master/test/testDependency.sh   
+      https://bitbucket.org/charade/zoomx/raw/master/test/test_dep.sh   
    
-    An example dependency install script for Ubuntu is here:
+    An example dependency install script from the latest Ubuntu docker container is here:
 
-      https://bitbucket.org/charade/zoomx/raw/master/test/ubuntu.install   
+      https://bitbucket.org/charade/zoomx/raw/master/test/Dockerfile
 
     
   *Installation Free*:
 
-    ZoomX can be used without installation as long as required commands are all in $PATH.
+    ZoomX can be used without installation as long as required commands in proper versions are all in $PATH.
     see `Examples <https://bitbucket.org/charade/zoomx/wiki/Example>`__ and `Manuals <https://bitbucket.org/charade/zoomx/wiki/Manual>`__ for more informations
 
-  *Installation*
+  *Installation Docker*:
+    
+    A Dockerfile is provided to build zoomx enabled docker image from a standard Ubuntu docker image. 
+
+  *Installation Python / Virtual Python*
     
     You can install ZoomX as a standard package to your site python without virtualenv, in particular when all python dependencies are already met. If you take this approach, please adapt following virtualenv based installation to your need.
 
@@ -169,7 +172,9 @@ INSTALL
 EXECUTABLES      
 -----------
 
-  zoomxRun      --  a meta pipeline script runs ZoomX's other scripts given a configure file. see `Examples <https://bitbucket.org/charade/zoomx/wiki/Example>`__ .   
+  zoomxStage    --  a meta script to run zoomxRun with multiple specified stages.
+
+  zoomxRun      --  an interface script runs ZoomX's stage scripts given a configure file. see `Examples <https://bitbucket.org/charade/zoomx/wiki/Example>`__ .   
 
   parse10x      --  parsing 10X genomics (Chromium) bam. X.bam.bai has to be in place for X.bam.
     
