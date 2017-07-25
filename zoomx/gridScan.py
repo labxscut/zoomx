@@ -394,7 +394,7 @@ def main(args):
   for i in xrange(0,numSub):
     for j in xrange(0,numSub):
       gtk1_time = time.time()
-      print >>sys.stderr, "X-", i, ".Y-", j, ":",  
+      if debug: print >>sys.stderr, "X-", i, ".Y-", j, ":",  
       M[i][j] = lib10x.sparse_sub_dot(X, Y, sub_size_x, i, sub_size_y, j)
       print >>sys.stderr, M[i][j].shape
       if debug: print >>sys.stderr, "nnzs:", M[i][j].nnz
@@ -403,7 +403,7 @@ def main(args):
       if debug: print >>sys.stderr, "nnz after taking out <cutFDR:", M[i][j].nnz
       M[i][j] = M[i][j].tocoo()
       gtk2_time = time.time()
-      print >>sys.stderr, gtk2_time-gtk1_time, "s done"
+      if debug: print >>sys.stderr, gtk2_time-gtk1_time, "s done"
   
   del X, Y, overlap1, overlap2, fragdata, frag2tagidx
   gc.collect()
@@ -447,7 +447,7 @@ def main(args):
     lib10x.save_sparse_csr(".".join([outputPrefix,"M"]),M)
   
   M = M.tocoo()
-  print >>sys.stderr, "M is symmetric: ", lib10x.is_symmetric(M)
+  if debug: print >>sys.stderr, "M is symmetric: ", lib10x.is_symmetric(M)
   M_data = pandas.DataFrame({ 'grid1' : M.row, 'grid2' : M.col, 'm12' : M.data }) #0-based grid indicies
   sel = M_data['grid1'] <= M_data['grid2']
   M_data = M_data.loc[sel,]
@@ -484,7 +484,7 @@ def main(args):
   #filter out diagonal (+/-)3 elements
   #write M_data to csv
   #convert M_data to bed
-  if debug: print >>sys.stderr, "maximum possible junction grids: ", sum(M_data_jct_idx)
+  print >>sys.stderr, "maximum possible remote junction grids maxJunction: ", maxJunction 
   if(sum(M_data_jct_idx)>maxJunction):
     maxc = max(M_data[M_data_jct_idx]['m12'])
     cutc = 0
@@ -493,18 +493,23 @@ def main(args):
         cutc = c+1 
         break
     M_data_jct_idx = numpy.logical_and(M_data['m12']>=cutc,M_data_jct_idx)
-    print >>sys.stderr, "maxJunction limits junction grids to minMolCnt: ", cutc
+    print >>sys.stderr, "maxJunction limits junction grids having minMolCnt: ", cutc
 
   M_data_jct = M_data[ M_data_jct_idx ]
   if debug: print >>sys.stderr, "writing results to %s ..." % ".".join([outputPrefix,"jct","gz"])
   if debug: M_data_jct.to_csv(".".join([outputPrefix,"jct","gz"]), sep="\t", index=False, compression="gzip")
+
+  # if debug: print(M_data_jct_idx)                           # a boolean masking vector
+  # if debug: print(M_data.loc[M_data_jct_idx][0])            # not working, 
+  # if debug: print(M_data[M_data_jct_idx].iloc[:,0]          # works
   
-  dfs = [grid1.iloc[M_data.iloc[M_data_jct_idx,0],range(0,3)],grid2.iloc[M_data.iloc[M_data_jct_idx,1],range(0,3)],M_data.iloc[M_data_jct_idx,2].to_frame()]
-  #print dfs
+  dfs = [ grid1.iloc[M_data[M_data_jct_idx].iloc[:,0],range(0,3)], \
+          grid2.iloc[M_data[M_data_jct_idx].iloc[:,1],range(0,3)], \
+          M_data[M_data_jct_idx].iloc[:,2].to_frame() ]
   for d in dfs: d.reset_index(drop=True, inplace=True) #very important
-  M_data_dup_bedpe=pandas.concat(dfs, names=bedpeLabels, axis=1)
+  M_data_jct_bedpe=pandas.concat(dfs, names=bedpeLabels, axis=1)
   print >>sys.stderr, "writing results to %s ..." % ".".join([outputPrefix,"jct","bedpe"])
-  M_data_dup_bedpe.to_csv(open(".".join([outputPrefix,"jct","bedpe"]),'w'), sep="\t", index=False, header=False)
+  M_data_jct_bedpe.to_csv(open(".".join([outputPrefix,"jct","bedpe"]),'w'), sep="\t", index=False, header=False)
   
   cfgFile = "{}.{}".format(outputPrefix,"gridScan.cfg.json")
   scanConfig['G'] = genomeSize
@@ -515,9 +520,7 @@ def main(args):
   scanConfig['mNb'] = parsedBarcode
   scanConfig['fNb'] = filteredBarcode
   scanConfig['Tb'] = tagFractionSquareSum 
-  #scanConfig['Cem'] = fragNumber * averageFragLength / float(genomeSize)
   scanConfig['Cem'] = expectJunctionFrag
-  #scanConfig['E0'] = parsedBarcode**2 * (gridSize/float(genomeSize))**2 * (tagFractionSquareSum)
   scanConfig['E0'] = expectShareFrag
   with open(cfgFile, 'w') as f: json.dump(scanConfig, f)
   
