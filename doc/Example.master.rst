@@ -13,6 +13,15 @@ To run following examples:
   - Download and unzip the full test data set `zoomx.test.full.tgz: <REPLACE_WITH_DOWNLOADLINK>`__ and place the data into $ZOOMXPKG/test
   - Configure the $ZOOMXPKG/test/germline10.cfg and $ZOOMXPKG/test/somatic10.cfg files to reflect your $ZOOMXPKG
   - Change into $ZOOMXPKG/test and run the germline10.run and somatic10.run testing scripts
+  
+  .. code:: bash
+
+    cd $ZOOMXPKG/test
+    wget https://s3-us-west-2.amazonaws.com/lixiabucket/zoomx.test.full.tgz -O zoomx.test.full.tgz
+    tar -zxvf zoomx.test.full.tgz
+    # edit $ZOOMXPKG/test/germline10.cfg  and $ZOOMXPKG/test/somatic10.cfg
+    ./germline10.run
+    ./somatic10.run
 
 An example ZoomX germline analysis
 --------------------------------------------------
