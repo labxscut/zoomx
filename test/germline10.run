@@ -1,0 +1,3 @@
+#!/bin/bash
+export PATH=$PWD:$PATH
+zoomxStage germline10.cfg

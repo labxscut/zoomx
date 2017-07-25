@@ -102,6 +102,8 @@ INSTALL
       
     Bedtools (>2.20) http://bedtools.org
       bedtools executables have to be in $PATH and within the sve_py virtual env
+
+    To cope with their rare command interface change, working versions of Samtools and Bedtools are also provided with ZoomX. 
    
     A script to confirm all dependencies are met is here:
 
