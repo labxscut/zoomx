@@ -51,6 +51,8 @@ RUN apt-get install -y r-base
 ### install R packages ###
 RUN mkdir -p $(Rscript -e 'cat(Sys.getenv("R_LIBS_USER"))')
 #CRAN: optparse, rjson, RColorBrewer
+RUN Rscript -e 'install.packages("devtools",repos="http://cran.us.r-project.org")'  
+RUN Rscript -e 'install.packages("igraph",repos="http://cran.us.r-project.org")'  
 RUN Rscript -e 'install.packages("optparse",repos="http://cran.us.r-project.org")'  
 RUN Rscript -e 'install.packages("rjson",repos="http://cran.us.r-project.org")'  
 RUN Rscript -e 'install.packages("cowplot",repos="http://cran.us.r-project.org")'  

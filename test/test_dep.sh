@@ -70,7 +70,7 @@ done
 echo "$failed_c_deps"
 
 echo "testing R dependencies ..."
-r_deps=(optparse rjson RColorBrewer rhdf5 cowplot IRanges GenomicRanges ggbio GenomeInfoDb BSgenome.Hsapiens.UCSC.hg19 BSgenome.Hsapiens.UCSC.hg19)
+r_deps=(devtools optparse rjson ggplot2 RColorBrewer cowplot igraph IRanges GenomicRanges ggbio GenomeInfoDb BSgenome.Hsapiens.UCSC.hg19 BSgenome.Hsapiens.UCSC.hg19)
 failed_r_deps="Failed R Dependencies: "
 for d in ${r_deps[*]}; do 
   echo -n $d:

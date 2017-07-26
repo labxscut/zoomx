@@ -37,11 +37,8 @@ myrequire = function(pkg, repo="CRAN", version=NULL, lib=Sys.getenv("R_LIBS_USER
   })
 }
 
-#for(p in c("optparse", "rjson", "ggplot2", "RColorBrewer")) myrequire(p)
-#for(p in c("GenomicRanges", "ggbio")) myrequire(p,repo="Bioc")
-#for(p in c("optparse", "rjson", "ggplot2", "RColorBrewer","GenomicRanges", "ggbio")) require(p,character.only=T)
-#for(p in c("devtools", "optparse", "rjson", "ggplot2", "RColorBrewer", "cowplot", "igraph", "raster","httr","plyr","stringr")) myrequire(p)
-for(p in c("devtools", "optparse", "rjson", "ggplot2", "RColorBrewer", "cowplot", "igraph", "raster","httr","plyr","stringr","brms")) require(p,character.only=T)
+#for(p in c("devtools", "optparse", "rjson", "ggplot2", "RColorBrewer", "cowplot", "igraph", "raster","httr","plyr","stringr","brms")) require(p,character.only=T)
+for(p in c("devtools", "optparse", "rjson", "ggplot2", "RColorBrewer", "cowplot", "igraph")) require(p,character.only=T)
 #for(p in c("XML")) myrequire(p,version="3.96-0.2",repo="http://cran.us.r-project.org")
 for(p in c("GenomicRanges", "ggbio", "Rsamtools", "Biostrings","BSgenome.Hsapiens.UCSC.hg19","BSgenome.Hsapiens.UCSC.hg38")) require(p,character.only=T)
 #for(p in c("GenomicRanges", "ggbio", "Rsamtools", "Biostrings","BSgenome.Hsapiens.UCSC.hg19","BSgenome.Hsapiens.UCSC.hg38")) myrequire(p,repo="Bioc")
