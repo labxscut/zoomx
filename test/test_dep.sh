@@ -54,7 +54,7 @@ for d in ${c_deps[*]}; do
   echo -n $d:
   case $d in
     "samtools") ver=`samtools 2>&1 | grep -o "Version: [0-9.]\+" | grep -o "[0-9.]\+"`; 
-    echo -n $ver; vercomp $ver "1.1.9"; op=$?;;
+    echo -n $ver; vercomp $ver "0.1.18"; op=$?;;
     "bwa") ver=`bwa 2>&1 | grep -o "Version: [0-9.]\+" | grep -o "[0-9.]\+"`; 
     echo -n $ver; vercomp $ver "0.7.0"; op=$?;;
     "bedtools") ver=`bedtools --version 2>&1 | grep -o "v[0-9.]\+" | grep -o "[0-9.]\+"`; 
@@ -70,7 +70,7 @@ done
 echo "$failed_c_deps"
 
 echo "testing R dependencies ..."
-r_deps=(devtools optparse rjson ggplot2 RColorBrewer cowplot igraph IRanges GenomicRanges ggbio GenomeInfoDb BSgenome.Hsapiens.UCSC.hg19 BSgenome.Hsapiens.UCSC.hg19)
+r_deps=(devtools optparse rjson ggplot2 RColorBrewer cowplot igraph IRanges GenomicRanges ggbio GenomeInfoDb BSgenome.Hsapiens.UCSC.hg19 BSgenome.Hsapiens.UCSC.hg38)
 failed_r_deps="Failed R Dependencies: "
 for d in ${r_deps[*]}; do 
   echo -n $d:
