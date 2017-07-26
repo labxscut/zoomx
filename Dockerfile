@@ -13,13 +13,15 @@ FROM ubuntu:latest
 MAINTAINER Charlie Xia <lxia.usc@gmail.com>
 
 WORKDIR $HOME/
+RUN cd $HOME
 RUN mkdir $HOME/setup
 RUN mkdir $HOME/bin
 RUN export PATH=$PATH:$HOME/bin
 RUN ulimit -s unlimited
 
 ### install git and dev files ###
-RUN apt-get update && apt-get install -y build-essential software-properties-common
+RUN apt-get update 
+RUN apt-get install -y build-essential software-properties-common
 RUN apt-get install -y zlib1g-dev libncurses5-dev wget git unzip libcurl4-openssl-dev libxml2-dev
 RUN apt-get install -y bzip2 libbz2-dev liblzma-dev
 

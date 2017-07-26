@@ -81,7 +81,7 @@ echo "---------------------------------------------------------------"
 
 for s in ${essentialStages[*]}; do
   echo -n "$s:"
-  cmd="zoomxRun $s $cfgfile >$cfgDir/$cfgfile.$s.$mydate.json 2>$zoomxStageLogFile"
+  cmd="time zoomxRun $s $cfgfile >$cfgDir/$cfgfile.$s.$mydate.json 2>$zoomxStageLogFile"
   echo -n $cmd
   echo $cmd | bash
   if [[ ! $? -eq 0 ]]; then
@@ -99,7 +99,7 @@ echo "---------------------------------------------------------------"
 
 for s in ${extendedStages[*]}; do
   echo -n "$s:"
-  cmd="zoomxRun $s $cfgfile >$cfgDir/$cfgfile.$s.$mydate.json 2>$zoomxStageLogFile"
+  cmd="time zoomxRun $s $cfgfile >$cfgDir/$cfgfile.$s.$mydate.json 2>$zoomxStageLogFile"
   echo -n $cmd
   echo $cmd | bash
   if [[ ! $? -eq 0 ]]; then

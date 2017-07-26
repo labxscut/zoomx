@@ -1,0 +1,1 @@
+cat Dockerfile | sed 's/^RUN//g' | grep -E -v "FROM|MAINTAINER|WORKDIR" | sed 's/apt-get/sudo apt-get/'
