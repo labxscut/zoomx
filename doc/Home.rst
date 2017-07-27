@@ -92,15 +92,15 @@ INSTALL
 
     R(>=3.3)  http://r-project.org
       
-      CRAN: optparse, rjson, RColorBrewer, brms, rhdf5, cowplot
+      CRAN: optparse, rjson, RColorBrewer, cowplot, igraph, ggplot2
  
       Bioconductor: IRanges, GenomicRanges, ggbio, GenomeInfoDb, BSgenome.Hsapiens.UCSC.hg38, BSgenome.Hsapiens.UCSC.hg19
 
-    Samtools (>0.19) http://samtools.org
+    Samtools (>0.1.19) http://samtools.org
       samtools executables have to be in $PATH and within the sve_py virtual env
       NOTE: this is independent of the samtools api comes with Pysam. 
       
-    Bedtools (>2.20) http://bedtools.org
+    Bedtools (>2.20.0) http://bedtools.org
       bedtools executables have to be in $PATH and within the sve_py virtual env
 
     To cope with their rare command interface change, working versions of Samtools and Bedtools are also provided with ZoomX. 
