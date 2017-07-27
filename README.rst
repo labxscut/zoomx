@@ -92,7 +92,7 @@ INSTALL
 
     R(>=3.3)  http://r-project.org
       
-      CRAN: optparse, rjson, RColorBrewer, devtools, cowplot, igraph, ggplot2
+      CRAN: optparse, rjson, RColorBrewer, cowplot, igraph, ggplot2
  
       Bioconductor: IRanges, GenomicRanges, ggbio, GenomeInfoDb, BSgenome.Hsapiens.UCSC.hg38, BSgenome.Hsapiens.UCSC.hg19
 

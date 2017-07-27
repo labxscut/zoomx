@@ -8,7 +8,7 @@
 #      docker build --memory=2g ~/zoomx
 #      docker start --memory=2g 301176b69086
 #      docker exec -it 301176b69086 /bin/bash
-FROM ubuntu:latest
+FROM ubuntu:xenial
 
 MAINTAINER Charlie Xia <lxia.usc@gmail.com>
 
@@ -20,6 +20,10 @@ RUN export PATH=$PATH:$HOME/bin
 RUN ulimit -s unlimited
 
 ### install git and dev files ###
+RUN gpg --keyserver keyserver.ubuntu.com --recv-key E084DAB9
+RUN gpg -a --export E084DAB9 >rstudio.key
+RUN apt-key add rstudio.key
+RUN echo "deb http://cran.rstudio.com/bin/linux/ubuntu xenial/" >>/etc/apt/sources.list
 RUN apt-get update 
 RUN apt-get install -y build-essential software-properties-common
 RUN apt-get install -y zlib1g-dev libncurses5-dev wget git unzip libcurl4-openssl-dev libxml2-dev
@@ -47,26 +51,25 @@ RUN cd $HOME/setup && git clone https://github.com/samtools/htslib.git
 RUN cd $HOME/setup/samtools && make && cp samtools $HOME/bin
 
 ### R ###
-RUN apt-get install -y r-base 
+RUN apt-get install -y r-base r-base-dev 
 ### install R packages ###
 RUN mkdir -p $(Rscript -e 'cat(Sys.getenv("R_LIBS_USER"))')
+#Bioconductor: GenomicRanges, ggbio, GenomeInfoDb, BSgenome.Hsapiens.UCSC.hg19, BSgenome.Hsapiens.UCSC.hg38, Biostrings
+RUN Rscript -e 'source("http://bioconductor.org/biocLite.R"); biocLite("BSgenome.Hsapiens.UCSC.hg19",ask=F)'
+RUN Rscript -e 'source("http://bioconductor.org/biocLite.R"); biocLite("BSgenome.Hsapiens.UCSC.hg38",ask=F)'
+RUN Rscript -e 'source("http://bioconductor.org/biocLite.R"); biocLite("GenomicRanges",ask=F)'
+RUN Rscript -e 'source("http://bioconductor.org/biocLite.R"); biocLite("GenomeInfoDb",ask=F)'
+RUN Rscript -e 'source("http://bioconductor.org/biocLite.R"); biocLite("Biostrings",ask=F)'
+RUN Rscript -e 'source("http://bioconductor.org/biocLite.R"); biocLite("Rsamtools",ask=F)'
+RUN Rscript -e 'source("http://bioconductor.org/biocLite.R"); biocLite("ggbio",ask=F)'
 #CRAN: optparse, rjson, RColorBrewer, devtools, igraph, cowplot, ggplot2
-RUN Rscript -e 'install.packages("igraph",repos="http://cran.us.r-project.org")'  
 RUN Rscript -e 'install.packages("optparse",repos="http://cran.us.r-project.org")'  
+RUN Rscript -e 'install.packages("igraph",repos="http://cran.us.r-project.org")'  
 RUN Rscript -e 'install.packages("rjson",repos="http://cran.us.r-project.org")'  
 RUN Rscript -e 'install.packages("ggplot2",repos="http://cran.us.r-project.org")'  
 RUN Rscript -e 'install.packages("RColorBrewer",repos="http://cran.us.r-project.org")'  
-RUN Rscript -e 'install.packages("devtools",repos="http://cran.us.r-project.org")'  
 RUN Rscript -e 'install.packages("cowplot",repos="http://cran.us.r-project.org")'  
-#Bioconductor: GenomicRanges, ggbio, GenomeInfoDb
-RUN Rscript -e 'source("http://bioconductor.org/biocLite.R"); biocLite("rhdf5",ask=F)'
-RUN Rscript -e 'source("http://bioconductor.org/biocLite.R"); biocLite("GenomicRanges",ask=F)'
-RUN Rscript -e 'source("http://bioconductor.org/biocLite.R"); biocLite("GenomeInfoDb",ask=F)'
-RUN Rscript -e 'source("http://bioconductor.org/biocLite.R"); biocLite("BSgenome.Hsapiens.UCSC.hg19",ask=F)'
-RUN Rscript -e 'source("http://bioconductor.org/biocLite.R"); biocLite("BSgenome.Hsapiens.UCSC.hg38",ask=F)'
-RUN Rscript -e 'source("http://bioconductor.org/biocLite.R"); biocLite("Rsamtools",ask=F)'
-RUN Rscript -e 'source("http://bioconductor.org/biocLite.R"); biocLite("Biostrings",ask=F)'
-RUN Rscript -e 'source("http://bioconductor.org/biocLite.R"); biocLite("ggbio",ask=F)'
+RUN Rscript -e 'install.packages("devtools",repos="http://cran.us.r-project.org")'  
 
 ### install zoomx ###
 RUN cd $HOME/setup && git clone https://bitbucket.org/charade/zoomx.git
@@ -74,9 +77,8 @@ RUN cd $HOME/setup/zoomx && python setup.py install
 RUN cd $HOME/setup/zoomx/test && ./test_dep.sh
 
 ### run test scripts ### 
-#RUN export PATH=$PATH:$HOME/bin
-#RUN cd $HOME/setup/zoomx/test
-#RUN wget https://s3-us-west-2.amazonaws.com/lixiabucket/zoomx.test.full.tgz
-#RUN tar -zxvf zoomx.test.full.tgz
-#RUN zoomxStage germline10.cfg
-#RUN zoomxStage somatic10.cfg
+RUN cd $HOME/setup/zoomx/test && wget https://s3-us-west-2.amazonaws.com/lixiabucket/zoomx.test.full.tgz -O zoomx.test.full.tgz
+RUN cd $HOME/setup/zoomx/test && tar -zxvf zoomx.test.full.tgz
+RUN export PATH=$PATH:$HOME/bin
+RUN cd $HOME/setup/zoomx/test && ./germline10.run
+RUN cd $HOME/setup/zoomx/test && ./somatic10.run
