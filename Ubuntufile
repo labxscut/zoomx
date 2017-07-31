@@ -1,1 +1,1 @@
-cat Dockerfile | sed 's/^RUN//g' | grep -E -v "FROM|MAINTAINER|WORKDIR" | sed 's/apt-get/sudo apt-get/'
+cat Dockerfile | sed 's/^RUN//g' | sed 's/echo/sudo echo/g' | grep -E -v "FROM|MAINTAINER|WORKDIR" | sed 's/apt-/sudo apt-/g' | sed 's/pip install/pip install --user/g'

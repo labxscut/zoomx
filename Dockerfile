@@ -15,13 +15,14 @@ MAINTAINER Charlie Xia <lxia.usc@gmail.com>
 WORKDIR $HOME/
 RUN ulimit -s unlimited
 RUN mkdir $HOME/setup && mkdir $HOME/bin
-ENV PATH="$PATH:$HOME/bin"
 
 ### install git and dev files ###
+#NOTE: RUN echo "PATH=$PATH:$HOME/bin" >>/etc/enviroment #not working, why?
 RUN gpg --keyserver keyserver.ubuntu.com --recv-key E084DAB9
 RUN gpg -a --export E084DAB9 >$HOME/rstudio.key
 RUN apt-key add $HOME/rstudio.key
 RUN echo "deb http://cran.rstudio.com/bin/linux/ubuntu xenial/" >>/etc/apt/sources.list
+RUN echo "PATH=$PATH:$HOME/bin" >>/etc/enviroment
 RUN apt-get update 
 RUN apt-get install -y build-essential software-properties-common
 RUN apt-get install -y bzip2 libbz2-dev liblzma-dev openssl libssl-dev
@@ -72,5 +73,8 @@ RUN cd $HOME/setup/zoomx/test && ./test_dep.sh
 
 ### run test scripts ### 
 RUN cd $HOME/setup/zoomx/test && wget https://s3-us-west-2.amazonaws.com/lixiabucket/zoomx.test.full.tgz -O zoomx.test.full.tgz && tar -zxvf zoomx.test.full.tgz
-RUN cd $HOME/setup/zoomx/test && ./germline10.run
-RUN cd $HOME/setup/zoomx/test && ./somatic10.run
+RUN export "PATH=$PATH:$HOME/bin" && cd $HOME/setup/zoomx/test && ./germline10.run
+RUN export "PATH=$PATH:$HOME/bin" && cd $HOME/setup/zoomx/test && ./somatic10.run
+
+### mount your server dir for data analysis
+#docker run -d --name="foo" -v "/home/lixia:/home/lixia" ubuntu
