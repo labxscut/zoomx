@@ -87,7 +87,7 @@ done
 echo "$failed_r_deps"
 
 echo "testing Python dependencies ..."
-python_deps=(pysam pybedtools pandas tables scipy)
+python_deps=(pysam pandas tables scipy)
 failed_python_deps="Failed Python Dependencies: "
 for d in ${python_deps[*]}; do 
   echo -n $d:

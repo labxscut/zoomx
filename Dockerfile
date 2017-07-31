@@ -1,4 +1,3 @@
-#this should be working with ubuntu:latest
 #NOTE: developer tested the commands by folloing actions:
 #      docker pull ubuntu:latest
 #      docker images
@@ -8,38 +7,32 @@
 #      docker build --memory=2g ~/zoomx
 #      docker start --memory=2g 301176b69086
 #      docker exec -it 301176b69086 /bin/bash
+#NOTE: merging RUN as file become stable as every RUN creates a commit which has a limit
 FROM ubuntu:xenial
 
 MAINTAINER Charlie Xia <lxia.usc@gmail.com>
 
 WORKDIR $HOME/
-RUN cd $HOME
-RUN mkdir $HOME/setup
-RUN mkdir $HOME/bin
-RUN export PATH=$PATH:$HOME/bin
 RUN ulimit -s unlimited
+RUN mkdir $HOME/setup && mkdir $HOME/bin
 
 ### install git and dev files ###
+#NOTE: RUN echo "PATH=$PATH:$HOME/bin" >>/etc/enviroment #not working, why?
 RUN gpg --keyserver keyserver.ubuntu.com --recv-key E084DAB9
-RUN gpg -a --export E084DAB9 >rstudio.key
-RUN apt-key add rstudio.key
+RUN gpg -a --export E084DAB9 >$HOME/rstudio.key
+RUN apt-key add $HOME/rstudio.key
 RUN echo "deb http://cran.rstudio.com/bin/linux/ubuntu xenial/" >>/etc/apt/sources.list
+RUN echo "PATH=$PATH:$HOME/bin" >>/etc/enviroment
 RUN apt-get update 
 RUN apt-get install -y build-essential software-properties-common
+RUN apt-get install -y bzip2 libbz2-dev liblzma-dev openssl libssl-dev
 RUN apt-get install -y zlib1g-dev libncurses5-dev wget git unzip libcurl4-openssl-dev libxml2-dev
-RUN apt-get install -y bzip2 libbz2-dev liblzma-dev
 
 ### python, has to precede bedtools ###
 RUN apt-get install -y python libpython-dev python-pip
 RUN apt-get install -y python-numpy python-scipy
 ### install python packages ###
-RUN pip install -U numpy
-RUN pip install -U scipy
-RUN pip install -U tables
-RUN pip install -U six
-RUN pip install -U pandas
-RUN pip install -U pysam
-RUN pip install -U pybedtools
+RUN pip install -U numpy scipy tables six pandas pysam pybedtools
 
 ### install bedtools ###
 RUN cd $HOME/setup && git clone https://github.com/arq5x/bedtools.git
@@ -61,6 +54,8 @@ RUN Rscript -e 'source("http://bioconductor.org/biocLite.R"); biocLite("GenomicR
 RUN Rscript -e 'source("http://bioconductor.org/biocLite.R"); biocLite("GenomeInfoDb",ask=F)'
 RUN Rscript -e 'source("http://bioconductor.org/biocLite.R"); biocLite("Biostrings",ask=F)'
 RUN Rscript -e 'source("http://bioconductor.org/biocLite.R"); biocLite("Rsamtools",ask=F)'
+RUN Rscript -e 'source("http://bioconductor.org/biocLite.R"); biocLite("biovizBase",ask=F)'
+RUN Rscript -e 'source("http://bioconductor.org/biocLite.R"); biocLite("ensembldb",ask=F)'
 RUN Rscript -e 'source("http://bioconductor.org/biocLite.R"); biocLite("ggbio",ask=F)'
 #CRAN: optparse, rjson, RColorBrewer, devtools, igraph, cowplot, ggplot2
 RUN Rscript -e 'install.packages("optparse",repos="http://cran.us.r-project.org")'  
@@ -77,8 +72,9 @@ RUN cd $HOME/setup/zoomx && python setup.py install
 RUN cd $HOME/setup/zoomx/test && ./test_dep.sh
 
 ### run test scripts ### 
-RUN cd $HOME/setup/zoomx/test && wget https://s3-us-west-2.amazonaws.com/lixiabucket/zoomx.test.full.tgz -O zoomx.test.full.tgz
-RUN cd $HOME/setup/zoomx/test && tar -zxvf zoomx.test.full.tgz
-RUN export PATH=$PATH:$HOME/bin
-RUN cd $HOME/setup/zoomx/test && ./germline10.run
-RUN cd $HOME/setup/zoomx/test && ./somatic10.run
+RUN cd $HOME/setup/zoomx/test && wget https://s3-us-west-2.amazonaws.com/lixiabucket/zoomx.test.full.tgz -O zoomx.test.full.tgz && tar -zxvf zoomx.test.full.tgz
+RUN export "PATH=$PATH:$HOME/bin" && cd $HOME/setup/zoomx/test && ./germline10.run
+RUN export "PATH=$PATH:$HOME/bin" && cd $HOME/setup/zoomx/test && ./somatic10.run
+
+### mount your server dir for data analysis
+#docker run -d --name="foo" -v "/home/lixia:/home/lixia" ubuntu
