@@ -134,7 +134,6 @@ def main(args):
   clust2Labels=["chr2","start2","end2","barcnt","index","clust"]
   bedLabels=["chr","start","end","barcnt"]
   
-  #rawCalls=pandas.read_table(callFile, names=callLabels)
   rawCalls=pandas.read_table(callFile,names=callLabels,dtype=dict(zip(callLabels,callTypes))) #only read cols 1-7
   rawCalls=rawCalls[rawCalls['barcnt']>minMolCnt] #keep only min barcnt and above
   if (len(rawCalls) > maxNum): rawCalls=rawCalls[0:maxNum]
@@ -160,42 +159,25 @@ def main(args):
     else:
       tmpBedpeFile=tmpRawFile
 
-    rawCalls=pandas.read_table(tmpBedpeFile, names=callLabels,dtype=dict(zip(callLabels,callTypes))) #reload after filter
-    rawCalls['index']=xrange(0,rawCalls.shape[0]) #add index to bedpe file, index is fixed from here, rewrite to tmpBedpe
-    rawCalls.to_csv(tmpBedpeFile,header=False, sep="\t", index=False) #no more add/remove entries of rawCalls from here
-  else:
-    tmpBedpeFile=None #7-columns
-  if debug: sys.stderr.write("tmpBedpeFile='"+str(tmpBedpeFile)+"'\n")
+    rawCalls=pandas.read_table(tmpBedpeFile, names=callLabels,dtype=dict(zip(callLabels,callTypes))) #reload
+    rawCalls['index']=xrange(0,rawCalls.shape[0]) #add index, index is fixed from here, rewrite to tmpBedpe
+
+  nRawCalls = len(rawCalls)
+  sys.stderr.write("after filter gaps ...\n")
+  sys.stderr.write("nRawCalls={}\n".format(nRawCalls))
 
   if (len(rawCalls) > 0):
-    #pairtopair overlapping
-    nRawCalls = len(rawCalls)
-    sys.stderr.write("after filter gaps ...\n")
-    sys.stderr.write("nRawCalls={}\n".format(nRawCalls))
-
-    tmpOverlapFile=lib10x.getTemporaryFile('bedpe_')
-    pair2pair_cmd="bedtools pairtopair -type both -is -a %s -b %s | cut -f8,16 >%s" % (tmpBedpeFile, tmpBedpeFile, tmpOverlapFile)
-    if debug: sys.stderr.write("pair2pair_cmd="+str(pair2pair_cmd)+"\n")
-    if debug: sys.stderr.write("tmpOverlapFile='"+str(tmpOverlapFile)+"'\n")
-    if lib10x.run_cmd(pair2pair_cmd) == False:
-      sys.stderr.write("Error in running pair2pair overlapping..."); quit()
-
-    end_time=time.time()
-    sys.stderr.write("overlapping done:{}s\n".format(end_time-start_time))
 
     sys.stderr.write("loading overlapping graph...")
-    overlapCalls=pandas.read_table(tmpOverlapFile, names=["bedpe1","bedpe2"], dtype={'bedpe1':numpy.int64,'bedpe2':numpy.int64})
-    #load pairtopair overlapping into a sparse matrix
-    if debug: save['overlapCalls']=overlapCalls
-      
+    rawCalls.to_csv(tmpBedpeFile,header=False, sep="\t", index=False) 
+    overlapCalls = lib10x.ParalleleBedpeOverlap(rawCalls, numprocs, debug)
     ones=[1]*overlapCalls.shape[0]
     sys.stderr.write("after overlapping ...\n")
     sys.stderr.write("nOverlaps={}\n".format(len(ones)))
 
     sys.stderr.write("merging connected components...")
     overlapGraph=scipy.sparse.coo_matrix((ones,(overlapCalls.iloc[:,0],overlapCalls.iloc[:,1])), shape=(nRawCalls,nRawCalls))
-    if debug:
-      save['overlapGraph']=overlapGraph
+
     #find connected components; only keep correctly ordered components
     numComponents, components = scipy.sparse.csgraph.connected_components(overlapGraph)
     #find connected entries of rawCalls
