@@ -116,7 +116,7 @@ INSTALL
 
   *Installation Docker*:
     
-    A Dockerfile is provided to build zoomx enabled docker image from a standard Ubuntu docker image. 
+    A Dockerfile is provided to build zoomx enabled docker image from a standard Ubuntu docker image. To build a docker image using 'docker build $ZOOMXPKG'
 
       https://bitbucket.org/charade/zoomx/raw/master/Dockerfile
 
