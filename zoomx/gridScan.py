@@ -282,6 +282,7 @@ def main(args):
     #pandas.DataFrame(tagcol2tagidx, dtype=pandas.np.int64).to_csv(".".join([outputPrefix,"tagcol2tagidx","gz"])\
     #                            ,header=False, sep="\t", index=False, compression="gzip")
 
+  print >>sys.stderr, "-Info: into grid scanning time stamp", time.time()-start_time, "seconds"
   print >>sys.stderr, "-Info: creating matrix X..."
   #DONE: X(i,j) is overlaps of Region1(i) and Fragment with Tb(j)
   gtk1_time = time.time()
@@ -372,7 +373,7 @@ def main(args):
   print >>sys.stderr, "-Info: cutFDR:", cutFDR
   cutDUP = scipy.stats.poisson.ppf(1-expectFalseDiscover/float(X.shape[0]*Y.shape[1]),expectJunctionFrag)
   print >>sys.stderr, "-Info: cutDUP:", cutDUP
-  print >>sys.stderr, "-Info: multiplying matrix X and Y..."
+  print >>sys.stderr, "-Info: scanning X and Y..."
   
   #DEBUG Block Dot Multiplication for Sparse Matrix
   #M1 = X.dot(Y)
