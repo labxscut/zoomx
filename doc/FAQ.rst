@@ -77,15 +77,7 @@ Installation Related
 2-2. Q: Where to find the full example data set of ZoomX
 -------------------------------------------------------------------------------------------------------------------------------------
 
-  A: I compiled a full testing data set which is downloadable at: `here <https://s3-us-west-2.amazonaws.com/lixiabucket/zoomx.test.full.tgz>`_
-
-  And there is an amazon instance where the full test data is preinstalled at ~/setup/zoomx/test. Use following ssh command to access (password bkd).
-
-  .. code:: bash
-
-     ssh -i "biolinux8_key_pair.pem" bkd:bkd@ec2-54-190-195-126.us-west-2.compute.amazonaws.com
-
-  With the provided test data, the program should just take minutes.
+  A: A full testing data set is downloadable at: `here <https://s3-us-west-2.amazonaws.com/lixiabucket/zoomx.test.full.tgz>`_
 
 2-3. Q: "csamtools.c" not found error when install pysam
 
