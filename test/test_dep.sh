@@ -70,7 +70,7 @@ done
 echo "$failed_c_deps"
 
 echo "testing R dependencies ..."
-r_deps=(devtools optparse rjson ggplot2 RColorBrewer cowplot igraph IRanges GenomicRanges ggbio GenomeInfoDb BSgenome.Hsapiens.UCSC.hg19 BSgenome.Hsapiens.UCSC.hg38)
+r_deps=(optparse rjson ggplot2 RColorBrewer cowplot igraph IRanges GenomicRanges ggbio GenomeInfoDb BSgenome.Hsapiens.UCSC.hg19 BSgenome.Hsapiens.UCSC.hg38)
 failed_r_deps="Failed R Dependencies: "
 for d in ${r_deps[*]}; do 
   echo -n $d:
@@ -87,7 +87,7 @@ done
 echo "$failed_r_deps"
 
 echo "testing Python dependencies ..."
-python_deps=(pysam pybedtools pandas tables scipy)
+python_deps=(pysam pandas tables scipy)
 failed_python_deps="Failed Python Dependencies: "
 for d in ${python_deps[*]}; do 
   echo -n $d:
