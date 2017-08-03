@@ -83,8 +83,7 @@ def main(args):
     outputAllMolecules = True
     debug = True
 
-  sys.stderr.write("parse10x.py -b {} {}\n".format(maxRead,bamfile))
-  sys.stderr.write("args="+str(args)+"\n")
+  sys.stderr.write("-Info: args="+str(args)+"\n")
   #print >>sys.stderr, "maxRead=", maxRead
   if outPrefix == "none":
     outPrefix = bamfile
@@ -109,15 +108,15 @@ def main(args):
   acclen_C=[1]+list(acclen[:-1]+1)                                      #acclen_C: accumulated length vec working with C
   refdata={'chrname':chrname,'chrlen':chrlen,'acclen_A':acclen_A,'acclen_C':acclen_C,'A':A,'C':C}
   if debug:
-    print >>sys.stderr, "A=", A
-    print >>sys.stderr, "acclen_A=", acclen_A
-    print >>sys.stderr, "C=", C
-    print >>sys.stderr, "acclen_C=", acclen_C
+    print >>sys.stderr, "-Debug: A=", A
+    print >>sys.stderr, "-Debug: acclen_A=", acclen_A
+    print >>sys.stderr, "-Debug: C=", C
+    print >>sys.stderr, "-Debug: acclen_C=", acclen_C
   
   #1. calculate the coverage 
   #TODO: this is to be removed
   covVec=numpy.array([0]*int(acclen_A[-1]/100),dtype='float') 
-  print >>sys.stderr, "allocated covVec:", len(covVec)
+  #print >>sys.stderr, "-Info: allocated covVec:", len(covVec)
   cov_cut=numpy.inf
   cov_cut2=numpy.inf
   if covFile != "none":
@@ -125,7 +124,7 @@ def main(args):
     covTypes=dict(zip(covLabels,[str,numpy.int32,numpy.int32,numpy.int32]))
     covTable=pandas.read_csv(covFile,header=None,names=covLabels,dtype=covTypes,delimiter='\t')
     covChrChange=numpy.where(~covTable['chr'].duplicated())[0].tolist()
-    print >>sys.stderr, "covChrChange:", covChrChange
+    #print >>sys.stderr, "covChrChange:", covChrChange
     for i in xrange(0,len(covChrChange)):
       idxEnd = covChrChange[i+1] if i < len(covChrChange)-1 else len(covTable)
       idxStart = covChrChange[i]
@@ -142,12 +141,12 @@ def main(args):
     cov_median=numpy.median(covVec[covVec!=0])        
     cov_mad=lib10x.mad(covVec[covVec!=0])
     cov_cut=cov_median + 2*1.48*cov_mad
-    print >>sys.stderr, "cov_median=", cov_median
-    print >>sys.stderr, "cov_mad=", cov_mad
-    print >>sys.stderr, "cov_mean=", cov_mean
-    print >>sys.stderr, "cov_sd=", cov_sd
-  print >>sys.stderr, "cov_cut=", cov_cut
-  print >>sys.stderr, "cov_cut2=", cov_cut2
+    #print >>sys.stderr, "cov_median=", cov_median
+    #print >>sys.stderr, "cov_mad=", cov_mad
+    #print >>sys.stderr, "cov_mean=", cov_mean
+    #print >>sys.stderr, "cov_sd=", cov_sd
+  #print >>sys.stderr, "cov_cut=", cov_cut
+  #print >>sys.stderr, "cov_cut2=", cov_cut2
   #END TODO
   
   #2. define a python dict structure to cluster and hold the { b: (f11_idx, f12_idx, ...) } structure
@@ -166,9 +165,9 @@ def main(args):
   
   if longRangerVersion < 1.2: #use nearest neighbor clustering
   
-    print >>sys.stderr, "using manual nearest neighbour clustering (distance<alpha) to infer molecule..."
-    print >>sys.stderr, "for longranger v<1.2 only, now is obsolete..."
-    print >>sys.stderr, "use earlier version of zoomx instead"; quit()
+    print >>sys.stderr, "-Info: using manual nearest neighbour clustering (distance<alpha) to infer molecule..."
+    print >>sys.stderr, "-Info: for longranger v<1.2 only, now it is deprecated..."
+    print >>sys.stderr, "-Info: use earlier version of zoomx instead"; quit()
   
     #numAlpha = len(setAlpha)
     #barfragdata = dict(zip(setAlpha,[ dict() for x in xrange(numAlpha)])) #NOTE: * doesn't create independent dictionaries 
@@ -278,7 +277,7 @@ def main(args):
     
   else:  #end of longRangerVersion < 1.2 and begin of newer versions
   
-    print >>sys.stderr, "using 10x longranger inferred molecule..."
+    print >>sys.stderr, "-Info: using 10x longranger inferred molecule (MI) ..."
     # need to merging in parsing for older longRangerVersion to this one
   
     setAlpha = [0]
@@ -412,8 +411,8 @@ def main(args):
     
   #DEBUG:
   if debug:
-    print >>sys.stderr, "N_f[alpha]=", N_f
-    print >>sys.stderr, "len(fragdata[alpha])=", dict(zip(setAlpha, [len(fragdata[alpha]) for alpha in setAlpha]))
+    print >>sys.stderr, "-Debug: N_f[alpha]=", N_f
+    print >>sys.stderr, "-Debug: len(fragdata[alpha])=", dict(zip(setAlpha, [len(fragdata[alpha]) for alpha in setAlpha]))
   #for alpha in setAlpha:
   #  assert N_f[alpha] == len(fragdata[alpha])
   #  for fi in range(0,N_f[alpha]):
@@ -429,13 +428,13 @@ def main(args):
   #DEBUG
   #for f in barfragdata[50000]['AACACCTCAATCTA-1']:
   #  print >>sys.stderr, fragdata[50000][f] 
-    print >>sys.stderr, maxRead, "reads analyzed"
-    print >>sys.stderr, "medianInsert=", numpy.median(rpinsert)
-    print >>sys.stderr, "madInsert=", lib10x.mad(rpinsert)
-    print >>sys.stderr, "medianReadLength=", numpy.median(readlen)
+    print >>sys.stderr, "-Debug:", maxRead, "reads analyzed"
+    print >>sys.stderr, "-Debug: medianInsert=", numpy.median(rpinsert)
+    print >>sys.stderr, "-Debug: madInsert=", lib10x.mad(rpinsert)
+    print >>sys.stderr, "-Debug: medianReadLength=", numpy.median(readlen)
 
-  print >>sys.stderr, N_qc, "of", N_all, "reads passed qc and have BX field"
-  print >>sys.stderr, N_goodLeftRead,"read pairs of", N_qc, "reads are good read one with barcodes"
+  print >>sys.stderr, "-Info:", N_qc, "of", N_all, "reads passed qc and have BX field"
+  print >>sys.stderr, "-Info:", N_goodLeftRead, "read pairs of", N_qc, "reads are good read one with barcodes"
   #print >>sys.stderr, "found", N_b, "total barcodes"
   #print >>sys.stderr
   
@@ -451,7 +450,7 @@ def main(args):
   
   if True:
     #print >>sys.stderr
-    print >>sys.stderr, "performing barcode-molecule analysis..."
+    print >>sys.stderr, "-Info: performing barcode-molecule analysis..."
 
     #optionally, output fragBar for all barcoded molecules, used for haploid
     if outputAllMolecules:
@@ -473,7 +472,7 @@ def main(args):
   
     #always output multiFragBar for all barcoded molecules whose barcode present in >=2 molecules, used for SV detection
     if True:
-      print >>sys.stderr, "chosen alpha=", setAlpha
+      print >>sys.stderr, "-Info: chosen alpha=", setAlpha
       multiFragBar = dict(zip(setAlpha,[ [] for x in xrange(numAlpha)]))
       multiFragBarMap = dict(zip(setAlpha,[ dict() for x in xrange(numAlpha)]))
       fragCountMultiFragBar = dict(zip(setAlpha,[ [] for x in xrange(numAlpha)]))
@@ -482,11 +481,11 @@ def main(args):
       for alpha in setAlpha: 
         multiFragBar[alpha] = list(set([ b for b in barfragdata[alpha] if len(barfragdata[alpha][b])>1 ])) #reduce to barcode having >=2 molecules
         multiFragBarMap[alpha] = dict(zip(multiFragBar[alpha],xrange(0,len(multiFragBar[alpha])))) #0-based index of tags within multiFragBar 
-      print >>sys.stderr, "given alpha, found", dict(zip(setAlpha, [ len(multiFragBar[alpha]) for alpha in setAlpha ])), "total barcodes (multiFragBar)"
+      print >>sys.stderr, "-Info: given alpha, found", dict(zip(setAlpha, [ len(multiFragBar[alpha]) for alpha in setAlpha ])), "total barcodes (multiFragBar)"
   
       for alpha in setAlpha: 
         fragCountMultiFragBar[alpha] = [ len(barfragdata[alpha][b]) for b in multiFragBar[alpha] ]
-      print >>sys.stderr, "given alpha, found", dict(zip(setAlpha, [ sum(fragCountMultiFragBar[alpha]) for alpha in setAlpha ])), "total molecules (multiFragBar)"
+      print >>sys.stderr, "-Info: given alpha, found", dict(zip(setAlpha, [ sum(fragCountMultiFragBar[alpha]) for alpha in setAlpha ])), "total molecules (multiFragBar)"
   
       multiFragBarBedfile = dict(zip(setAlpha,[re.sub("$",".multiFragBar.bed",outPrefix)]*numAlpha))
       for alpha in setAlpha: multiFragBarBedfile[alpha]=open(".".join([multiFragBarBedfile[alpha],"a"+str(alpha)]),'w')
@@ -512,8 +511,8 @@ def main(args):
     meanFragLengthMultiFragBar=dict(zip(setAlpha, [ numpy.mean(fragLengthMultiFragBar[alpha]) for alpha in setAlpha ]))
     if debug:
       for alpha in setAlpha:
-        print >>sys.stderr, "mean multi-frag length (multiFragBar):", meanFragLengthMultiFragBar
-      print >>sys.stderr, "elapsed time", time.time()-start_time, "seconds"
+        print >>sys.stderr, "-Info: mean multi-frag length (multiFragBar):", meanFragLengthMultiFragBar
+      print >>sys.stderr, "-Info: elapsed time", time.time()-start_time, "seconds"
     
   # 0. what we have
   #    0.0 fragdata  (yes)
@@ -595,7 +594,7 @@ def main(args):
     # Have to be a pandas object to get stored
     TenXdat.close()
     if debug:
-      print >>sys.stderr, "done saving", str(TenXdat), "; elapsed time", time.time()-start_time, "seconds"
+      print >>sys.stderr, "-Debug: done saving", str(TenXdat), "; elapsed time", time.time()-start_time, "seconds"
   
   #covChr=covTable.iloc[0,0]
   #covChrIdx=0
@@ -683,11 +682,11 @@ def main(args):
 def run():
   parser = argparse.ArgumentParser()
   parser.add_argument("bam",help="sorted 10x bamfile")
-  parser.add_argument("-c","--covFile", default="none",help="100bp window coverage file")
+  parser.add_argument("-c","--covFile", default="none",help="100bp window coverage file, this option is deprecated!!!")
   parser.add_argument("-l","--longRangerVersion", type=float, default=1.2,
-    help="v>=1.2 will use 10X's MI tag to infer molecules if available")
+    help="v>=1.2 will use 10X's MI tag to infer molecules if available, this option is deprecated!!!")
   parser.add_argument("-f","--setAlpha",default="30000,50000,70000",
-    help="alpha i.e. max molecule extension basepair, override by 0 in case of using MI tag")
+    help="alpha i.e. max molecule extension basepair, override by 0 in case of using MI tag, this option is deprecated!!!")
   parser.add_argument("-b","--maxRead",type=int,default=numpy.iinfo(numpy.int64).max,help="max number of read to process")
   parser.add_argument("-o","--outPrefix",default="none",help="outputPrefix")
   parser.add_argument("-x","--outputAllMolecules",default=False,action="store_true",help="outputAllMolecules")
