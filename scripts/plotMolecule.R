@@ -1,5 +1,7 @@
 #!/usr/bin/env Rscript
 
+#add SV phasing to script use MolHP, MolPS
+
 ####Externalities####
 ptm=proc.time() #time keeper
 
@@ -183,14 +185,15 @@ dataReadIn = function(i, suffixes) {
     mdat$barcode=refinedReg1[sel1[1],c("molBX")]
     mdat$mi1=refinedReg1[sel1[1],c("molID")]
     mdat$mi2=refinedReg2[sel2[1],c("molID")]
-    mdat
+    mdat$hp1=refinedReg1[sel1[1],c("molHP")]
+    mdat$hp2=refinedReg1[sel2[1],c("molHP")]
   })
   mergedMol = do.call("rbind", mergedMolList)                         #all molecules, i.e. BX
-  mergedMI = mergedMol[mergedMol$mi1 != mergedMol$mi2, ]              #non-self-overlapping molecules
+  mergedMI = mergedMol[mergedMol$mi1 != mergedMol$mi2, ]              #keep non-self-overlapping molecules
   mergedMI = as.data.frame(mergedMI)
   if(nrow(mergedMI)>0) mergedMI$type = "molNSOV" 
   message("-Info: mergedMI:", nrow(mergedMI))
-  mergedBI = mergedMol[mergedMol$mi1 == mergedMol$mi2, ]              #self-overlapping molecules
+  mergedBI = mergedMol[mergedMol$mi1 == mergedMol$mi2, ]              #keep self-overlapping molecules
   mergedBI = as.data.frame(mergedBI)
   if(nrow(mergedBI)>0) mergedBI$type = "molSOV"
   message("-Info: mergedBI:", nrow(mergedBI))
