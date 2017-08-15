@@ -71,7 +71,9 @@ option_list2 <- list(
   make_option(c("-e", "--minAlleleFraction"), type="numeric", default=0.05,
               help="Hypothesized minimum alleleFraction i.e. H0>minAlleleFraction for Bayesian Factor to detect [default %default]"),
   make_option(c("-w", "--withControl"), action="store_true", default=FALSE,
-              help="show verbose, [default %default]"),
+              help="with a control sample, [default %default]"),
+  make_option(c("-y", "--withoutContig"), action="store_false", default=TRUE,
+              help="generate rdp plots and contigs, [default %default]"),
   make_option(c("-o", "--plotPrefix"), default="none",
               help="output prefix [default %default]"),
   make_option(c("-q", "--noQuiet"), action="store_true", default=FALSE,
@@ -98,6 +100,7 @@ padding = cmd$options$padding
 plotPrefix = cmd$options$plotPrefix
 includeDupMolecule = cmd$options$includeDupMolecule
 withControl = cmd$options$withControl
+withoutContig = cmd$options$withoutContig
 minAlleleFraction = cmd$options$minAlleleFraction
 workDir=cmd$args[1]
 statsFile=cmd$args[2]
@@ -282,7 +285,6 @@ dataReadIn = function(i, suffixes) {
   } #end of getting all rdps
    
   mergedAll=rbind(mergedFR,mergedRF,mergedFF,mergedRR,mergedBI,mergedMI)
-  message("-Info: mergedAll:", nrow(mergedAll))
   
   if(nrow(mergedAll)>0) { #plotMolecule-
     mergedAll$strand1=strand1Info[match(mergedAll$type, supportType)]
@@ -299,6 +301,7 @@ dataReadIn = function(i, suffixes) {
     sel = (mergedAll$supportType != "molSOV") #ecluding self-overlapping molecules
   }
   mergedAll=mergedAll[sel,]
+  message("-Info: mergedAll:", nrow(mergedAll))
 
   rawReg1St = min(refined$start1,refinedReg1$st1)
   rawReg1Ed = max(refined$end1,refinedReg1$ed1)
@@ -455,6 +458,7 @@ dataReadIn = function(i, suffixes) {
  
   return(list(mergedAll=mergedAll, infoTab=infoTabNew)) 
 }
+
 allData = lapply(seq_along(suffixes), dataReadIn, suffixes)
 names(allData)=suffixes
 
@@ -462,7 +466,7 @@ names(allData)=suffixes
 infoTabNew = Reduce(rbind, lapply(allData,'[[',"infoTab"))
 infoFile = paste(plotPrefix,"info","txt",sep=".")
 infoTabOutput=infoTabNew
-if(length(suffixes)==2) {
+if(length(suffixes)==2) { 
   #do the fisher exact test here, second row is control
   zC=infoTabNew[2,]$featureMol
   kC=infoTabNew[2,]$totalMol-2*infoTabNew[2,]$featureMol #nC-zC
@@ -470,46 +474,20 @@ if(length(suffixes)==2) {
   kT=infoTabNew[1,]$totalMol-1*infoTabNew[1,]$featureMol #nC-zC
   t=fisher.test(rbind(c(zC,zT),c(kC,kT)), alternative="less")
   infoTabOutput$fisherP=t$p.value
+  #cleaning up for case/control output
+  infoTabOutput[2,]$breakpoint1=NA
+  infoTabOutput[2,]$breakpoint2=NA
+  infoTabOutput[2,]$isLeftBreak1=NA
+  infoTabOutput[2,]$isLeftBreak2=NA
+  infoTabOutput[2,]$SVType=NA
+  infoTabOutput[2,]$fisherP=NA
 }
 
-#do the bayesian statistics here:
-#objectiveFrequency = 0.05 # H0[0,objectiveFrequency] vs H1[objectiveFrequency,1]
-#bayesPlot =  paste(plotPrefix,"bayes","pdf",sep=".")
-#adapted from https://mvuorre.github.io/post/2017/bayes-factors-with-brms/
-# if(length(suffixes)==2) { #second row is control, i.e. prior
-#   alpha0=1; beta0=1; # pseudo count, #of success, #of failures
-#   alpha1=alpha0+infoTabNew[2,]$featureMol #pseudo count adjusted prior # of success
-#   beta1=beta0+infoTabNew[2,]$totalMol-2*infoTabNew[2,]$featureMol #psuedo count adjusted prior # of failure; two times bc molecule counted twice
-#   d=data.frame(s = infoTabNew[1,]$featureMol, k = infoTabNew[1,]$totalMol - infoTabNew[1,]$featureMol) # s success of k tries
-#   Prior=brms::set_prior(paste("beta(",alpha1,",", beta1,")",sep=""), class = "b", lb = 0, ub = 1)
-#   m=brms::brm(s | trials(k) ~ 0 + intercept, family = binomial(link="identity"), prior = Prior, data = d, sample_prior = TRUE, iter = 1e4, cores = 1)
-#   samples=brms::posterior_samples(m, "b")
-#   h=brms::hypothesis(m, paste("intercept >", minAlleleFraction)) #specifies H0
-#   BF01=h$hypothesis$Evid.Ratio #BF01, additional evidence of H0 vs H1
-#   Star=h$hypothesis$Star
-#   #Sample is 18
-#   infoTabNew$minAlleleFraction=minAlleleFraction #19
-#   infoTabNew$controlTotalMol=infoTabNew[2,]$totalMol #20
-#   infoTabNew$controlFeatureMol=infoTabNew[2,]$featureMol #21
-#   infoTabNew$BF01=BF01 #22
-#   infoTabNew$Star=Star #23
-#   pdf(file=bayesPlot)
-#   plot(h)
-#   dev.off()
-# } else {
-#   infoTabNew$minAlleleFraction=minAlleleFraction
-#   infoTabNew$BF01=NA
-#   infoTabNew$Star=NA
-#   infoTabNew$controlTotalMol=NA
-#   infoTabNew$controlFeatureMol=NA
-# }
-
-#infoTabNew=infoTabNew[c(names(infoTabNew)[1:17],names(infoTabNew)[22:23],names(infoTabNew)[18:21])]
-#infoTabOutput=infoTabNew[,c(1:17,20:21,19,22:23,18)]
 message("-Info: infoFile=",workDir,"/",infoFile); 
-write.table(infoTabOutput[1,],file=infoFile,col.names=TRUE,row.names=FALSE,sep="\t",quote=FALSE)
-message("-Info: infoTab:")
+write.table(infoTabOutput,file=infoFile,col.names=TRUE,row.names=FALSE,sep="\t",quote=FALSE)
+message("-Info: infoTabOutput:")
 print(infoTabOutput)
+if(withoutContig) { cat("PLOTMOLECULEDONE in",proc.time()[3]-ptm[3],"seconds! \n"); quit() }
 
 ####rdpBreakpoint-PlotRdp####
 #case only
@@ -546,32 +524,38 @@ rd2GR=GenomicRanges::GRanges(seqnames=rdpInfo$chrom2,
                              strand=rdpInfo$strand2,
                              type=rdpInfo$supportType)
 
+message("-Info: rd1GR"); print(rd1GR)
+message("-Info: rd2GR"); print(rd2GR)
 if(length(rd1GR)==0 | length(rd2GR)==0) {
   message("-Info: no supporting read pairs and/or molecules, quitting")
   quit()
 }
 
+message("-Info: plotting rdps...")
 g1 = ggplot2::ggplot() + 
   ggbio::geom_arrowrect(data=rd1GR,ggplot2::aes(y=name,group=name,fill=type,group.selfish=TRUE),xlab=as.character(GenomicRanges::seqnames(rd1GR)[1])) + 
   ggplot2::theme(legend.position="bottom", legend.box="vertical", legend.direction = "horizontal") + #box-v, item-h
-  ggplot2::geom_vline(xintercept=infoTabNew$breakpoint1,linetype="dotted") +
-  ggplot2::geom_text(ggplot2::aes(x=infoTabNew$breakpoint1, label=paste(infoTabNew$breakpoint1), y=1), colour="blue", angle=90)
+  ggplot2::geom_vline(xintercept=infoTab$breakpoint1,linetype="dotted") +
+  ggplot2::geom_text(ggplot2::aes(x=infoTab$breakpoint1, label=paste(infoTab$breakpoint1), y=1), colour="blue", angle=90)
   
 g2 = ggplot2::ggplot() + 
   ggbio::geom_arrowrect(data=rd2GR,ggplot2::aes(y=name,group=name,fill=type,group.selfish=TRUE),xlab=as.character(GenomicRanges::seqnames(rd2GR)[1])) +
-  ggplot2::geom_vline(xintercept=infoTabNew$breakpoint2,linetype="dotted") +
-  ggplot2::geom_text(ggplot2::aes(x=infoTabNew$breakpoint2, label=paste(infoTabNew$breakpoint2), y=1), colour="blue", angle=90)
+  ggplot2::geom_vline(xintercept=infoTab$breakpoint2,linetype="dotted") +
+  ggplot2::geom_text(ggplot2::aes(x=infoTab$breakpoint2, label=paste(infoTab$breakpoint2), y=1), colour="blue", angle=90)
+
+#ggplot2::ggsave("tmp1.pdf", g1)
+#ggplot2::ggsave("tmp2.pdf", g2)
 
 legendHeight=0.3 #control legend area height
 plots=list(g1,g2)
 plotGrobs1=lapply(plots,ggbio:::Grob)
+message("-Info: gr1...")
 legend <- cowplot::get_legend(plotGrobs1[[1]])
 plotGrobs2=lapply(plots,function(p) { ggbio:::Grob(p+ggplot2::theme(legend.position="none")) })
-if(length(plotGrobs2)>1) { labels="AUTO" } else {labels=NULL}
-prow <- cowplot::plot_grid( plotlist = plotGrobs2,
-                            labels = labels,
-                            nrow = 1
-)
+message("-Info: gr2...")
+if(length(plotGrobs2)>1) { labels="AUTO" } else { labels=NULL }
+prow <- cowplot::plot_grid( plotlist = plotGrobs2, labels = labels, nrow = 1 )
+message("-Info: grid...")
 lrow <- cowplot::ggdraw() + cowplot::draw_grob(legend) #this only draws the legend, all aes has to be predefined.
 pall = cowplot::plot_grid( prow, lrow, ncol=1, rel_heights=c(1,legendHeight))
 message("-Info: saving support plots to:", paste(plotPrefix,"rdp","case","pdf",sep=".") )
@@ -967,3 +951,38 @@ cat("PLOTMOLECULEDONE in",proc.time()[3]-ptm[3],"seconds! \n")
 #   mutate(BF01 = Posterior/Prior,
 #          BF10 = 1/BF01) %>% 
 #   round(3)
+
+#do the bayesian statistics here:
+#objectiveFrequency = 0.05 # H0[0,objectiveFrequency] vs H1[objectiveFrequency,1]
+#bayesPlot =  paste(plotPrefix,"bayes","pdf",sep=".")
+#adapted from https://mvuorre.github.io/post/2017/bayes-factors-with-brms/
+# if(length(suffixes)==2) { #second row is control, i.e. prior
+#   alpha0=1; beta0=1; # pseudo count, #of success, #of failures
+#   alpha1=alpha0+infoTabNew[2,]$featureMol #pseudo count adjusted prior # of success
+#   beta1=beta0+infoTabNew[2,]$totalMol-2*infoTabNew[2,]$featureMol #psuedo count adjusted prior # of failure; two times bc molecule counted twice
+#   d=data.frame(s = infoTabNew[1,]$featureMol, k = infoTabNew[1,]$totalMol - infoTabNew[1,]$featureMol) # s success of k tries
+#   Prior=brms::set_prior(paste("beta(",alpha1,",", beta1,")",sep=""), class = "b", lb = 0, ub = 1)
+#   m=brms::brm(s | trials(k) ~ 0 + intercept, family = binomial(link="identity"), prior = Prior, data = d, sample_prior = TRUE, iter = 1e4, cores = 1)
+#   samples=brms::posterior_samples(m, "b")
+#   h=brms::hypothesis(m, paste("intercept >", minAlleleFraction)) #specifies H0
+#   BF01=h$hypothesis$Evid.Ratio #BF01, additional evidence of H0 vs H1
+#   Star=h$hypothesis$Star
+#   #Sample is 18
+#   infoTabNew$minAlleleFraction=minAlleleFraction #19
+#   infoTabNew$controlTotalMol=infoTabNew[2,]$totalMol #20
+#   infoTabNew$controlFeatureMol=infoTabNew[2,]$featureMol #21
+#   infoTabNew$BF01=BF01 #22
+#   infoTabNew$Star=Star #23
+#   pdf(file=bayesPlot)
+#   plot(h)
+#   dev.off()
+# } else {
+#   infoTabNew$minAlleleFraction=minAlleleFraction
+#   infoTabNew$BF01=NA
+#   infoTabNew$Star=NA
+#   infoTabNew$controlTotalMol=NA
+#   infoTabNew$controlFeatureMol=NA
+# }
+
+#infoTabNew=infoTabNew[c(names(infoTabNew)[1:17],names(infoTabNew)[22:23],names(infoTabNew)[18:21])]
+#infoTabOutput=infoTabNew[,c(1:17,20:21,19,22:23,18)]
