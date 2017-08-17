@@ -190,6 +190,7 @@ dataReadIn = function(i, suffixes) {
     mdat$mi2=refinedReg2[sel2[1],c("molID")]
     mdat$hp1=refinedReg1[sel1[1],c("molHP")]
     mdat$hp2=refinedReg1[sel2[1],c("molHP")]
+    mdat
   })
   mergedMol = do.call("rbind", mergedMolList)                         #all molecules, i.e. BX
   mergedMI = mergedMol[mergedMol$mi1 != mergedMol$mi2, ]              #keep non-self-overlapping molecules
@@ -234,7 +235,7 @@ dataReadIn = function(i, suffixes) {
     mergedFR = as.data.frame(mergedFR)
     if(nrow(mergedFR)>0) { #set_colClass(mergedFR, c("character","integer","integer","character","integer","integer"));
       mergedFR$id = paste("rdpFR",refinedFRid,sep=":"); mergedFR$type="rdpFR"; mergedFR$barcode=refinedFR$hp;
-      mergedFR$mi1 = 0; mergedFR$mi2 = 0}
+      mergedFR$mi1 = 0; mergedFR$mi2 = 0; mergedFR$hp1 = 0; mergedFR$hp2 = 0;}
     message("-Info: mergedFR:", nrow(mergedFR))
     
     mergedRF = do.call("rbind", 
@@ -246,7 +247,7 @@ dataReadIn = function(i, suffixes) {
     mergedRF = as.data.frame(mergedRF)
     if(nrow(mergedRF)>0) { #set_colClass(mergedFR, c("character","integer","integer","character","integer","integer"));
       mergedRF$id = paste("rdpRF",refinedRFid,sep=":"); mergedRF$type="rdpRF"; mergedRF$barcode=refinedRF$hp;
-      mergedRF$mi1 = 0; mergedRF$mi2 = 0}
+      mergedRF$mi1 = 0; mergedRF$mi2 = 0; mergedRF$hp1 = 0; mergedRF$hp2 = 0;}
     message("-Info: mergedRF:", nrow(mergedRF))
     
     mergedFF = do.call("rbind", 
@@ -256,7 +257,7 @@ dataReadIn = function(i, suffixes) {
     mergedFF = as.data.frame(mergedFF)
     if(nrow(mergedFF)>0) { #set_colClass(mergedFF, c("character","integer","integer","character","integer","integer")); 
                              mergedFF$id = paste("rdpFF",refinedFFid,sep=":"); mergedFF$type="rdpFF"; mergedFF$barcode=refinedFF$hp;
-                             mergedFF$mi1 = 0; mergedFF$mi2 = 0} 
+                             mergedFF$mi1 = 0; mergedFF$mi2 = 0; mergedFF$hp1 = 0; mergedFF$hp2 = 0;} 
     message("-Info: mergedFF:", nrow(mergedFF))
     
     mergedRR = do.call("rbind", 
@@ -266,7 +267,7 @@ dataReadIn = function(i, suffixes) {
     mergedRR = as.data.frame(mergedRR)
     if(nrow(mergedRR)>0) { #set_colClass(mergedRR, c("character","integer","integer","character","integer","integer")); 
                              mergedRR$id = paste("rdpRR",refinedRRid,sep=":"); mergedRR$type="rdpRR"; mergedRR$barcode=refinedRR$hp;
-                             mergedRR$mi1 = 0; mergedRR$mi2 = 0}
+                             mergedRR$mi1 = 0; mergedRR$mi2 = 0; mergedRR$hp1 = 0; mergedRR$hp2 = 0;}
     message("-Info: mergedRR:", nrow(mergedRR))
   
     if(!isUCSC & nrow(mergedFR)>0) {mergedFR$chr1=paste("chr",mergedFR$chr1,sep="")
@@ -290,8 +291,8 @@ dataReadIn = function(i, suffixes) {
     mergedAll$strand1=strand1Info[match(mergedAll$type, supportType)]
     mergedAll$strand2=strand2Info[match(mergedAll$type, supportType)]
     mergedAll$supportType=mergedAll$type
-    GRcols=c("chrom1",      "start1", "end1",   "chrom2",   "start2", "end2",   "name",     "score",    "barcode",  "mi1",      "mi2",      "strand1",  "strand2",  "supportType")
-    GRclasses=c("character","numeric","numeric","character","numeric","numeric","character","character","character","character","character","character","character","character")
+    GRcols=c("chrom1",      "start1", "end1",   "chrom2",   "start2", "end2",   "name",     "score",    "barcode",  "mi1",      "mi2",      "hp1",      "hp2",      "strand1",  "strand2",  "supportType")
+    GRclasses=c("character","numeric","numeric","character","numeric","numeric","character","character","character","character","character","character","character","character","character","character")
     colnames(mergedAll) = GRcols
     mergedAll$score = 1
     mergedAll = set_colClass(mergedAll, GRclasses)
@@ -325,7 +326,14 @@ dataReadIn = function(i, suffixes) {
   breakReg1CIHigh = NA
   breakReg2CILow = NA
   breakReg2CIHigh = NA
-  
+  hapTab = table(mergedAll$hp1,mergedAll$hp2) #only hp=1 and hp=2 matters
+  breakHapTab = rjson::toJSON(hapTab)
+  breakHapCols = rjson::toJSON(as.integer(colnames(hapTab)))
+  Idx1 = which(colnames(hapTab)=="1")
+  Idx2 = which(colnames(hapTab)=="2")
+  hapMaxIdx = which.max( c(ifelse(length(Idx1)>0, hapTab[Idx1,Idx1], -1), ifelse(length(Idx2)>0, hapTab[Idx2,Idx2], -1), 0) )
+  breakHapMax = c("1","2","0")[hapMaxIdx]
+
   if(nrow(mergedAll)>0) {
     convertedAll = mergedAll  #molecule only
     convertedAll$chrom1 = "chrA"
@@ -355,7 +363,7 @@ dataReadIn = function(i, suffixes) {
     message("-Info: gr...")
     #print(convertedAll[convertedAll$end1>convertedAll$start2,c(1,2,3,4,5,6)])
     #print(mergedAll[convertedAll$end1>convertedAll$start2,c(1,2,3,4,5,6)])
-    gr <- GRanges(seqnames = c(convertedAll$chrom1, convertedAll$chrom2), 
+    gr <- GenomicRanges::GRanges(seqnames = c(convertedAll$chrom1, convertedAll$chrom2), 
                 ranges = IRanges::IRanges(start = c(convertedAll$start1, convertedAll$start2), 
                                  end = c(convertedAll$end1, convertedAll$end2)),
                 #strand = factor(c(as.character(convertedAll$strand1),as.character(convertedAll$strand2)), levels=strandGR),
@@ -366,7 +374,7 @@ dataReadIn = function(i, suffixes) {
                 pair = c(convertedAll$name, convertedAll$name))
     message("-Info: grComp...")
     #print(convertedAll)
-    grComp <- GRanges(seqnames = convertedAll$chrom1,
+    grComp <- GenomicRanges::GRanges(seqnames = convertedAll$chrom1,
                     ranges = IRanges::IRanges(start = convertedAll$end1, end=pmax(convertedAll$end1,convertedAll$start2)+1),
                     strand = rep(NA,nrow(convertedAll)),
                     value = rep(0,nrow(convertedAll)),
@@ -422,6 +430,7 @@ dataReadIn = function(i, suffixes) {
                                                             breakpoint2=breakpoint2,
                                                             isLeftBreak1=leftBreakReg1,
                                                             isLeftBreak2=leftBreakReg2,
+                                                            SVHap=ifelse(chr1==chr2,breakHapMax,"0"),
                                                             SVType=tmpSVType,
                                                             AlleleFraction=sum(mergedAll$supportType=="molNSOV")/statsTab$Cem,
                                                             ReadPair=supportRDP,
@@ -429,13 +438,11 @@ dataReadIn = function(i, suffixes) {
                                                             totalMol=totalMol,
                                                             featureMol=featureMol,
                                                             Sample=s)) )
-  
-
 
   mergedAllFile = paste(plotPrefix,"support",s,"txt",sep=".")
   write.table(mergedAll,file=mergedAllFile,col.names=TRUE,row.names=FALSE,sep="\t",quote=FALSE) #mergeAll
   
-  jsonFile=file(paste(plotPrefix,"break",s,"json",sep="."))
+  jsonFile=base::file(paste(plotPrefix,"break",s,"json",sep="."))
   writeLines(rjson::toJSON(list(reg1=chr1,
                                 break1=infoTabNew$breakpoint1,
                                 break1CILow=boundaryReg12[1]+unname(breakReg1CILow[1]),
@@ -449,11 +456,13 @@ dataReadIn = function(i, suffixes) {
                                 sharedBarcode=mergedMol$barcode,
                                 MolCnt=sum(mergedAll$supportType=="molNSOV"),
                                 SVType=tmpSVType,
+                                SVHap=ifelse(chr1==chr2,breakHapMax,"0"),
+                                SVHapTab=breakHapTab,
+                                SVHapCols=breakHapCols,
                                 AlleleFraction=sum(mergedAll$supportType=="molNSOV")/statsTab$Cem,
                                 ReadPair=supportRDP,
                                 Sample=s
-  )),
-  con=jsonFile)
+  )), con=jsonFile)
   close(jsonFile)
  
   return(list(mergedAll=mergedAll, infoTab=infoTabNew)) 
