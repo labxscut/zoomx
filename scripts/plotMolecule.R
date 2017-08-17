@@ -327,11 +327,13 @@ dataReadIn = function(i, suffixes) {
   breakReg2CILow = NA
   breakReg2CIHigh = NA
   hapTab = table(mergedAll$hp1,mergedAll$hp2) #only hp=1 and hp=2 matters
+  cat("-Info:"); print(hapTab)
   breakHapTab = rjson::toJSON(hapTab)
   breakHapCols = rjson::toJSON(as.integer(colnames(hapTab)))
-  Idx1 = which(colnames(hapTab)=="1")
-  Idx2 = which(colnames(hapTab)=="2")
-  hapMaxIdx = which.max( c(ifelse(length(Idx1)>0, hapTab[Idx1,Idx1], -1), ifelse(length(Idx2)>0, hapTab[Idx2,Idx2], -1), 0) )
+  breakHapRows = rjson::toJSON(as.integer(rownames(hapTab)))
+  Idx1 = which(rownames(hapTab)=="1"); Jdx1 = which(colnames(hapTab)=="1") 
+  Idx2 = which(rownames(hapTab)=="2"); Jdx2 = which(colnames(hapTab)=="2")
+  hapMaxIdx = which.max( c(ifelse(length(Idx1)>0 && length(Jdx1)>0, hapTab[Idx1,Jdx1], -1), ifelse(length(Idx2)>0 && length(Jdx2)>0, hapTab[Idx2,Jdx2], -1), 0) )
   breakHapMax = c("1","2","0")[hapMaxIdx]
 
   if(nrow(mergedAll)>0) {
