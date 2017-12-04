@@ -220,4 +220,4 @@ CONTACTS
 CITATIONS
 ---------
 
-  The ZoomX manuscript is under review.
+  1. Xia, Li Charlie; Bell, John; Wood-Bouwens, Christina; Chen, Jiamin; Zhang, Nancy; Ji, Hanlee. Identification of large rearrangements in cancer genomes with barcode linked reads. Nucleic Acids Research (2017) (https://doi.org/10.1093/nar/gkx1193)
