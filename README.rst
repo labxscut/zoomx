@@ -79,8 +79,16 @@ TRYOUT
     The Amazon Machine Image (ami) of the above EC2 instance is downloadable from Amazon S3 bucket.
     https://s3-us-west-2.amazonaws.com/lixiabucket/zoomxDemo.ova . The usage is the same as above.
 
-INSTALL
-------------
+DOCKER (Platform Independent)
+-------------------------------
+
+  A Dockerfile is provided to build zoomx enabled docker image from a standard Ubuntu docker image. 
+  To build a docker image using 'docker build $ZOOMXPKG', where $ZOOMXPKG is the unzipped path of Zoomx.
+
+    https://bitbucket.org/charade/zoomx/raw/master/Dockerfile
+
+INSTALL (Linux/Ubuntu)
+-----------------------------
   
   ZoomX is available on bitbucket: bitbucket.org:charade/zoomx.git
 
@@ -92,34 +100,30 @@ INSTALL
 
     R(>=3.3)  http://r-project.org
       
-      CRAN: optparse, rjson, RColorBrewer
+      CRAN: optparse, rjson, RColorBrewer, cowplot, igraph, ggplot2
  
-      Bioconductor: IRanges, GenomicRanges, ggbio, GenomeInfoDb
+      Bioconductor: IRanges, GenomicRanges, ggbio, GenomeInfoDb, BSgenome.Hsapiens.UCSC.hg38, BSgenome.Hsapiens.UCSC.hg19
 
-      NOTE: using non-essential R scripts not listed in the EXECUTABLES section of this README file may incurr more dependencies, such as rhdf5, BSgenome.Hsapiens.UCSC.hg38, BSgenome.Hsapiens.UCSC.hg19, cowplot. 
-      
-    Samtools (>0.19) http://samtools.org
+    Samtools (>0.1.19) http://samtools.org
       samtools executables have to be in $PATH and within the sve_py virtual env
       NOTE: this is independent of the samtools api comes with Pysam. 
       
-    Bedtools (>2.20) http://bedtools.org
+    Bedtools (>2.20.0) http://bedtools.org
       bedtools executables have to be in $PATH and within the sve_py virtual env
+
+    To cope with their rare command interface change, working versions of Samtools and Bedtools are also provided with ZoomX. 
    
     A script to confirm all dependencies are met is here:
 
       https://bitbucket.org/charade/zoomx/raw/master/test/test_dep.sh   
-   
-    An example dependency install script from the latest Ubuntu docker container is here:
-
-      https://bitbucket.org/charade/zoomx/raw/master/test/Dockerfile
-
     
   *Installation Free*:
 
-    ZoomX can be used without installation as long as required commands are all in $PATH.
+    ZoomX can be used without installation as long as required commands in proper versions are all in $PATH.
     see `Examples <https://bitbucket.org/charade/zoomx/wiki/Example>`__ and `Manuals <https://bitbucket.org/charade/zoomx/wiki/Manual>`__ for more informations
 
-  *Installation*
+
+  *Installation Python / Virtual Python*
     
     You can install ZoomX as a standard package to your site python without virtualenv, in particular when all python dependencies are already met. If you take this approach, please adapt following virtualenv based installation to your need.
 
@@ -168,7 +172,9 @@ INSTALL
 EXECUTABLES      
 -----------
 
-  zoomxRun      --  a meta pipeline script runs ZoomX's other scripts given a configure file. see `Examples <https://bitbucket.org/charade/zoomx/wiki/Example>`__ .   
+  zoomxStage    --  a meta script to run zoomxRun with multiple specified stages.
+
+  zoomxRun      --  an interface script runs ZoomX's stage scripts given a configure file. see `Examples <https://bitbucket.org/charade/zoomx/wiki/Example>`__ .   
 
   parse10x      --  parsing 10X genomics (Chromium) bam. X.bam.bai has to be in place for X.bam.
     
@@ -214,4 +220,4 @@ CONTACTS
 CITATIONS
 ---------
 
-  The ZoomX manuscript is under review.
+  1. Xia, Li Charlie; Bell, John; Wood-Bouwens, Christina; Chen, Jiamin; Zhang, Nancy; Ji, Hanlee. Identification of large rearrangements in cancer genomes with barcode linked reads. Nucleic Acids Research (2017) (https://doi.org/10.1093/nar/gkx1193)
