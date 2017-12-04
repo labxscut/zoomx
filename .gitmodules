@@ -9,4 +9,4 @@
 	url = https://github.com/samtools/htslib.git
 [submodule "wiki"]
 	path = wiki
-	url = git@bitbucket.org:charade/zoomx.git/wiki
+	url = https://bitbucket.org/charade/zoomx.git/wiki

@@ -1,0 +1,5 @@
+<<<<<<< HEAD
+cat Dockerfile | sed 's/^RUN//g' | sed 's/pip/sudo pip/g' | grep -E -v "FROM|MAINTAINER|WORKDIR" | sed 's/apt-get/sudo apt-get/g'
+=======
+cat Dockerfile | sed 's/^RUN//g' | sed 's/echo/sudo echo/g' | grep -E -v "FROM|MAINTAINER|WORKDIR" | sed 's/apt-/sudo apt-/g' | sed 's/pip install/pip install --user/g'
+>>>>>>> d14e4bb4dcbff41abb883c6bf925d2364490ebba

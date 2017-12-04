@@ -11,22 +11,31 @@ To run following examples:
 
   - Download and unzip ZoomX package or clone the source repository to $ZOOMXPKG.
   - Download and unzip the full test data set `zoomx.test.full.tgz: <REPLACE_WITH_DOWNLOADLINK>`__ and place the data into $ZOOMXPKG/test
-  - Configure the $ZOOMXPKG/test/germline9.cfg and $ZOOMXPKG/test/somatic9.cfg files to reflect your $ZOOMXPKG
-  - Change into $ZOOMXPKG/test and run the germline9.run and somatic9.run testing scripts
+  - Configure the $ZOOMXPKG/test/germline10.cfg and $ZOOMXPKG/test/somatic10.cfg files to reflect your $ZOOMXPKG
+  - Change into $ZOOMXPKG/test and run the germline10.run and somatic10.run testing scripts
+  
+  .. code:: bash
+
+    cd $ZOOMXPKG/test
+    wget https://s3-us-west-2.amazonaws.com/lixiabucket/zoomx.test.full.tgz -O zoomx.test.full.tgz
+    tar -zxvf zoomx.test.full.tgz
+    # edit $ZOOMXPKG/test/germline10.cfg  and $ZOOMXPKG/test/somatic10.cfg
+    ./germline10.run
+    ./somatic10.run
 
 An example ZoomX germline analysis
 --------------------------------------------------
-To run this example, run the 'germline9.run' script in the 'test' subdir.
+To run this example, run the 'germline10.run' script in the 'test' subdir.
 Full test data set is required, which can be downloaded at: 
 `zoomx.test.full.tgz: <REPLACE_WITH_DOWNLOADLINK>`__
 
-$ZOOMXPKG/test/germline9.cfg
+$ZOOMXPKG/test/germline10.cfg
 
   .. code:: bash
 
 REPLACE_WITH_ZOOMXTESTGERMLINECFG
 
-$ZOOMXPKG/test/germline9.run
+$ZOOMXPKG/test/germline10.run
 
   .. code:: bash
 
@@ -35,17 +44,17 @@ REPLACE_WITH_ZOOMXTESTGERMLINERUN
 An example ZoomX somatic analysis
 --------------------------------------------------
 
-To run this example, run the 'somatic9.run' script in the 'test' subdir.
+To run this example, run the 'somatic10.run' script in the 'test' subdir.
 Full test data set is required, which can be downloaded at: 
 `zoomx.test.full.tgz: <REPLACE_WITH_DOWNLOADLINK>`__
 
-test/somatic9.cfg
+test/somatic10.cfg
 
   .. code:: bash
 
 REPLACE_WITH_ZOOMXTESTSOMATICCFG
 
-test/somatic9.run
+test/somatic10.run
 
   .. code:: bash
 

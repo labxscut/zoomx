@@ -19,4 +19,5 @@ rm -f *.merged
 rm -f *.clean*
 rm -f *.cov100
 rm -f *.json.*
+rm -f *.readme
 echo "done"

@@ -9,6 +9,7 @@ import pandas
 import scipy
 import string
 import tempfile
+import time
 from multiprocessing import Pool
 from scipy.stats import poisson
 from scipy.sparse import csr_matrix
@@ -143,6 +144,41 @@ def ThreadIdentifyNonSelfOverlapMole(info):
   support = list(distinctMole)
   return support
 
+def ParalleleBedpeOverlap(rawCalls, numprocs, debug):
+  fixBedpeFile = getTemporaryFile('bedpe_')
+  rawCalls.to_csv(fixBedpeFile, header=False, sep="\t", index=False)
+  numCall = len(rawCalls) 
+  blockSize = int(numpy.ceil(float(numCall)/numprocs))
+  tmpRanges = [ xrange(i*blockSize, min(numCall, (i+1)*blockSize)) for i in xrange(0,numprocs) ]
+  tmpBedpeFiles = [ getTemporaryFile('bedpe_') for i in xrange(0, numprocs) ]
+  filter(lambda i: rawCalls.iloc[tmpRanges[i]].to_csv(tmpBedpeFiles[i],header=False, sep="\t", index=False), xrange(0, numprocs)) # return true
+  info = [ [ fixBedpeFile, tmpBedpeFiles[i], debug ] for i in xrange(0, numprocs) ]
+  if numprocs == 1:
+    overlap = [ ThreadBedpeOverlap(info[0]) ]
+  else: 
+    pool = Pool(processes=int(numprocs))
+    overlap = pool.map( ThreadBedpeOverlap, info)
+  return pandas.concat(overlap, ignore_index=True)
+
+def ThreadBedpeOverlap(info):
+  fixBedpeFile = info[0]
+  tmpBedpeFile = info[1]
+  debug = info[2]
+
+  start_time=time.time()
+  tmpOverlapFile = getTemporaryFile('bedpe_')
+  pair2pair_cmd="bedtools pairtopair -type both -is -a %s -b %s | cut -f8,16 >%s" % (fixBedpeFile, tmpBedpeFile, tmpOverlapFile)
+  if debug: sys.stderr.write("pair2pair_cmd="+str(pair2pair_cmd)+"\n")
+  if debug: sys.stderr.write("tmpOverlapFile='"+str(tmpOverlapFile)+"'\n")
+  if run_cmd(pair2pair_cmd) == False:
+    sys.stderr.write("Error in running pair2pair overlapping..."); return None
+  end_time=time.time()
+  sys.stderr.write("overlapping done:{}s\n".format(end_time-start_time))
+
+  sys.stderr.write("loading overlapping graph...")
+  overlapCalls=pandas.read_table(tmpOverlapFile, names=["bedpe1","bedpe2"], dtype={'bedpe1':numpy.int64,'bedpe2':numpy.int64})
+  return overlapCalls
+
 def empirical_density(v):
   #values, base = np.histogram(nearest, bins=20, density=1)
   d, b = numpy.histogram(v, bins=range(0,int(numpy.ceil(v.max()))+1), density=1)
@@ -245,8 +281,6 @@ def run_cmd(cmd):
     except OSError:
         return False
     return True
-
-#def bedpe_pair2pair(
 
 def bh_rejected(pv, threshold):
     """

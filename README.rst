@@ -122,7 +122,6 @@ INSTALL (Linux/Ubuntu)
     ZoomX can be used without installation as long as required commands in proper versions are all in $PATH.
     see `Examples <https://bitbucket.org/charade/zoomx/wiki/Example>`__ and `Manuals <https://bitbucket.org/charade/zoomx/wiki/Manual>`__ for more informations
 
-
   *Installation Python / Virtual Python*
     
     You can install ZoomX as a standard package to your site python without virtualenv, in particular when all python dependencies are already met. If you take this approach, please adapt following virtualenv based installation to your need.

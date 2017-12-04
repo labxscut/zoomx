@@ -55,8 +55,8 @@ def main(args):
     maxTagFraction = args.maxTagFraction
     expectFalseDiscover = args.expectFalseDiscover
     aneuploidyAllowance = args.aneuploidyAllowance
-    maxDuplication = args.maxDuplication
     maxJunction = args.maxJunction
+    maxDuplication = args.maxDuplication
     genomeSize = args.genomeSize
     gridSize = args.gridSize
     numSub = args.numSub
@@ -69,7 +69,6 @@ def main(args):
     gridFile1 = "human_g1k_v37.fasta.bed.w10Ks5K"
     gridFile2 = "same"
     skipFile1 = "none"
-    #skipFile1 = os.environ['HOME']+"/ws/hg/hg19/human_g1k_v37.fasta.acen+gap+hc.bed"
     skipFile2 = "same"
     maxTagFraction = 0.99
     fragFile = "LS411N_CR1.wg12.bam.multiFragBar.bed.a0"
@@ -92,19 +91,23 @@ def main(args):
   sys.stderr.write("gridScan.py {} {} {} {}\n".format(gridFile1,fragFile,hdf5File,outputPrefix))
   sys.stderr.write("args="+str(args)+"\n")
   if debug:
-    print >>sys.stderr, "-Info: gridFile1:", gridFile1
-    print >>sys.stderr, "-Info: gridFile2:", gridFile2
-    print >>sys.stderr, "-Info: skipFile1:", skipFile1
-    print >>sys.stderr, "-Info: skipFile2:", skipFile2
-    print >>sys.stderr, "-Info: fragFile:", fragFile
-    print >>sys.stderr, "-Info: hdf5File:", hdf5File
-    print >>sys.stderr, "-Info: outputPrefix:", outputPrefix
-    print >>sys.stderr, "-Info: genomeSize:", genomeSize
-    print >>sys.stderr, "-Info: gridSize:", gridSize
-    print >>sys.stderr, "-Info: expectFalseDiscover:", expectFalseDiscover
+    shelveFile = lib10x.getTemporaryFile('debug_shelve')
+    debugSave = shelve.open(shelveFile)
+    print >>sys.stderr, "-Debug: shelveFile:", shelveFile
+
+  print >>sys.stderr, "-Info: gridFile1:", gridFile1
+  print >>sys.stderr, "-Info: gridFile2:", gridFile2
+  print >>sys.stderr, "-Info: skipFile1:", skipFile1
+  print >>sys.stderr, "-Info: skipFile2:", skipFile2
+  print >>sys.stderr, "-Info: fragFile:", fragFile
+  print >>sys.stderr, "-Info: hdf5File:", hdf5File
+  print >>sys.stderr, "-Info: outputPrefix:", outputPrefix
+  print >>sys.stderr, "-Info: genomeSize:", genomeSize
+  print >>sys.stderr, "-Info: gridSize:", gridSize
+  print >>sys.stderr, "-Info: expectFalseDiscover:", expectFalseDiscover
   
   #NOTE:
-  #  big memory objects: 
+  #  big memory objects will be freed after using: 
   #    overlap1, overlap2, fragdata, frag2tagidx
   #    X_i, X_j, X_data, X
   #    Y_j, Y_k, Y_data, Y
@@ -121,62 +124,65 @@ def main(args):
   tmpFragFile = lib10x.getTemporaryFile('frag_bed') #1-based 
   frag.iloc[:,range(0,3)+[frag.shape[1]-1]].to_csv(tmpFragFile, header=False, sep="\t", index=False)
   if debug: 
-    sys.stderr.write("tmpFragFile='"+tmpFragFile+"'\n")
+    sys.stderr.write("-Debug: tmpFragFile='"+tmpFragFile+"'\n")
   
   grid1 = pandas.read_table(gridFile1, names=gridLabels, dtype=gridDtypes)
   grid1['index'] = xrange(1,grid1.shape[0]+1)
   tmpGridFile1 = lib10x.getTemporaryFile('grid1_bed') #1-based 
   if debug:
-    sys.stderr.write("tmpGridFile='"+tmpGridFile1+"'\n")
+    sys.stderr.write("-Debug: tmpGridFile='"+tmpGridFile1+"'\n")
   grid1.to_csv(tmpGridFile1,header=False, sep="\t", index=False)
   grid1 = grid1.reindex()
-  print >>sys.stderr, "grid1Size:", len(grid1)
+  print >>sys.stderr, "-Info: grid1Size:", len(grid1)
     
   gtk1_time = time.time()
   
   overlapFile1 = lib10x.getTemporaryFile('overlap1_mtx_gz')
   if debug: 
-    sys.stderr.write("overlapFile1='"+overlapFile1+"'\n") #1-based beda to bedb intersect file
+    sys.stderr.write("-Debug: overlapFile1='"+overlapFile1+"'\n") #1-based beda to bedb intersect file
   overlapCMD1 = "bedtools intersect -wa -wb -a %s -b %s | cut -f4,8 >%s" % (tmpGridFile1, tmpFragFile, overlapFile1)
+
   if debug: 
-    sys.stderr.write("overlapCMD1="+str(overlapCMD1)+"\n")
+    sys.stderr.write("-Debug: overlapCMD1="+str(overlapCMD1)+"\n")
     gtk1_time = time.time()
+
   if lib10x.run_cmd(overlapCMD1) == False:
-    sys.stderr.write("Error in running overlapCMD1 overlapping..."); quit()
-  if debug:
-    gtk2_time = time.time()
-    print >>sys.stderr, gtk2_time-gtk1_time, "s done"
-  
+    sys.stderr.write("-Error: in running overlapCMD1 overlapping..."); quit()
+
   overlap1 = pandas.read_csv(overlapFile1,header=0,names=['grid','mol'],\
     dtype={'grid':pandas.np.int32,'mol':pandas.np.int32}, delimiter='\t')
-  print >>sys.stderr, "overlap1Size:", len(overlap1)
+  print >>sys.stderr, "-Info: overlap1Size:", len(overlap1)
+
+  if debug:
+    gtk2_time = time.time()
+    print >>sys.stderr, "-Debug:", "overlap1 stage", gtk2_time-gtk1_time, "s done"
   
   if gridFile2 == "same":
     #overlap2 = overlap1
     grid2 = grid1
     gridFile2 = gridFile1
     overlap2 = None
-    print >>sys.stderr, "overlap2 = overlap1"
+    if debug: print >>sys.stderr, "-Debug: overlap2 = overlap1"
   else:
     grid2 = pandas.read_table(gridFile2, names=gridLabels, dtype=gridDtypes)
     grid2['index'] = xrange(0,grid2.shape[0])
+    if debug: print >>sys.stderr, "-Info: grid2Size:", len(grid2)
     tmpGridFile2 = lib10x.getTemporaryFile('grid2_bed') #0-based 
     grid2.to_csv(tmpGridFile2,header=False, sep="\t", index=False)
     grid2 = grid2.reindex()
-    print >>sys.stderr, "grid2Size:", len(grid2) 
     overlapFile2 = lib10x.getTemporaryFile('overlap2_mtx_gz') 
     overlapCMD2 = "bedtools intersect -wa -wb -a %s -b %s | cut -f4,8 >%s" % (tmpGridFile2, tmpFragFile, overlapFile2)
     if debug:
-      sys.stderr.write("overlapCMD1="+str(overlapCMD2)+"\n")
+      sys.stderr.write("-Debug: overlapCMD2="+str(overlapCMD2)+"\n")
       gtk1_time = time.time()
     if lib10x.run_cmd(overlapCMD2) == False:
-      sys.stderr.write("Error in running overlapCMD2 overlapping..."); quit()
-    if debug: 
-      gtk2_time = time.time()
-      print >>sys.stderr, gtk2_time-gtk1_time, "s done"
+      sys.stderr.write("-Error: in running overlapCMD2 overlapping..."); quit()
     overlap2 = pandas.read_csv(overlapFile2,header=0,names=['grid','mol'],\
   	  dtype={'grid':pandas.np.int32,'mol':pandas.np.int32}, delimiter='\t')
-    print >>sys.stderr, "overlap2Size:", len(overlap2)
+    print >>sys.stderr, "-Info: overlap2Size:", len(overlap2)
+    if debug:
+      gtk2_time = time.time()
+      print >>sys.stderr, "-Debug:", "overlap2 stage", gtk2_time-gtk1_time, "s done"
   
   #NOTE: make skipTable to be load
   #skipLabels = ["chr","start","end","count"]
@@ -184,15 +190,15 @@ def main(args):
     skipOverlapFile1 = ".".join([outputPrefix,"skipOverlap1","txt","gz"])
     skipOverlapCMD1 = "bedtools intersect -c -a %s -b %s | gzip -c - > %s" % (gridFile1, skipFile1, skipOverlapFile1)
     if debug:
-      print >>sys.stderr, "skipOverlapCMD1"
-      print >>sys.stderr, skipOverlapCMD1
+      print >>sys.stderr, "-Debug: skipOverlapCMD1"
+      print >>sys.stderr, "-Debug:", skipOverlapCMD1
     if lib10x.run_cmd(skipOverlapCMD1) == False:
-      sys.stderr.write("Error in running skipOverlapCMD1 overlapping..."); quit()
-    skipOverlap1 = pandas.read_csv(skipOverlapFile1,header=None,names=overlapLabels,dtype=overlapDtypes,delimiter='\t')#,index_col=skipLabels)
+      sys.stderr.write("-Error: in running skipOverlapCMD1 overlapping..."); quit()
+    skipOverlap1 = pandas.read_csv(skipOverlapFile1,header=None,names=overlapLabels,dtype=overlapDtypes,delimiter='\t')
     skipIndex1 = [ i for i in xrange(0,len(skipOverlap1)) if skipOverlap1.iloc[i,3]>0 ]
   else:
     skipIndex1 = []
-  print >>sys.stderr, "skipIndex1 elements:", len(skipIndex1)
+  print >>sys.stderr, "-Info: skipIndex1 elements:", len(skipIndex1)
   
   if skipFile2 == "same":
     skipFile2 = skipFile1
@@ -203,31 +209,31 @@ def main(args):
     skipOverlapFile2 = ".".join([outputPrefix,"skipOverlap2","txt","gz"])
     skipOverlapCMD2 = "bedtools intersect -c -a %s -b %s | gzip -c - > %s" % (gridFile2, skipFile2, skipOverlapFile2)
     if debug:
-      print >>sys.stderr, "skipOverlapCMD2"
-      print >>sys.stderr, skipOverlapCMD2
+      print >>sys.stderr, "-Debug: skipOverlapCMD2"
+      print >>sys.stderr, "-Debug:", skipOverlapCMD2
     os.system(skipOverlapCMD2)
-    skipOverlap2 = pandas.read_csv(skipOverlapFile2,header=None,names=overlapLabels,dtype=overlapDtypes,delimiter='\t')#,index_col=skipLabels)
+    skipOverlap2 = pandas.read_csv(skipOverlapFile2,header=None,names=overlapLabels,dtype=overlapDtypes,delimiter='\t')
     skipIndex2 = [ i for i in xrange(0,len(skipOverlap2)) if skipOverlap2.iloc[i,3]>0 ]
-  print >>sys.stderr, "skipIndex2 elements:", len(skipIndex2)
+  print >>sys.stderr, "-Info: skipIndex2 elements:", len(skipIndex2)
   
   #fragLabels = ["chr","start","end","fragTagID","fragSize","fragLength","tagFragFreq","MI","HP","PS"]
   #fragdata = pybedtools.BedTool(fragFile).to_dataframe(comment='#',names=fragLabels,low_memory=False,sep="\t")
   fragdata = lib10x.bed2df(fragFile,fragLabels)
   fragdataSize = len(fragdata)
-  print >>sys.stderr, "fragdataSize:", fragdataSize
+  print >>sys.stderr, "-Info: fragdataSize:", fragdataSize
   #ASSUME:
   #  hdf5 to contain ALL possible Tb's
   #  fragFile to caontain ALL Fragments
   regionFraction = gridSize/float(genomeSize)              #fraction of the size of a region compared to a Gennome
-  print >>sys.stderr, "regionFraction:", regionFraction
+  print >>sys.stderr, "-Info: regionFraction:", regionFraction
   tagFractions = pandas.read_hdf(hdf5File,key="T")
-  print >>sys.stderr, "tagFractions:", tagFractions
+  print >>sys.stderr, "-Info: tagFractions:", tagFractions
   fragNumber = pandas.read_hdf(hdf5File,key="N_f").iloc[0,0]
-  print >>sys.stderr, "fragNumber:", fragNumber
+  print >>sys.stderr, "-Info: fragNumber:", fragNumber
   averageFragLength = pandas.read_hdf(hdf5File,key="L_f").iloc[0,0] #size of a fragment in bases
-  print >>sys.stderr, "averageFragLength:", averageFragLength
+  print >>sys.stderr, "-Info: averageFragLength:", averageFragLength
   tagFractionSquareSum=numpy.sum(tagFractions*tagFractions,axis=1)[0]
-  print >>sys.stderr, "tagFractionSquareSum:", tagFractionSquareSum
+  print >>sys.stderr, "-Info: tagFractionSquareSum:", tagFractionSquareSum
   
   if maxTagFraction <0 or maxTagFraction>0.99:
     medTagFraction = numpy.median(tagFractions)
@@ -238,11 +244,11 @@ def main(args):
     maxTagFraction = maxTagFraction
   
   maxTagFragments = maxTagFraction * fragNumber
-  print >>sys.stderr, "maxTagFraction:", maxTagFraction
-  print >>sys.stderr, "maxTagFragments:", maxTagFragments
-  print >>sys.stderr, "per95TagFraction:", numpy.percentile(tagFractions,95)
-  print >>sys.stderr, "per90TagFraction:", numpy.percentile(tagFractions,90)
-  print >>sys.stderr, "creating hash table for tag and fraction..."
+  print >>sys.stderr, "-Info: maxTagFraction:", maxTagFraction
+  print >>sys.stderr, "-Info: maxTagFragments:", maxTagFragments
+  print >>sys.stderr, "-Info: per95TagFraction:", numpy.percentile(tagFractions,95)
+  print >>sys.stderr, "-Info: per90TagFraction:", numpy.percentile(tagFractions,90)
+  print >>sys.stderr, "-Info: creating hash table for tag and fraction..."
 
   tagcol2tagidx = [-1] * len(tagFractions.iloc[0]) # 0-based, from tag column idx in X to original tag idx in .h5
   tagidx2tagcol = [-1] * len(tagFractions.iloc[0]) # 0-based, from original tag idx in .h5 to tag column idx
@@ -259,28 +265,25 @@ def main(args):
   tagExcludeFileHandle.close() #don't forget to close
   parsedBarcode=len(tagFractions.iloc[0])
   filteredBarcode=tcol
-  print >>sys.stderr, "parsedBarcode=", parsedBarcode
-  print >>sys.stderr, "filteredBarcode=", filteredBarcode
-  print >>sys.stderr, "number of excluded >maxTagFraction tags:", parsedBarcode-filteredBarcode
+  print >>sys.stderr, "-Info: parsedBarcode=", parsedBarcode
+  print >>sys.stderr, "-Info: filteredBarcode=", filteredBarcode
+  print >>sys.stderr, "-Info: number of excluded >maxTagFraction tags:", parsedBarcode-filteredBarcode
   tagcol2tagidx = tagcol2tagidx[:tcol] #remove trailing -1 entries in tagcol2tagidx resulting from freq filter 
-  #print "tagidx2tagcol",tagidx2tagcol
   frag2tagidx = list(fragdata.iloc[:,3]-1) #0-based fragment to tagidx lookup
-  #print "frag2tagidx",frag2tagidx
 
   expectShareFrag = parsedBarcode**2 * (gridSize/float(genomeSize))**2 * (tagFractionSquareSum) #u0, expected shared Fragment by random chance
-  print >>sys.stderr, "expectShareFrag:", expectShareFrag
+  print >>sys.stderr, "-Info: expectShareFrag:", expectShareFrag
   expectJunctionFrag = fragNumber * averageFragLength / float(genomeSize)         #u1, expected shared Fragment by junction formation
-  print >>sys.stderr, "expectJunctionFrag:", expectJunctionFrag
+  print >>sys.stderr, "-Info: expectJunctionFrag:", expectJunctionFrag
   
   if debug:
-    gtk1_time = time.time()
-    print >>sys.stderr, "storing retro convertion from tcol to tag..."
-    pandas.DataFrame(tagcol2tagidx, dtype=pandas.np.int64).to_csv(".".join([outputPrefix,"tagcol2tagidx","gz"])\
-                                ,header=False, sep="\t", index=False, compression="gzip")
-    gtk2_time = time.time()
-    print >>sys.stderr, gtk2_time-gtk1_time, "s done"
+    print >>sys.stderr, "-Debug: storing retro convertion from tcol to tag..."
+    debugSave['tagcol2tagidx'] = tagcol2tagidx
+    #pandas.DataFrame(tagcol2tagidx, dtype=pandas.np.int64).to_csv(".".join([outputPrefix,"tagcol2tagidx","gz"])\
+    #                            ,header=False, sep="\t", index=False, compression="gzip")
 
-  print >>sys.stderr, "creating matrix X..."
+  print >>sys.stderr, "-Info: into grid scanning time stamp", time.time()-start_time, "seconds"
+  print >>sys.stderr, "-Info: creating matrix X..."
   #DONE: X(i,j) is overlaps of Region1(i) and Fragment with Tb(j)
   gtk1_time = time.time()
 
@@ -290,36 +293,37 @@ def main(args):
   X_data = X_data[ X_data['j']>0 ]
   
   if debug:
-    print >>sys.stderr, "overlap1:", len(overlap1)
-    print >>sys.stderr, "X_i:", len(X_i)
-    print >>sys.stderr, "X_j:", len(X_j)
-    print >>sys.stderr, "X_data (before skip cols):", len(X_data)
-    print >>sys.stderr, "X_data (before group):", len(X_data)
+    print >>sys.stderr, "-Debug: overlap1:", len(overlap1)
+    print >>sys.stderr, "-Debug: X_i:", len(X_i)
+    print >>sys.stderr, "-Debug: X_j:", len(X_j)
+    print >>sys.stderr, "-Debug: X_data (before skip cols):", len(X_data)
+    print >>sys.stderr, "-Debug: X_data (before group):", len(X_data)
     X_data.to_csv(".".join([outputPrefix,"X_df","gz"]), header=True, sep="\t", index=False, compression="gzip")
 
   X_data = X_data.groupby(['i','j']).size() #potentail problematic
   if debug: 
-    print >>sys.stderr, "X_data (before reset index):", len(X_data)
+    print >>sys.stderr, "-Debug: X_data (before reset index):", len(X_data)
   X_data = X_data.reset_index()
   if debug:
-    print >>sys.stderr, "X_data (final):", len(X_data)
+    print >>sys.stderr, "-Debug: X_data (final):", len(X_data)
   X_data.columns = ['i', 'j', 'v']
   X_shape = (len(grid1), len(tagcol2tagidx))
   X = scipy.sparse.coo_matrix((X_data['v'], (X_data['i'], X_data['j'])), shape=X_shape)
   X = X.tocsr()
-  print >>sys.stderr, "X.shape", X.shape
-  print >>sys.stderr, "X.nnz", X.nnz
   if debug: 
-    print >>sys.stderr, "saving matrix X..."
-    X_data.to_csv(".".join([outputPrefix,"X_data","gz"]), sep="\t", index=False, compression="gzip")
-    lib10x.save_sparse_csr(".".join([outputPrefix,"X"]),X)
+    print >>sys.stderr, "-Debug: X.nnz", X.nnz
+    print >>sys.stderr, "-Debug: X.shape", X.shape
+    print >>sys.stderr, "-Debug: saving matrix X..."
+    debugSave['X_data'] = X_data
+    #X_data.to_csv(".".join([outputPrefix,"X_data","gz"]), sep="\t", index=False, compression="gzip")
+    #lib10x.save_sparse_csr(".".join([outputPrefix,"X"]),X)
 
   del X_i, X_j, X_data
   gc.collect()
   gtk2_time = time.time()
-  print >>sys.stderr, gtk2_time-gtk1_time, "s done"
+  print >>sys.stderr, "-Info: X_data", gtk2_time-gtk1_time, "s done"
   
-  print >>sys.stderr, "creating matrix Y..."
+  print >>sys.stderr, "-Info: creating matrix Y..."
   #DONE: Y(j,k) is indicator if overlap of Region2(k) and Fragment with Tb(j)
   gtk1_time = time.time()
   if gridFile2 == gridFile1:
@@ -342,17 +346,18 @@ def main(args):
   #print >>sys.stderr, len(Y_data)
   
   Y.data = Y.data>0
-  print >>sys.stderr, "Y.shape", Y.shape
-  print >>sys.stderr, "Y.nnz", Y.nnz
   if debug:
-    print >>sys.stderr, "saving matrix Y..."
-    if Y_data: Y_data.to_csv(".".join([outputPrefix,"Y_data","gz"]), sep="\t", index=False, compression="gzip")
-    lib10x.save_sparse_csr(".".join([outputPrefix,"Y"]),Y)
+    print >>sys.stderr, "-Debug: Y.shape", Y.shape
+    print >>sys.stderr, "-Debug: Y.nnz", Y.nnz
+    print >>sys.stderr, "-Debug: saving matrix Y..."
+    debugSave['Y_data'] = Y_data
+    #if Y_data: Y_data.to_csv(".".join([outputPrefix,"Y_data","gz"]), sep="\t", index=False, compression="gzip")
+    #lib10x.save_sparse_csr(".".join([outputPrefix,"Y"]),Y)
     #scipy.io.mmwrite(".".join([outputPrefix,"Y"]), Y.toarray())
   del Y_j, Y_k, Y_data
   gc.collect()
   gtk2_time = time.time()
-  print >>sys.stderr, gtk2_time-gtk1_time, "s done"
+  print >>sys.stderr, "-Info: Y_data:", gtk2_time-gtk1_time, "s done"
   
   #DONE create a sparse matrix M = X * t(Y)
   #NOTE: X and Y are big sparse matrices of 60K * 50K with around 30M entries each
@@ -360,15 +365,15 @@ def main(args):
   #      to save M, we probably can save X and Y and reconstruct M
   #      try save X and Y into .mtx first
   #      try save X and Y into .npy second 
-  print >>sys.stderr, "controlling FDR..."
+  print >>sys.stderr, "-Info: controlling FDR..."
   #compoute tcut from FDR control: affordable computations N_c = M^2 * (1-ppois(u0,t))
   #cutFDR = 0
   #cutDUP = 0
   cutFDR = scipy.stats.poisson.ppf(1-expectFalseDiscover/float(X.shape[0]*Y.shape[1]),expectShareFrag)
-  print >>sys.stderr, "cutFDR:", cutFDR
+  print >>sys.stderr, "-Info: cutFDR:", cutFDR
   cutDUP = scipy.stats.poisson.ppf(1-expectFalseDiscover/float(X.shape[0]*Y.shape[1]),expectJunctionFrag)
-  print >>sys.stderr, "cutDUP:", cutDUP
-  print >>sys.stderr, "multiplying matrix X and Y..."
+  print >>sys.stderr, "-Info: cutDUP:", cutDUP
+  print >>sys.stderr, "-Info: scanning X and Y..."
   
   #DEBUG Block Dot Multiplication for Sparse Matrix
   #M1 = X.dot(Y)
@@ -383,25 +388,26 @@ def main(args):
   
   sub_size_x = numpy.ceil(X.shape[0]/numSub)
   sub_size_y = numpy.ceil(Y.shape[1]/numSub)
-  print >>sys.stderr, "sub_size_x", sub_size_x
-  print >>sys.stderr, "sub_size_y", sub_size_y
+  if debug: print >>sys.stderr, "-Debug: sub_size_x", sub_size_x
+  if debug: print >>sys.stderr, "-Debug: sub_size_y", sub_size_y
   M = [ [ None for j in xrange(0,numSub) ] for i in xrange(0,numSub) ]
   #make sure the initialized lists are separate
   #print >>sys.stderr, "M=", M
   
+  #this is to avoid memeory bottle neck, to parallelization is not needed
+  #however, it is realized that dividing into small pieces also improves speed, set to 20 pieces by default
   for i in xrange(0,numSub):
     for j in xrange(0,numSub):
       gtk1_time = time.time()
-      print >>sys.stderr, "X-", i, ".Y-", j, ":",  
+      if debug: print >>sys.stderr, "-Debug: X-", i, ".Y-", j, ":",  
       M[i][j] = lib10x.sparse_sub_dot(X, Y, sub_size_x, i, sub_size_y, j)
-      print >>sys.stderr, M[i][j].shape
-      if debug: print >>sys.stderr, "nnzs:", M[i][j].nnz
+      if debug: print >>sys.stderr, "-Debug: nnzs:", M[i][j].nnz
       M[i][j].data[M[i][j].data<=cutFDR]=0
       M[i][j].eliminate_zeros()
-      if debug: print >>sys.stderr, "nnz after taking out <cutFDR:", M[i][j].nnz
+      if debug: print >>sys.stderr, "-Debug: nnz after taking out <cutFDR:", M[i][j].nnz
       M[i][j] = M[i][j].tocoo()
       gtk2_time = time.time()
-      print >>sys.stderr, gtk2_time-gtk1_time, "s done"
+      if debug: print >>sys.stderr, "-Debug: M_data ", gtk2_time-gtk1_time, "s done"
   
   del X, Y, overlap1, overlap2, fragdata, frag2tagidx
   gc.collect()
@@ -427,25 +433,26 @@ def main(args):
   #  print >>sys.stderr, "M_median:", M_median
   #  print >>sys.stderr, "M_mad:", M_mad
   
-  print >>sys.stderr, "M.shape:", M.shape
-  print >>sys.stderr, "M.nnz:", M.nnz
+  print >>sys.stderr, "-Info: M.shape:", M.shape
+  print >>sys.stderr, "-Info: M.nnz:", M.nnz
   
   for row in skipIndex1:
     lib10x.csr_row_set_nz_to_val(M, row) 
   M.eliminate_zeros()
-  print >>sys.stderr, "nnz after removing skip grid1:", M.nnz
+  print >>sys.stderr, "-Info: nnz after removing skip grid1:", M.nnz
   M = M.tocsc()
   for col in skipIndex2:
     lib10x.csc_col_set_nz_to_val(M, col) 
   M.eliminate_zeros()
-  print >>sys.stderr, "nnz after removing skip grid2:", M.nnz
+  print >>sys.stderr, "-Info: nnz after removing skip grid2:", M.nnz
   
   if debug:
-    print >>sys.stderr, "saving matrix M..."
-    lib10x.save_sparse_csr(".".join([outputPrefix,"M"]),M)
+    print >>sys.stderr, "-Debug: saving matrix M..."
+    debugSave['M'] = M
+    #lib10x.save_sparse_csr(".".join([outputPrefix,"M"]),M)
   
   M = M.tocoo()
-  print >>sys.stderr, "M is symmetric: ", lib10x.is_symmetric(M)
+  if debug: print >>sys.stderr, "-Debug: M is symmetric: ", lib10x.is_symmetric(M)
   M_data = pandas.DataFrame({ 'grid1' : M.row, 'grid2' : M.col, 'm12' : M.data }) #0-based grid indicies
   sel = M_data['grid1'] <= M_data['grid2']
   M_data = M_data.loc[sel,]
@@ -453,69 +460,58 @@ def main(args):
   M_data = M_data.reindex()
   
   #output possible duplications
-  M_data_dup_idx = numpy.logical_and(numpy.abs(M_data['grid1']-M_data['grid2'])==0, M_data['m12']>cutDUP).as_matrix()
-  #print M_data_dup_idx
-  #print M_data_dup_idx.as_matrix()
-  #print M_data_dup_idx.tolist()
-  #print M_data_dup_idx.info()
-  
-  #M_data_dup_idx = M_data_dup_idx.reindex()
-  #print M_data_dup_idx
-  if debug: print >>sys.stderr, "maximum possible duplication grids: ", sum(M_data_dup_idx)
-  c = 0
-  for i in xrange(0,len(M_data_dup_idx)):
-    if M_data_dup_idx[i]:
-      c += 1
-      if c > maxDuplication:
-        M_data_dup_idx[i] = False
-  if debug: print >>sys.stderr, "limiting duplication grids to: ", c
-  M_data_dup = M_data[ M_data_dup_idx ]
-  if debug: print >>sys.stderr, "writing results to %s ..." % ".".join([outputPrefix,"M_data","dup","gz"])
-  M_data_dup.to_csv(".".join([outputPrefix,"dup","gz"]), sep="\t", index=False, compression="gzip")
-  
-  dfs = [grid1.iloc[M_data.iloc[M_data_dup_idx,0],:],grid2.iloc[M_data.iloc[M_data_dup_idx,1]],M_data.iloc[M_data_dup_idx,2].to_frame()]
-  for d in dfs: d.reset_index(drop=True, inplace=True) #very important
-  M_data_dup_bedpe=pandas.concat(dfs, names=bedpeLabels, axis=1)
-  #for debug only
-  #save = shelve.open("test.shelve")
-  #save["grid1"] = grid1
-  #save["grid2"] = grid2
-  #save["M_data"] = M_data
-  #save.close()
-  #print type(grid1.iloc[M_data.iloc[M_data_dup_idx,0],:])
-  #print type(grid2.iloc[M_data.iloc[M_data_dup_idx,0],:])
-  #print type(M_data.iloc[M_data_dup_idx,2])
-  #print type(M_data.iloc[M_data_dup_idx,2].to_frame())
-  #M_data_dup_bedpe=pandas.concat([grid1.iloc[M_data.iloc[M_data_dup_idx,0],:],grid2.iloc[M_data.iloc[M_data_dup_idx,1]],M_data.iloc[M_data_dup_idx,2].to_frame()],names=bedpeLabels,axis=1) #use concat if and only if all are data frames
-  #print(M_data.iloc[M_data_dup_idx,2])
-  #M_data_dup_bedpe["m12"] = M_data.iloc[M_data_dup_idx,2]
+  #currently not supported
+  #M_data_dup_idx = numpy.logical_and(numpy.abs(M_data['grid1']-M_data['grid2'])==0, M_data['m12']>cutDUP).as_matrix()
+  #if debug: print >>sys.stderr, "maximum possible duplication grids: ", sum(M_data_dup_idx)
+  #if(sum(M_data_dup_idx)>maxDuplication):
+  #  maxc = max(M_data[M_data_dup_idx]['m12'])
+  #  cutc = 0
+  #  for c in range(0,maxc)[::-1]:
+  #    if sum(M_data[M_data_dup_idx]['m12']>c) > maxDuplication:
+  #      cutc = c+1 
+  #      break
+  #  M_data_dup_idx = numpy.logical_and(M_data['m12']>=cutc,M_data_dup_idx)
+  #  print >>sys.stderr, "maxDuplication limits duplication grids to minColCnt: ", cutc
 
-  print >>sys.stderr, "writing results to %s ..." % ".".join([outputPrefix,"dup","bedpe"])
-  M_data_dup_bedpe.to_csv(open(".".join([outputPrefix,"dup","bedpe"]),'w'), sep="\t", index=False, header=False)
+  #M_data_dup = M_data[ M_data_dup_idx ]
+  #if debug: print >>sys.stderr, "writing results to %s ..." % ".".join([outputPrefix,"M_data","dup","gz"])
+  #M_data_dup.to_csv(".".join([outputPrefix,"dup","gz"]), sep="\t", index=False, compression="gzip")
+  #
+  #dfs = [grid1.iloc[M_data.iloc[M_data_dup_idx,0],:],grid2.iloc[M_data.iloc[M_data_dup_idx,1]],M_data.iloc[M_data_dup_idx,2].to_frame()]
+  #for d in dfs: d.reset_index(drop=True, inplace=True) #very important
+  #M_data_dup_bedpe=pandas.concat(dfs, names=bedpeLabels, axis=1)
+
+  #print >>sys.stderr, "writing results to %s ..." % ".".join([outputPrefix,"dup","bedpe"])
+  #M_data_dup_bedpe.to_csv(open(".".join([outputPrefix,"dup","bedpe"]),'w'), sep="\t", index=False, header=False)
   
   M_data_jct_idx = numpy.logical_and(M_data['grid2']-M_data['grid1']>3, M_data['m12']>cutFDR).as_matrix()
-  #output possible junctions, only keep grid1<grid2 entries
-  #filter out diagonal (+/-)3 elements
-  #write M_data to csv
-  #convert M_data to bed
-  if debug: print >>sys.stderr, "maximum possible junction grids: ", sum(M_data_jct_idx)
-  c = 0
-  for i in xrange(0,len(M_data_jct_idx)):
-    if M_data_jct_idx[i]:
-      c += 1
-      if c > maxJunction:
-        M_data_jct_idx[i] = False
-  if debug: print >>sys.stderr, "limiting junction grids to: ", c
+  #NOTE: 
+  #  output possible junctions, only keep grid1<grid2 entries
+  #  filter out diagonal (+/-)3 elements
+  #  write M_data to csv
+  #  convert M_data to bed
+  print >>sys.stderr, "-Info: maximum possible remote junction grids maxJunction: ", maxJunction 
+
+  m12tab = numpy.bincount(M_data[M_data_jct_idx]['m12'])
+  m12csum = numpy.cumsum(m12tab) # cumulative sum of reverse of m12tab
+  m12sum = sum(m12tab)
+  cutc = next(x[0] for x in enumerate(m12sum-m12csum) if x[1] < maxJunction) #find the lowest cutoff with <maxJ calls
+  print >>sys.stderr, "-Info: maxJunction limits junction grids having minMolCnt: ", cutc
+  M_data_jct_idx = numpy.logical_and(M_data['m12']>=cutc, M_data_jct_idx)
   M_data_jct = M_data[ M_data_jct_idx ]
-  if debug: print >>sys.stderr, "writing results to %s ..." % ".".join([outputPrefix,"jct","gz"])
-  M_data_jct.to_csv(".".join([outputPrefix,"jct","gz"]), sep="\t", index=False, compression="gzip")
+  #if debug: print >>sys.stderr, "writing results to %s ..." % ".".join([outputPrefix,"jct","gz"])
+  #if debug: M_data_jct.to_csv(".".join([outputPrefix,"jct","gz"]), sep="\t", index=False, compression="gzip")
+  # if debug: print(M_data_jct_idx)                           # a boolean masking vector
+  # if debug: print(M_data.loc[M_data_jct_idx][0])            # not working, 
+  # if debug: print(M_data[M_data_jct_idx].iloc[:,0]          # works
   
-  dfs = [grid1.iloc[M_data.iloc[M_data_jct_idx,0],range(0,3)],grid2.iloc[M_data.iloc[M_data_jct_idx,1],range(0,3)],M_data.iloc[M_data_jct_idx,2].to_frame()]
-  #print dfs
+  dfs = [ grid1.iloc[M_data[M_data_jct_idx].iloc[:,0],range(0,3)], \
+          grid2.iloc[M_data[M_data_jct_idx].iloc[:,1],range(0,3)], \
+          M_data[M_data_jct_idx].iloc[:,2].to_frame() ]
   for d in dfs: d.reset_index(drop=True, inplace=True) #very important
-  M_data_dup_bedpe=pandas.concat(dfs, names=bedpeLabels, axis=1)
-  print >>sys.stderr, "writing results to %s ..." % ".".join([outputPrefix,"jct","bedpe"])
-  M_data_dup_bedpe.to_csv(open(".".join([outputPrefix,"jct","bedpe"]),'w'), sep="\t", index=False, header=False)
+  M_data_jct_bedpe=pandas.concat(dfs, names=bedpeLabels, axis=1)
+  print >>sys.stderr, "-Info: writing results to %s ..." % ".".join([outputPrefix,"jct","bedpe"])
+  M_data_jct_bedpe.to_csv(open(".".join([outputPrefix,"jct","bedpe"]),'w'), sep="\t", index=False, header=False)
   
   cfgFile = "{}.{}".format(outputPrefix,"gridScan.cfg.json")
   scanConfig['G'] = genomeSize
@@ -526,9 +522,7 @@ def main(args):
   scanConfig['mNb'] = parsedBarcode
   scanConfig['fNb'] = filteredBarcode
   scanConfig['Tb'] = tagFractionSquareSum 
-  #scanConfig['Cem'] = fragNumber * averageFragLength / float(genomeSize)
   scanConfig['Cem'] = expectJunctionFrag
-  #scanConfig['E0'] = parsedBarcode**2 * (gridSize/float(genomeSize))**2 * (tagFractionSquareSum)
   scanConfig['E0'] = expectShareFrag
   with open(cfgFile, 'w') as f: json.dump(scanConfig, f)
   
@@ -631,10 +625,10 @@ def run():
   parser.add_argument("-s","--skipFile1",default="none",help="1st skipped grid regions BED formatted (optional)")
   parser.add_argument("-t","--skipFile2",default="same",help="2nd skipped grid regions BED formatted (optional)")
   parser.add_argument("-e","--expectFalseDiscover",type=int,default=10,help="expected false discovery allowed")
-  parser.add_argument("-x","--maxDuplication",type=int,default=numpy.iinfo(numpy.int32).max,help="maximum expected number of >gridSize duplications")
-  parser.add_argument("-y","--maxJunction",type=int,default=numpy.iinfo(numpy.int32).max,help="maximum expected number of >gridSize junctions")
+  parser.add_argument("-y","--maxJunction",type=int,default=1000000,help="maximum expected number of >gridSize junctions")
+  parser.add_argument("-x","--maxDuplication",type=int,default=1000000,help="maximum expected number of >gridSize duplications")
   parser.add_argument("-p","--aneuploidyAllowance",type=float,default=4,help="adjust background rate by known aneuploidy")
-  parser.add_argument("-n","--numSub",default=2,type=int,help="number of submatrix used for huge sparse matrices dot multiplication, memory=1/n^2")
+  parser.add_argument("-n","--numSub",default=20,type=int,help="number of submatrix used for huge sparse matrices dot multiplication, memory=1/n^2")
   parser.add_argument("-m","--maxTagFraction",type=float,default=-1,help="max tag fraction to be considerrred")
   parser.add_argument("-g","--genomeSize",type=int,default=3200000000,help="bp size of the whole genome")
   parser.add_argument("-r","--gridSize",type=int,default=10000,help="bp size of the unit grid")
