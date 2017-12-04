@@ -79,8 +79,16 @@ TRYOUT
     The Amazon Machine Image (ami) of the above EC2 instance is downloadable from Amazon S3 bucket.
     https://s3-us-west-2.amazonaws.com/lixiabucket/zoomxDemo.ova . The usage is the same as above.
 
-INSTALL
-------------
+DOCKER (Platform Independent)
+-------------------------------
+
+  A Dockerfile is provided to build zoomx enabled docker image from a standard Ubuntu docker image. 
+  To build a docker image using 'docker build $ZOOMXPKG', where $ZOOMXPKG is the unzipped path of Zoomx.
+
+    https://bitbucket.org/charade/zoomx/raw/master/Dockerfile
+
+INSTALL (Linux/Ubuntu)
+-----------------------------
   
   ZoomX is available on bitbucket: bitbucket.org:charade/zoomx.git
 
@@ -114,11 +122,6 @@ INSTALL
     ZoomX can be used without installation as long as required commands in proper versions are all in $PATH.
     see `Examples <https://bitbucket.org/charade/zoomx/wiki/Example>`__ and `Manuals <https://bitbucket.org/charade/zoomx/wiki/Manual>`__ for more informations
 
-  *Installation Docker*:
-    
-    A Dockerfile is provided to build zoomx enabled docker image from a standard Ubuntu docker image. To build a docker image using 'docker build $ZOOMXPKG'
-
-      https://bitbucket.org/charade/zoomx/raw/master/Dockerfile
 
   *Installation Python / Virtual Python*
     
