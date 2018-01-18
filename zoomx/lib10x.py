@@ -450,8 +450,10 @@ def sparse_sub_dot(sparse_mtx1, sparse_mtx2, sub_size_x, sub_x, sub_size_y, sub_
     sub_y_end=(sub_y+1)*sub_size_y
   else:
     sub_y_end=sparse_mtx2.shape[1]
-  sub_X = sparse_mtx1.tocsr()[sub_x_start:sub_x_end,:]
-  sub_Y = sparse_mtx2.tocsc()[:,sub_y_start:sub_y_end]
+  #sub_X = sparse_mtx1.tocsr()[sub_x_start:sub_x_end,:]
+  #sub_Y = sparse_mtx2.tocsc()[:,sub_y_start:sub_y_end]
+  sub_X = sparse_mtx1.tocsr()[int(sub_x_start):int(sub_x_end),:]
+  sub_Y = sparse_mtx2.tocsc()[:,int(sub_y_start):int(sub_y_end)]
   sub_M = sub_X.dot(sub_Y)
 
   return sub_M
