@@ -56,15 +56,11 @@ TRYOUT
 
   An AWS EC2 instance and a preconfigured virtual machine are available for trying out ZoomX without installation efforts.
 
-  *AWS*:
+  *AWS EC2 VirtualMachine*:
 
-    ZoomX is available for tryout in a live Amazon EC2 instance.
-    Simply log on with SSH and find the package located in ~/setup/zoomx .
-    
-    .. code::
-    
-      ssh bkd@ec2-54-190-36-93.us-west-2.compute.amazonaws.com # secret is the same as user
-    
+    The Amazon Machine Image (ami) of the above EC2 instance is downloadable from Amazon S3 bucket.
+    https://s3-us-west-2.amazonaws.com/lixiabucket/zoomxDemo.ova . The usage is the same as above.
+
     Testing data and scripts are available in ~/setup/zoomx/test . Run ./clean to clean up the directory first. Examples are offered and explained in `Examples <https://bitbucket.org/charade/zoomx/wiki/Example>`__ .
 
     .. code::
@@ -73,11 +69,6 @@ TRYOUT
       ./clean
       ../scripts/zoomxStage germline10.cfg # germline test, see more notes inline within this bash script
       ../scripts/zoomxStage somatic10.cfg  # somatic test, see more notes inline within this bash script
-
-  *VirtualMachine*:
-
-    The Amazon Machine Image (ami) of the above EC2 instance is downloadable from Amazon S3 bucket.
-    https://s3-us-west-2.amazonaws.com/lixiabucket/zoomxDemo.ova . The usage is the same as above.
 
 DOCKER (Platform Independent)
 -------------------------------
