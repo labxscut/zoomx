@@ -70,8 +70,8 @@ TRYOUT
       ../scripts/zoomxStage germline10.cfg # germline test, see more notes inline within this bash script
       ../scripts/zoomxStage somatic10.cfg  # somatic test, see more notes inline within this bash script
 
-DOCKER (Platform Independent)
--------------------------------
+DOCKER (Platform Independent and Preferred)
+--------------------------------------------
 
   A Dockerfile is provided to build zoomx enabled docker image from a standard Ubuntu docker image. 
   To build a docker image using 'docker build $ZOOMXPKG', where $ZOOMXPKG is the unzipped path of Zoomx.
@@ -211,4 +211,4 @@ CONTACTS
 CITATIONS
 ---------
 
-  1. Xia, Li Charlie; Bell, John; Wood-Bouwens, Christina; Chen, Jiamin; Zhang, Nancy; Ji, Hanlee. Identification of large rearrangements in cancer genomes with barcode linked reads. Nucleic Acids Research (2017) (https://doi.org/10.1093/nar/gkx1193)
+  1. Xia, Li Charlie; Bell, John; Wood-Bouwens, Christina; Chen, Jiamin; Zhang, Nancy; Ji, Hanlee. Identification of large rearrangements in cancer genomes with barcode linked reads. Nucleic Acids Research (2018) 46(4) e19 (https://doi.org/10.1093/nar/gkx1193)
