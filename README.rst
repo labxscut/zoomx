@@ -78,10 +78,10 @@ DOCKER (Platform Independent and Preferred)
   A Dockerfile is provided to build ZOOMX enabled docker image from a standard Ubuntu docker image.
   If you are not familiar with Docker, it is a container platform widely used in industry/academia.
   Here is the link to the Docker community:
-    `docker community <https://www.docker.com>`_ .
+    docker community: https://www.docker.com 
   If you have a docker server running,
   just need to download the Dockerfile from:
-    `dockerfile <https://bitbucket.org/charade/zoomx/raw/master/Dockerfile>`_
+    dockerfile: https://bitbucket.org/charade/zoomx/raw/master/Dockerfile
   into $your_zoomx_container and run:
 
   ::
