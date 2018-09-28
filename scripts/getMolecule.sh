@@ -72,5 +72,7 @@ if [[ $suffix = "case" ]]; then
   sed -n -f $outDir/refined.rindex.FF.$suffix $inPrefix.geq$cisSize.FF.bedpe >$outDir/refined.FF.bedpe.$suffix
   echo "sed -n -f $outDir/refined.rindex.RR.$suffix $inPrefix.geq$cisSize.RR.bedpe >$outDir/refined.RR.bedpe.$suffix"
   sed -n -f $outDir/refined.rindex.RR.$suffix $inPrefix.geq$cisSize.RR.bedpe >$outDir/refined.RR.bedpe.$suffix
+  ### find common barcodes
+  (cut -f11 $outDir/refined.reg1.mol.$suffix | while read pat; do grep "$pat" $outDir/refined.reg2.mol.$suffix; done;) > $outDir/refined.jct.mol.$suffix
 fi
 echo "getMolecule.sh Done"
