@@ -55,7 +55,7 @@ dist=setup(name="zoomx",
 		scripts = ['scripts/getMolecule.sh', 'scripts/plotMolecule.R', \
 		           'scripts/getMoleFile.sh', 'scripts/plotMoleFile.sh', \
 	  		       'scripts/bedpe2loupe.sh', 'scripts/getSomatic.sh', \
-               'scripts/plotStats.R', 'scripts/plotCircus.R', \
+               'scripts/plotStats.R', 'scripts/plotCircos.R', \
                'scripts/plotCumCov.R', 'scripts/plotDenCov.R', \
                'scripts/filterMolecule.R', 'scripts/zoomxRun', 'scripts/zoomxStage'],
     data_files = [('',['README.rst','LICENSE','VERSION.txt'])],

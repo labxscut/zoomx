@@ -9,7 +9,7 @@ include scripts/filterMolecule.R
 include scripts/getMoleFile.sh
 include scripts/getMolecule.sh
 include scripts/getSomatic.sh
-include scripts/plotCircus.R
+include scripts/plotCircos.R
 include scripts/plotCumCov.R
 include scripts/plotDenCov.R
 include scripts/plotBarFit.R
