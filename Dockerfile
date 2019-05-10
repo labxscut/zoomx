@@ -17,7 +17,7 @@ ENV PATH "PATH=$PATH:$HOME/bin"
 RUN ulimit -s unlimited
 
 ### install zoomx ###
-RUN cd $HOME/setup && git clone https://bitbucket.org/charade/zoomx.git
+RUN cd $HOME/setup && git lfs clone https://bitbucket.org/charade/zoomx.git
 RUN cd $HOME/setup/zoomx && python setup.py install
 RUN cd $HOME/setup/zoomx/test && ./test_dep.sh
 
