@@ -397,8 +397,11 @@ dataReadIn = function(i, suffixes) {
     message("-Info: plotting...")
     message("-Info: plotFile=",paste(workDir, paste(plotPrefix,"break",s,"pdf",sep="."),sep="/"))
     pdf(file=paste(plotPrefix,"break",s,"pdf",sep="."), width=16, height=12)
-    p = ggplot2::ggplot()+ggbio::geom_arrowrect(gr, ggplot2::aes(color=supportType, fill=strand, group=pair))
-    p = p + ggbio::geom_segment(grComp, ggplot2::aes(color=supportType, group=pair))
+    #print(gr)
+    #save(gr, file='/home/xlib/setup/gr.debug.rdata')
+    p = ggplot2::ggplot()+ggbio::geom_arrowrect(gr, ggplot2::aes(color=supportType, fill=strand, group="pair"))
+    #print(grComp)
+    p = p + ggbio::geom_segment(grComp, ggplot2::aes(color=supportType, group="pair"))
     p = p + ggplot2::scale_color_manual(values=supportColors, na.value="black")
     p = p + ggplot2::scale_fill_manual(values=strandColors, na.value="black")
     p = p + ggplot2::scale_x_continuous("Genomic Region Pair", breaks=tickReg1, labels=tickLab1,
@@ -544,13 +547,13 @@ if(length(rd1GR)==0 | length(rd2GR)==0) {
 
 message("-Info: plotting rdps...")
 g1 = ggplot2::ggplot() + 
-  ggbio::geom_arrowrect(data=rd1GR,ggplot2::aes(y=name,group=name,fill=type,group.selfish=TRUE),xlab=as.character(GenomicRanges::seqnames(rd1GR)[1])) + 
+  ggbio::geom_arrowrect(data=rd1GR,ggplot2::aes(y=name,group="name",fill=type,group.selfish=TRUE),xlab=as.character(GenomicRanges::seqnames(rd1GR)[1])) + 
   ggplot2::theme(legend.position="bottom", legend.box="vertical", legend.direction = "horizontal") + #box-v, item-h
   ggplot2::geom_vline(xintercept=infoTab$breakpoint1,linetype="dotted") +
   ggplot2::geom_text(ggplot2::aes(x=infoTab$breakpoint1, label=paste(infoTab$breakpoint1), y=1), colour="blue", angle=90)
   
 g2 = ggplot2::ggplot() + 
-  ggbio::geom_arrowrect(data=rd2GR,ggplot2::aes(y=name,group=name,fill=type,group.selfish=TRUE),xlab=as.character(GenomicRanges::seqnames(rd2GR)[1])) +
+  ggbio::geom_arrowrect(data=rd2GR,ggplot2::aes(y=name,group="name",fill=type,group.selfish=TRUE),xlab=as.character(GenomicRanges::seqnames(rd2GR)[1])) +
   ggplot2::geom_vline(xintercept=infoTab$breakpoint2,linetype="dotted") +
   ggplot2::geom_text(ggplot2::aes(x=infoTab$breakpoint2, label=paste(infoTab$breakpoint2), y=1), colour="blue", angle=90)
 
