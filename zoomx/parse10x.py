@@ -124,15 +124,19 @@ def main(args):
     covTypes=dict(zip(covLabels,[str,numpy.int32,numpy.int32,numpy.int32]))
     covTable=pandas.read_csv(covFile,header=None,names=covLabels,dtype=covTypes,delimiter='\t')
     covChrChange=numpy.where(~covTable['chr'].duplicated())[0].tolist()
-    #print >>sys.stderr, "covChrChange:", covChrChange
+    #print("covChrChange:", covChrChange) # 0-based
     for i in xrange(0,len(covChrChange)):
-      idxEnd = covChrChange[i+1] if i < len(covChrChange)-1 else len(covTable)
+      idxEnd = covChrChange[i+1] if i < len(covChrChange)-1 else len(covTable)-1 # 0-based
       idxStart = covChrChange[i]
       covStart=int(lib10x.cp2g(str(covTable['chr'][idxStart]),covTable['start'][idxStart],C)/100)
       covEnd=int(lib10x.cp2g(str(covTable['chr'][idxEnd-1]),covTable['start'][idxEnd-1],C)/100)
       #NOTE: coverage is read from covTable (.cov100) file and convert to global index position (gip/100) table
       #      so the coverage should't be wrong because of reference difference
-      covVec[covStart:(covEnd+1)] = covTable['counts'][idxStart:idxEnd]
+      #print("covStart", covStart, "covEnd", covEnd, "idxStart", idxStart, "idxEnd", idxEnd)
+      try:
+        covVec[covStart:(covEnd+1)] = covTable['counts'][idxStart:idxEnd]
+      except ValueError:
+        print(covTable['chr'][idxStart], covTable['start'][idxStart], C)
       #NOTE: covVec is an gip/100 indexed table
     
     cov_mean=numpy.mean(covVec[covVec!=0])
