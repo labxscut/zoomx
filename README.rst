@@ -83,13 +83,13 @@ DOCKER (Platform Independent and Preferred)
     docker pull charade/xlibbox:zoomx
   
 
-A Dockerfile is also provided to build ZOOMX enabled docker image from a standard Ubuntu docker image.
+  A Dockerfile is also provided to build ZOOMX enabled docker image from a standard Ubuntu docker image.
 
-If you are not familiar with Docker, it is a container platform widely used in industry/academia.
-Here is the link to learn Docker and its community: https://www.docker.com 
+  If you are not familiar with Docker, it is a container platform widely used in industry/academia.
+  Here is the link to learn Docker and its community: https://www.docker.com 
 
-If you have a docker server up and running, just need to download the Dockerfile from:
-https://bitbucket.org/charade/zoomx/raw/master/Dockerfile to . and run:
+  If you have a docker server up and running, just need to download the Dockerfile from:
+  https://bitbucket.org/charade/zoomx/raw/master/Dockerfile to . and run:
 
   ::
 
