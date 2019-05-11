@@ -497,18 +497,18 @@ def main(args):
   #  convert M_data to bed
   print >>sys.stderr, "-Info: maximum possible remote junction grids maxJunction: ", maxJunction 
   
-  #m12tab could be 0
+  #m12tab could be 0 or could be an array
   m12tab = numpy.bincount(M_data[M_data_jct_idx]['m12'])
-  if m12tab!=0:
-    #print('m12tab=', m12tab)
+  #print('m12tab=', m12tab, type(m12tab))
+  if any(m12tab): #m12tab is not all 0
     m12csum = numpy.cumsum(m12tab) # cumulative sum of reverse of m12tab
     m12sum = sum(m12tab)
-    print('m12sum=', m12sum)
-    print('m12csum=', m12csum)
-    print('maxJunction=', maxJunction)
+    #print('m12sum=', m12sum)
+    #print('m12csum=', m12csum)
+    #print('maxJunction=', maxJunction)
     cutc = next(x[0] for x in enumerate(m12sum-m12csum) if x[1] < maxJunction) #find the lowest cutoff with <maxJ calls
-    print('cutc=', cutc)
-  else:
+    #print('cutc=', cutc)
+  else: #m12tab is all 0
     cutc = cutFDR
   print >>sys.stderr, "-Info: maxJunction limits junction grids having minMolCnt: ", cutc
   M_data_jct_idx = numpy.logical_and(M_data['m12']>=cutc, M_data_jct_idx)
