@@ -74,19 +74,26 @@ DOCKER (Platform Independent and Preferred)
 --------------------------------------------
 
   Due to the multiple R and Python dependencies involved,
-  the easiest way to use ZOOMX is by the provided docker image build file.
-  A Dockerfile is provided to build ZOOMX enabled docker image from a standard Ubuntu docker image.
-  If you are not familiar with Docker, it is a container platform widely used in industry/academia.
-  Here is the link to the Docker community:
-    docker community: https://www.docker.com 
-  If you have a docker server running,
-  just need to download the Dockerfile from:
-    dockerfile: https://bitbucket.org/charade/zoomx/raw/master/Dockerfile
-  into $your_zoomx_container and run:
+  the easiest way to use ZOOMX is by the provided docker image or build file.
+  
+  A Docker image is available at DockerHub:
+  
+  ::
+  
+    docker pull charade/xlibbox:zoomx
+  
+
+A Dockerfile is also provided to build ZOOMX enabled docker image from a standard Ubuntu docker image.
+
+If you are not familiar with Docker, it is a container platform widely used in industry/academia.
+Here is the link to learn Docker and its community: https://www.docker.com 
+
+If you have a docker server up and running, just need to download the Dockerfile from:
+https://bitbucket.org/charade/zoomx/raw/master/Dockerfile to . and run:
 
   ::
 
-    docker build --no-cache $your_zoomx_container
+    docker build -t charade/xlibbox:zoomx --no-cache .
 
 INSTALL (Linux/Ubuntu)
 -----------------------------
