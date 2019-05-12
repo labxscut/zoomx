@@ -144,7 +144,7 @@ if [[ ! -z $( testSubstring "controlScan" $ZoomXRunOp ) ]]; then
   echo "    filterCMD': '$filterCMD',"
   if [[ -z $dryMode ]]; then echo $filterCMD | bash; fi
   if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
-  gridScanCMD="PYTHONPATH=$ZOOMXPATH  python -m gridScan -x $controlMax -y $controlMax -g $controlGenomeSize -n 10 $grid $clean $h5 $datDir/$controlBam >>$logPf.$ZoomXRunOp.$mydate.log 2>&1" #run gridScan module on Chr22 only (50 Mbp)
+  gridScanCMD="PYTHONPATH=$ZOOMXPATH  python -m gridScan -t $tempDir -x $controlMax -y $controlMax -g $controlGenomeSize -n 10 $grid $clean $h5 $datDir/$controlBam >>$logPf.$ZoomXRunOp.$mydate.log 2>&1" #run gridScan module on Chr22 only (50 Mbp)
   echo "    'gridScanCMD': '$gridScanCMD'," 
   if [[ -z $dryMode ]]; then echo $gridScanCMD | bash; fi
   if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
@@ -179,21 +179,21 @@ if [[ ! -z $( testSubstring "controlScan" $ZoomXRunOp ) ]]; then
 fi
   
 if [[ ! -z $( testSubstring "controlCisRef" $ZoomXRunOp ) ]]; then
-  cisRefCMD="PYTHONPATH=$ZOOMXPATH  python -m refineBreak $mergeOnly -g $gapFile -n 10 -e $controlExp -o $resDir/$controlBam.cis.E$controlExp -i $datDir/$controlBam.geq$cisSize.FR.bedpe -j $datDir/$controlBam.geq$cisSize.FF.bedpe -k $datDir/$controlBam.geq$cisSize.RR.bedpe -l $datDir/$controlBam.geq$cisSize.RF.bedpe -x $bed $controlPf/$controlBam $cis $cfg >$logPf.$ZoomXRunOp.$mydate.log 2>&1"
+  cisRefCMD="PYTHONPATH=$ZOOMXPATH  python -m refineBreak $mergeOnly -t $tempDir -g $gapFile -n 10 -e $controlExp -o $resDir/$controlBam.cis.E$controlExp -i $datDir/$controlBam.geq$cisSize.FR.bedpe -j $datDir/$controlBam.geq$cisSize.FF.bedpe -k $datDir/$controlBam.geq$cisSize.RR.bedpe -l $datDir/$controlBam.geq$cisSize.RF.bedpe -x $bed $controlPf/$controlBam $cis $cfg >$logPf.$ZoomXRunOp.$mydate.log 2>&1"
   echo "    'cisRefCMD':'$cisRefCMD',"
   if [[ -z $dryMode ]]; then echo $cisRefCMD | bash; fi
   if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
 fi
   
 if [[ ! -z $( testSubstring "controlDistRef" $ZoomXRunOp ) ]]; then
-  distRefCMD="PYTHONPATH=$ZOOMXPATH  python -m refineBreak $mergeOnly -g $gapFile -n 10 -e $controlExp -o $resDir/$controlBam.dist.E$controlExp -i $datDir/$controlBam.geq$cisSize.FR.bedpe -j $datDir/$controlBam.geq$cisSize.FF.bedpe -k $datDir/$controlBam.geq$cisSize.RR.bedpe -l $datDir/$controlBam.geq$cisSize.RF.bedpe -x $bed $controlPf/$controlBam $distal $cfg >$logPf.$ZoomXRunOp.$mydate.log 2>&1"
+  distRefCMD="PYTHONPATH=$ZOOMXPATH  python -m refineBreak $mergeOnly -t $tempDir -g $gapFile -n 10 -e $controlExp -o $resDir/$controlBam.dist.E$controlExp -i $datDir/$controlBam.geq$cisSize.FR.bedpe -j $datDir/$controlBam.geq$cisSize.FF.bedpe -k $datDir/$controlBam.geq$cisSize.RR.bedpe -l $datDir/$controlBam.geq$cisSize.RF.bedpe -x $bed $controlPf/$controlBam $distal $cfg >$logPf.$ZoomXRunOp.$mydate.log 2>&1"
   echo "    'distRefCMD':'$distRefCMD',"
   if [[ -z $dryMode ]]; then echo $distRefCMD | bash; fi
   if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
 fi
   
 if [[ ! -z $( testSubstring "controlTransRef" $ZoomXRunOp ) ]]; then
-  transRefCMD="PYTHONPATH=$ZOOMXPATH  python -m refineBreak $mergeOnly -g $gapFile -n 10 -e $controlExp -o $resDir/$controlBam.tra.E$controlExp -i $datDir/$controlBam.geq$cisSize.FR.bedpe -j $datDir/$controlBam.geq$cisSize.FF.bedpe -k $datDir/$controlBam.geq$cisSize.RR.bedpe -l $datDir/$controlBam.geq$cisSize.RF.bedpe -x $bed $controlPf/$controlBam $trans $cfg >$logPf.$ZoomXRunOp.$mydate.log 2>&1"
+  transRefCMD="PYTHONPATH=$ZOOMXPATH  python -m refineBreak $mergeOnly -t $tempDir -g $gapFile -n 10 -e $controlExp -o $resDir/$controlBam.tra.E$controlExp -i $datDir/$controlBam.geq$cisSize.FR.bedpe -j $datDir/$controlBam.geq$cisSize.FF.bedpe -k $datDir/$controlBam.geq$cisSize.RR.bedpe -l $datDir/$controlBam.geq$cisSize.RF.bedpe -x $bed $controlPf/$controlBam $trans $cfg >$logPf.$ZoomXRunOp.$mydate.log 2>&1"
   echo "    'transRefCMD':'$transRefCMD',"
   if [[ -z $dryMode ]]; then echo $transRefCMD | bash; fi
   if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
@@ -244,7 +244,7 @@ if [[ ! -z $( testSubstring "caseScan" $ZoomXRunOp ) ]]; then
   echo "    filterCMD': '$filterCMD',"
   if [[ -z $dryMode ]]; then echo $filterCMD | bash; fi
   if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
-  gridScanCMD="PYTHONPATH=$ZOOMXPATH  python -m gridScan -x $caseMax -y $caseMax -g $caseGenomeSize -n 10 $grid $clean $h5 $datDir/$caseBam >>$logPf.$ZoomXRunOp.$mydate.log 2>&1" #run gridScan module on Chr22 only (50 Mbp)
+  gridScanCMD="PYTHONPATH=$ZOOMXPATH  python -m gridScan -t $tempDir -x $caseMax -y $caseMax -g $caseGenomeSize -n 10 $grid $clean $h5 $datDir/$caseBam >>$logPf.$ZoomXRunOp.$mydate.log 2>&1" #run gridScan module on Chr22 only (50 Mbp)
   echo "    'gridScanCMD': '$gridScanCMD'," 
   if [[ -z $dryMode ]]; then echo $gridScanCMD | bash; fi
   if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
@@ -279,21 +279,21 @@ if [[ ! -z $( testSubstring "caseScan" $ZoomXRunOp ) ]]; then
 fi
   
 if [[ ! -z $( testSubstring "caseCisRef" $ZoomXRunOp ) ]]; then
-  cisRefCMD="PYTHONPATH=$ZOOMXPATH  python -m refineBreak $mergeOnly -g $gapFile -n 10 -e $caseExp -o $resDir/$caseBam.cis.E$caseExp -i $datDir/$caseBam.geq$cisSize.FR.bedpe -j $datDir/$caseBam.geq$cisSize.FF.bedpe -k $datDir/$caseBam.geq$cisSize.RR.bedpe -l $datDir/$caseBam.geq$cisSize.RF.bedpe -x $bed $casePf/$caseBam $cis $cfg >$logPf.$ZoomXRunOp.$mydate.log 2>&1"
+  cisRefCMD="PYTHONPATH=$ZOOMXPATH  python -m refineBreak $mergeOnly -t $tempDir -g $gapFile -n 10 -e $caseExp -o $resDir/$caseBam.cis.E$caseExp -i $datDir/$caseBam.geq$cisSize.FR.bedpe -j $datDir/$caseBam.geq$cisSize.FF.bedpe -k $datDir/$caseBam.geq$cisSize.RR.bedpe -l $datDir/$caseBam.geq$cisSize.RF.bedpe -x $bed $casePf/$caseBam $cis $cfg >$logPf.$ZoomXRunOp.$mydate.log 2>&1"
   echo "    'cisRefCMD':'$cisRefCMD',"
   if [[ -z $dryMode ]]; then echo $cisRefCMD | bash; fi
   if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
 fi
  
 if [[ ! -z $( testSubstring "caseDistRef" $ZoomXRunOp ) ]]; then
-  distRefCMD="PYTHONPATH=$ZOOMXPATH  python -m refineBreak $mergeOnly -g $gapFile -n 10 -e $caseExp -o $resDir/$caseBam.dist.E$caseExp -i $datDir/$caseBam.geq$cisSize.FR.bedpe -j $datDir/$caseBam.geq$cisSize.FF.bedpe -k $datDir/$caseBam.geq$cisSize.RR.bedpe -l $datDir/$caseBam.geq$cisSize.RF.bedpe -x $bed $casePf/$caseBam $distal $cfg >$logPf.$ZoomXRunOp.$mydate.log 2>&1"
+  distRefCMD="PYTHONPATH=$ZOOMXPATH  python -m refineBreak $mergeOnly -t $tempDir -g $gapFile -n 10 -e $caseExp -o $resDir/$caseBam.dist.E$caseExp -i $datDir/$caseBam.geq$cisSize.FR.bedpe -j $datDir/$caseBam.geq$cisSize.FF.bedpe -k $datDir/$caseBam.geq$cisSize.RR.bedpe -l $datDir/$caseBam.geq$cisSize.RF.bedpe -x $bed $casePf/$caseBam $distal $cfg >$logPf.$ZoomXRunOp.$mydate.log 2>&1"
   echo "    'distRefCMD':'$distRefCMD',"
   if [[ -z $dryMode ]]; then echo $distRefCMD | bash; fi
   if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
 fi
   
 if [[ ! -z $( testSubstring "caseTransRef" $ZoomXRunOp ) ]]; then
-  transRefCMD="PYTHONPATH=$ZOOMXPATH  python -m refineBreak $mergeOnly -g $gapFile -n 10 -e $caseExp -o $resDir/$caseBam.tra.E$caseExp -i $datDir/$caseBam.geq$cisSize.FR.bedpe -j $datDir/$caseBam.geq$cisSize.FF.bedpe -k $datDir/$caseBam.geq$cisSize.RR.bedpe -l $datDir/$caseBam.geq$cisSize.RF.bedpe -x $bed $casePf/$caseBam $trans $cfg >$logPf.$ZoomXRunOp.$mydate.log 2>&1"
+  transRefCMD="PYTHONPATH=$ZOOMXPATH  python -m refineBreak $mergeOnly -t $tempDir -g $gapFile -n 10 -e $caseExp -o $resDir/$caseBam.tra.E$caseExp -i $datDir/$caseBam.geq$cisSize.FR.bedpe -j $datDir/$caseBam.geq$cisSize.FF.bedpe -k $datDir/$caseBam.geq$cisSize.RR.bedpe -l $datDir/$caseBam.geq$cisSize.RF.bedpe -x $bed $casePf/$caseBam $trans $cfg >$logPf.$ZoomXRunOp.$mydate.log 2>&1"
   echo "    'transRefCMD':'$transRefCMD',"
   if [[ -z $dryMode ]]; then echo $transRefCMD | bash; fi
   if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
