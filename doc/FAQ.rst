@@ -75,3 +75,9 @@ Development Related
 -------------------------------------------------------------------------------------------------------------------------------------
 
   A: use setuptools and configure installation with setup.py.
+
+3-2. Q: Error in GRanges: could not find symbol "recursive" in environment of the generic function
+-------------------------------------------------------------------------------------------------------------------------------------
+
+  A: biocLite(c("BiocGenerics", "S4Vectors", "IRanges", "GenomicRanges"),type="source")
+  https://support.bioconductor.org/p/93695/
