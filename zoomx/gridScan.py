@@ -60,11 +60,7 @@ def main(args):
     genomeSize = args.genomeSize
     gridSize = args.gridSize
     numSub = args.numSub
-<<<<<<< HEAD
     tempdir = os.path.join(args.tempdir,'zoomx_'+lib10x.randascii(4))
-=======
-    tempdir = args.tempdir+'/zoomx_'+lib10x.randascii(4)
->>>>>>> master
     debug = args.debug
   else:
     bamfile="LS411N_CR1.wg12.bam"
