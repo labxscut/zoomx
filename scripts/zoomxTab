@@ -1,0 +1,14 @@
+#!/bin/bash
+#this script collects ZoomX germline and somatic call info.txt files
+#version 10
+
+if [[ -z $4 ]]; then
+  echo "#usage:"
+  echo "#zoomxTab plotDir keyword1 keyword2 keyword3 outPrefix"
+  echo "#  e.g."
+  ehco "#  zoomxTab plots NA12878 dist refined NA12878.dist.refined.info.txt"
+  ehco "#  zoomxTab plots MetB7175 dist refined MetB7175.dist.refined.info.txt"
+  ehco "#  zoomxTab plots MetB7175 dist somatic MetB7175_Norm7176.dist.somatic.info.txt"
+fi
+
+cat $1/*$2*$3*Plot*/*.info.txt >$4.info.txt
