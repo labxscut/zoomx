@@ -56,15 +56,11 @@ TRYOUT
 
   An AWS EC2 instance and a preconfigured virtual machine are available for trying out ZoomX without installation efforts.
 
-  *AWS*:
+  *AWS EC2 VirtualMachine*:
 
-    ZoomX is available for tryout in a live Amazon EC2 instance.
-    Simply log on with SSH and find the package located in ~/setup/zoomx .
-    
-    .. code::
-    
-      ssh bkd@ec2-54-190-36-93.us-west-2.compute.amazonaws.com # secret is the same as user
-    
+    The Amazon Machine Image (ami) of the above EC2 instance is downloadable from Amazon S3 bucket.
+    https://s3-us-west-2.amazonaws.com/lixiabucket/zoomxDemo.ova . The usage is the same as above.
+
     Testing data and scripts are available in ~/setup/zoomx/test . Run ./clean to clean up the directory first. Examples are offered and explained in `Examples <https://bitbucket.org/charade/zoomx/wiki/Example>`__ .
 
     .. code::
@@ -74,18 +70,23 @@ TRYOUT
       ../scripts/zoomxStage germline10.cfg # germline test, see more notes inline within this bash script
       ../scripts/zoomxStage somatic10.cfg  # somatic test, see more notes inline within this bash script
 
-  *VirtualMachine*:
+DOCKER (Platform Independent and Preferred)
+--------------------------------------------
 
-    The Amazon Machine Image (ami) of the above EC2 instance is downloadable from Amazon S3 bucket.
-    https://s3-us-west-2.amazonaws.com/lixiabucket/zoomxDemo.ova . The usage is the same as above.
+  Due to the multiple R and Python dependencies involved,
+  the easiest way to use ZOOMX is by the provided docker image build file.
+  A Dockerfile is provided to build ZOOMX enabled docker image from a standard Ubuntu docker image.
+  If you are not familiar with Docker, it is a container platform widely used in industry/academia.
+  Here is the link to the Docker community:
+    docker community: https://www.docker.com 
+  If you have a docker server running,
+  just need to download the Dockerfile from:
+    dockerfile: https://bitbucket.org/charade/zoomx/raw/master/Dockerfile
+  into $your_zoomx_container and run:
 
-DOCKER (Platform Independent)
--------------------------------
+  ::
 
-  A Dockerfile is provided to build zoomx enabled docker image from a standard Ubuntu docker image. 
-  To build a docker image using 'docker build $ZOOMXPKG', where $ZOOMXPKG is the unzipped path of Zoomx.
-
-    https://bitbucket.org/charade/zoomx/raw/master/Dockerfile
+    docker build --no-cache $your_zoomx_container
 
 INSTALL (Linux/Ubuntu)
 -----------------------------
@@ -220,4 +221,4 @@ CONTACTS
 CITATIONS
 ---------
 
-  1. Xia, Li Charlie; Bell, John; Wood-Bouwens, Christina; Chen, Jiamin; Zhang, Nancy; Ji, Hanlee. Identification of large rearrangements in cancer genomes with barcode linked reads. Nucleic Acids Research (2017) (https://doi.org/10.1093/nar/gkx1193)
+  1. Xia, Li Charlie; Bell, John; Wood-Bouwens, Christina; Chen, Jiamin; Zhang, Nancy; Ji, Hanlee. Identification of large rearrangements in cancer genomes with barcode linked reads. Nucleic Acids Research (2018) 46(4) e19 (https://doi.org/10.1093/nar/gkx1193)

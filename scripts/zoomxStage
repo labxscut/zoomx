@@ -64,7 +64,8 @@ else
     \t $cfgDir : keep json formatted configures of zoomxRun \n
     \t $datDir : keep intermediatary results of zoomxRun, some may be useful to user \n
     \t $resDir : keep main results of zoomxRun, mostly useful to user \n
-    \t $plotDir : keep plotting results of zoomxRun, also useful to user \n"
+    \t $plotDir : keep plotting results of zoomxRun, also useful to user \n
+    \t $tempDir : keep temporary files of zoomx, to be cleaned after run"
     
   echo "zoomxStageLogFile: $zoomxStageLogFile"
   echo ""

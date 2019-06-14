@@ -60,7 +60,11 @@ def main(args):
     genomeSize = args.genomeSize
     gridSize = args.gridSize
     numSub = args.numSub
+<<<<<<< HEAD
     tempdir = os.path.join(args.tempdir,'zoomx_'+lib10x.randascii(4))
+=======
+    tempdir = args.tempdir+'/zoomx_'+lib10x.randascii(4)
+>>>>>>> master
     debug = args.debug
   else:
     bamfile="LS411N_CR1.wg12.bam"
@@ -484,18 +488,32 @@ def main(args):
   #print >>sys.stderr, "writing results to %s ..." % ".".join([outputPrefix,"dup","bedpe"])
   #M_data_dup_bedpe.to_csv(open(".".join([outputPrefix,"dup","bedpe"]),'w'), sep="\t", index=False, header=False)
   
-  M_data_jct_idx = numpy.logical_and(M_data['grid2']-M_data['grid1']>3, M_data['m12']>cutFDR).as_matrix()
+  #print('M_data=', M_data)
+  #print('M_data[m12]=', M_data['m12'])
+  #print('cutFDR', cutFDR)
+  #M_data_jct_idx = numpy.logical_and(M_data['grid2']-M_data['grid1']>3, M_data['m12']>cutFDR)
+  M_data_jct_idx = numpy.asarray(numpy.logical_and(M_data['grid2']-M_data['grid1']>3, M_data['m12']>cutFDR))
+  #print('M_data_jct_idx=', M_data_jct_idx)
   #NOTE: 
   #  output possible junctions, only keep grid1<grid2 entries
   #  filter out diagonal (+/-)3 elements
   #  write M_data to csv
   #  convert M_data to bed
   print >>sys.stderr, "-Info: maximum possible remote junction grids maxJunction: ", maxJunction 
-
+  
+  #m12tab could be 0 or could be an array
   m12tab = numpy.bincount(M_data[M_data_jct_idx]['m12'])
-  m12csum = numpy.cumsum(m12tab) # cumulative sum of reverse of m12tab
-  m12sum = sum(m12tab)
-  cutc = next(x[0] for x in enumerate(m12sum-m12csum) if x[1] < maxJunction) #find the lowest cutoff with <maxJ calls
+  #print('m12tab=', m12tab, type(m12tab))
+  if any(m12tab): #m12tab is not all 0
+    m12csum = numpy.cumsum(m12tab) # cumulative sum of reverse of m12tab
+    m12sum = sum(m12tab)
+    #print('m12sum=', m12sum)
+    #print('m12csum=', m12csum)
+    #print('maxJunction=', maxJunction)
+    cutc = next(x[0] for x in enumerate(m12sum-m12csum) if x[1] < maxJunction) #find the lowest cutoff with <maxJ calls
+    #print('cutc=', cutc)
+  else: #m12tab is all 0
+    cutc = cutFDR
   print >>sys.stderr, "-Info: maxJunction limits junction grids having minMolCnt: ", cutc
   M_data_jct_idx = numpy.logical_and(M_data['m12']>=cutc, M_data_jct_idx)
   M_data_jct = M_data[ M_data_jct_idx ]
