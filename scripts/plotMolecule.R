@@ -331,11 +331,12 @@ dataReadIn = function(i, suffixes) {
   breakReg1CIHigh = NA
   breakReg2CILow = NA
   breakReg2CIHigh = NA
-  ### The LOGIC here is temporary cause obvisouly even if the junction is the same hap
-  ### the hap doesn't expect to be correctly identified  by long-ranger correclty
+
+  ### The LOGIC here is temporary cause obvisouly even if the junction is the same haplotype
+  ### the haplotype should not be expected to be correctly identified by long-ranger
   ### let's break it down to haplotypes and phased segemnts at each breakpoint
   hapTab1 = table(mergedAll$hp1[mergedAll$hp1!=-1])
-  hapTab2 = table(mergedAll$hp2[mergedAll$hp2!=-1]) #only hp=1 and hp=2 matters
+  hapTab2 = table(mergedAll$hp2[mergedAll$hp2!=-1]) #only hp=1 and hp=2 matters, cause long-ranges only assumes two
   cat("-Info: haplotype (hp) table of breakpoint1"); print(hapTab1)
   cat("-Info: haplotype (hp) table of breakpoint2"); print(hapTab2)
   breakHapTab1 = rjson::toJSON(hapTab1)
@@ -348,7 +349,7 @@ dataReadIn = function(i, suffixes) {
     cat("-Info: breakpoint", i, " haplotype"); print(breakHapMax[i])
   }
 
-  breakPsMax =  rep(0, 2)
+  breakPsMax = rep(0, 2)
   psTab1 = table(mergedAll$ps1[mergedAll$ps1!=-1])
   psTab2 = table(mergedAll$ps2[mergedAll$ps2!=-1])
   cat("-Info: phased segment (ps) of breakpoint1"); print(psTab1)
@@ -458,20 +459,26 @@ dataReadIn = function(i, suffixes) {
     tmpSVType = "UNK"
   }
   
-  infoTabNew = cbind(infoTab[,seq(7)], as.data.frame( list( breakpoint1=breakpoint1,
-                                                            breakpoint2=breakpoint2,
-                                                            isLeftBreak1=leftBreakReg1,
-                                                            isLeftBreak2=leftBreakReg2,
-                                                            SVHap=paste(breakHapMax,sep="<>"),
-                                                            SVPs=paste(breakPsMax,sep="<>"),,
-                                                            SVType=tmpSVType,
-                                                            AlleleFraction=sum(mergedAll$supportType=="molNSOV")/statsTab$Cem,
-                                                            ReadPair=supportRDP,
-                                                            MolCnt=sum(mergedAll$supportType=="molNSOV"),
-                                                            totalMol=totalMol,
-                                                            featureMol=featureMol,
-                                                            Sample=s)) )
-
+  #cat("AlleleFraction\n")
+  #print(sum(mergedAll$supportType=="molNSOV")/statsTab$Cem)
+  #cat("SVPs\n")
+  #print(breakPsMax)
+  infoList = list( breakpoint1=breakpoint1,
+                   breakpoint2=breakpoint2,
+                   isLeftBreak1=leftBreakReg1,
+                   isLeftBreak2=leftBreakReg2,
+                   SVHap=paste(breakHapMax,sep="<>"),
+                   SVPs=paste(breakPsMax,sep="<>"),
+                   SVType=tmpSVType,
+                   AlleleFraction=sum(mergedAll$supportType=="molNSOV")/statsTab$Cem,
+                   ReadPair=supportRDP,
+                   MolCnt=sum(mergedAll$supportType=="molNSOV"),
+                   totalMol=totalMol,
+                   featureMol=featureMol,
+                   Sample=s)
+  cat("infoList\n")
+  print(infoList)
+  infoTabNew = cbind(infoTab[,seq(7)], as.data.frame( infoList ))
   mergedAllFile = paste(plotPrefix,"support",s,"txt",sep=".")
   write.table(mergedAll,file=mergedAllFile,col.names=TRUE,row.names=FALSE,sep="\t",quote=FALSE) #mergeAll
   
@@ -491,7 +498,7 @@ dataReadIn = function(i, suffixes) {
                                 SVType=tmpSVType,
                                 SVHap=paste(breakHapMax,sep="<>"),
 				SVHapTab=list(hapTab1=hapTab1,hapTab2=hapTab2),
-                                SVPs=paste(breakPsMax,sep="<>"),,
+                                SVPs=paste(breakPsMax,sep="<>"),
                                 SVPsTab=list(hapTab1=hapTab1,hapTab2=hapTab2),
                                 AlleleFraction=sum(mergedAll$supportType=="molNSOV")/statsTab$Cem,
                                 ReadPair=supportRDP,
