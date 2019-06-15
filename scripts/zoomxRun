@@ -123,16 +123,16 @@ if [[ ! -z $( testSubstring "controlCov" $ZoomXRunOp ) ]]; then
   else
     controlCovCMD="samtools bedcov $covGrid $controlPf/$controlBam >$controlCovFile"
   fi
+  echo "    controlCovCMD': '$controlCovCMD',"
   if [[ -z $dryMode ]]; then echo $controlCovCMD | bash; fi
   if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
-  echo "    controlCovCMD': '$controlCovCMD',"
 fi
 
 if [[ ! -z $( testSubstring "controlParse" $ZoomXRunOp ) ]]; then
   parse10xCMD="PYTHONPATH=$ZOOMXPATH  python -m parse10x -o $datDir/$controlBam -l 2 $controlPf/$controlBam >$logPf.$ZoomXRunOp.$mydate.log 2>&1"        #run parse10x module
+  echo "    parse10xCMD': '$parse10xCMD',"
   if [[ -z $dryMode ]]; then echo $parse10xCMD | bash; fi
   if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
-  echo "    parse10xCMD': '$parse10xCMD',"
 fi
 
 if [[ ! -z $( testSubstring "controlScan" $ZoomXRunOp ) ]]; then
@@ -141,62 +141,62 @@ if [[ ! -z $( testSubstring "controlScan" $ZoomXRunOp ) ]]; then
   else #covFile is not specified or generated (missing?)
     filterCMD="(cp $bed $clean && touch $filter) >$logPf.$ZoomXRunOp.$mydate.log 2>&1" #create dummy filter files
   fi
+  echo "    filterCMD': '$filterCMD',"
   if [[ -z $dryMode ]]; then echo $filterCMD | bash; fi
   if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
-  echo "    filterCMD': '$filterCMD',"
-  gridScanCMD="PYTHONPATH=$ZOOMXPATH  python -m gridScan -x $controlMax -y $controlMax -g $controlGenomeSize -n 10 $grid $clean $h5 $datDir/$controlBam >>$logPf.$ZoomXRunOp.$mydate.log 2>&1" #run gridScan module on Chr22 only (50 Mbp)
+  gridScanCMD="PYTHONPATH=$ZOOMXPATH  python -m gridScan -d $tempDir -x $controlMax -y $controlMax -g $controlGenomeSize -n 10 $grid $clean $h5 $datDir/$controlBam >>$logPf.$ZoomXRunOp.$mydate.log 2>&1" #run gridScan module on Chr22 only (50 Mbp)
+  echo "    'gridScanCMD': '$gridScanCMD'," 
   if [[ -z $dryMode ]]; then echo $gridScanCMD | bash; fi
   if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
-  echo "    'gridScanCMD': '$gridScanCMD'," 
   cisJctCMD="awk '{if(\$1 == \$4 && \$5 - \$2>$cisSize && \$5 - \$2<=$distSize) print}' $datDir/$controlBam.jct.bedpe >$cis"
+  echo "    'cisJctCMD':'$cisJctCMD'," 
   if [[ -z $dryMode ]]; then echo $cisJctCMD | bash; fi
   if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
-  echo "    'cisJctCMD':'$cisJctCMD'," 
   distJctCMD="awk '{if(\$1 == \$4 && \$5 - \$2>$distSize) print}' $datDir/$controlBam.jct.bedpe >$distal"
+  echo "    'distJctCMD': '$distJctCMD',"
   if [[ -z $dryMode ]]; then echo $distJctCMD | bash; fi
   if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
-  echo "    'distJctCMD': '$distJctCMD',"
   transJctCMD="awk '{if(\$1 != \$4 && \$1 < \$4) print}' $datDir/$controlBam.jct.bedpe >$trans"
+  echo "    'transJctCMD': '$transJctCMD',"
   if [[ -z $dryMode ]]; then echo $transJctCMD | bash; fi
   if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
-  echo "    'transJctCMD': '$transJctCMD',"
   FRrdpCMD="awk '{if( \$4 != \$1 || (\$5-\$2)>$cisSize || (\$5-\$2)<-$cisSize) print}' $datDir/$controlBam.FR.bedpe >$datDir/$controlBam.geq$cisSize.FR.bedpe"
+  echo "    'FRrdpCMD':'$FRrdpCMD',"
   if [[ -z $dryMode ]]; then echo $FRrdpCMD | bash; fi
   if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
-  echo "    'FRrdpCMD':'$FRrdpCMD',"
   RFrdpCMD="awk '{if( \$4 != \$1 || (\$5-\$2)>$cisSize || (\$5-\$2)<-$cisSize) print}' $datDir/$controlBam.RF.bedpe >$datDir/$controlBam.geq$cisSize.RF.bedpe"
+  echo "    'RFrdpCMD':'$RFrdpCMD',"
   if [[ -z $dryMode ]]; then echo $RFrdpCMD | bash; fi
   if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
-  echo "    'RFrdpCMD':'$RFrdpCMD',"
   FFrdpCMD="awk '{if( \$4 != \$1 || (\$5-\$2)>$cisSize || (\$5-\$2)<-$cisSize) print}' $datDir/$controlBam.FF.bedpe >$datDir/$controlBam.geq$cisSize.FF.bedpe"
+  echo "    'FFrdpCMD':'$FFrdpCMD',"
   if [[ -z $dryMode ]]; then echo $FFrdpCMD | bash; fi
   if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
-  echo "    'FFrdpCMD':'$FFrdpCMD',"
   RRrdpCMD="awk '{if( \$4 != \$1 || (\$5-\$2)>$cisSize || (\$5-\$2)<-$cisSize) print}' $datDir/$controlBam.RR.bedpe >$datDir/$controlBam.geq$cisSize.RR.bedpe"
+  echo "    'RRrdpCMD':'$RRrdpCMD',"
   if [[ -z $dryMode ]]; then echo $RRrdpCMD | bash; fi
   if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
-  echo "    'RRrdpCMD':'$RRrdpCMD',"
 fi
   
 if [[ ! -z $( testSubstring "controlCisRef" $ZoomXRunOp ) ]]; then
-  cisRefCMD="PYTHONPATH=$ZOOMXPATH  python -m refineBreak $mergeOnly -g $gapFile -n 10 -e $controlExp -o $resDir/$controlBam.cis.E$controlExp -i $datDir/$controlBam.geq$cisSize.FR.bedpe -j $datDir/$controlBam.geq$cisSize.FF.bedpe -k $datDir/$controlBam.geq$cisSize.RR.bedpe -l $datDir/$controlBam.geq$cisSize.RF.bedpe -x $bed $controlPf/$controlBam $cis $cfg >$logPf.$ZoomXRunOp.$mydate.log 2>&1"
+  cisRefCMD="PYTHONPATH=$ZOOMXPATH  python -m refineBreak $mergeOnly -d $tempDir -g $gapFile -n 10 -e $controlExp -o $resDir/$controlBam.cis.E$controlExp -i $datDir/$controlBam.geq$cisSize.FR.bedpe -j $datDir/$controlBam.geq$cisSize.FF.bedpe -k $datDir/$controlBam.geq$cisSize.RR.bedpe -l $datDir/$controlBam.geq$cisSize.RF.bedpe -x $bed $controlPf/$controlBam $cis $cfg >$logPf.$ZoomXRunOp.$mydate.log 2>&1"
+  echo "    'cisRefCMD':'$cisRefCMD',"
   if [[ -z $dryMode ]]; then echo $cisRefCMD | bash; fi
   if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
-  echo "    'cisRefCMD':'$cisRefCMD',"
 fi
   
 if [[ ! -z $( testSubstring "controlDistRef" $ZoomXRunOp ) ]]; then
-  distRefCMD="PYTHONPATH=$ZOOMXPATH  python -m refineBreak $mergeOnly -g $gapFile -n 10 -e $controlExp -o $resDir/$controlBam.dist.E$controlExp -i $datDir/$controlBam.geq$cisSize.FR.bedpe -j $datDir/$controlBam.geq$cisSize.FF.bedpe -k $datDir/$controlBam.geq$cisSize.RR.bedpe -l $datDir/$controlBam.geq$cisSize.RF.bedpe -x $bed $controlPf/$controlBam $distal $cfg >$logPf.$ZoomXRunOp.$mydate.log 2>&1"
+  distRefCMD="PYTHONPATH=$ZOOMXPATH  python -m refineBreak $mergeOnly -d $tempDir -g $gapFile -n 10 -e $controlExp -o $resDir/$controlBam.dist.E$controlExp -i $datDir/$controlBam.geq$cisSize.FR.bedpe -j $datDir/$controlBam.geq$cisSize.FF.bedpe -k $datDir/$controlBam.geq$cisSize.RR.bedpe -l $datDir/$controlBam.geq$cisSize.RF.bedpe -x $bed $controlPf/$controlBam $distal $cfg >$logPf.$ZoomXRunOp.$mydate.log 2>&1"
+  echo "    'distRefCMD':'$distRefCMD',"
   if [[ -z $dryMode ]]; then echo $distRefCMD | bash; fi
   if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
-  echo "    'distRefCMD':'$distRefCMD',"
 fi
   
 if [[ ! -z $( testSubstring "controlTransRef" $ZoomXRunOp ) ]]; then
-  transRefCMD="PYTHONPATH=$ZOOMXPATH  python -m refineBreak $mergeOnly -g $gapFile -n 10 -e $controlExp -o $resDir/$controlBam.tra.E$controlExp -i $datDir/$controlBam.geq$cisSize.FR.bedpe -j $datDir/$controlBam.geq$cisSize.FF.bedpe -k $datDir/$controlBam.geq$cisSize.RR.bedpe -l $datDir/$controlBam.geq$cisSize.RF.bedpe -x $bed $controlPf/$controlBam $trans $cfg >$logPf.$ZoomXRunOp.$mydate.log 2>&1"
+  transRefCMD="PYTHONPATH=$ZOOMXPATH  python -m refineBreak $mergeOnly -d $tempDir -g $gapFile -n 10 -e $controlExp -o $resDir/$controlBam.tra.E$controlExp -i $datDir/$controlBam.geq$cisSize.FR.bedpe -j $datDir/$controlBam.geq$cisSize.FF.bedpe -k $datDir/$controlBam.geq$cisSize.RR.bedpe -l $datDir/$controlBam.geq$cisSize.RF.bedpe -x $bed $controlPf/$controlBam $trans $cfg >$logPf.$ZoomXRunOp.$mydate.log 2>&1"
+  echo "    'transRefCMD':'$transRefCMD',"
   if [[ -z $dryMode ]]; then echo $transRefCMD | bash; fi
   if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
-  echo "    'transRefCMD':'$transRefCMD',"
 fi
 
 #process case files
@@ -223,16 +223,18 @@ if [[ ! -z $( testSubstring "caseCov" $ZoomXRunOp ) ]]; then
   else
     caseCovCMD="samtools bedcov $covGrid $casePf/$caseBam >$caseCovFile"
   fi
-  if [[ -z $dryMode ]]; then echo $caseCovCMD | bash; fi
-  if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
   echo "    caseCovCMD': '$caseCovCMD',"
+  if [[ -z $dryMode ]]; then echo $caseCovCMD | bash; fi
+  echo "ZXR-COVERAGE-DONE" >>"$logPf.$ZoomXRunOp.$mydate.log"
+  if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
 fi
 
 if [[ ! -z $( testSubstring "caseParse" $ZoomXRunOp ) ]]; then
   parse10xCMD="PYTHONPATH=$ZOOMXPATH  python -m parse10x -c $caseCovFile -o $datDir/$caseBam -l 2 $casePf/$caseBam >$logPf.$ZoomXRunOp.$mydate.log 2>&1"        #run parse10x module
-  if [[ -z $dryMode ]]; then echo $parse10xCMD | bash; fi
-  if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
   echo "    parse10xCMD': '$parse10xCMD',"
+  if [[ -z $dryMode ]]; then echo $parse10xCMD | bash; fi
+  echo "ZXR-PARSE-DONE" >>"$logPf.$ZoomXRunOp.$mydate.log"
+  if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
 fi
 
 if [[ ! -z $( testSubstring "caseScan" $ZoomXRunOp ) ]]; then
@@ -241,62 +243,66 @@ if [[ ! -z $( testSubstring "caseScan" $ZoomXRunOp ) ]]; then
   else #covFile is not specified or generated (missing?)
     filterCMD="cp $bed $clean && touch $filter >$logPf.$ZoomXRunOp.$mydate.log 2>&1" #create dummy filter files
   fi
+  echo "    filterCMD': '$filterCMD',"
   if [[ -z $dryMode ]]; then echo $filterCMD | bash; fi
   if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
-  echo "    filterCMD': '$filterCMD',"
-  gridScanCMD="PYTHONPATH=$ZOOMXPATH  python -m gridScan -x $caseMax -y $caseMax -g $caseGenomeSize -n 10 $grid $clean $h5 $datDir/$caseBam >>$logPf.$ZoomXRunOp.$mydate.log 2>&1" #run gridScan module on Chr22 only (50 Mbp)
+  gridScanCMD="PYTHONPATH=$ZOOMXPATH  python -m gridScan -d $tempDir -x $caseMax -y $caseMax -g $caseGenomeSize -n 10 $grid $clean $h5 $datDir/$caseBam >>$logPf.$ZoomXRunOp.$mydate.log 2>&1" #run gridScan module on Chr22 only (50 Mbp)
+  echo "    'gridScanCMD': '$gridScanCMD'," 
   if [[ -z $dryMode ]]; then echo $gridScanCMD | bash; fi
   if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
-  echo "    'gridScanCMD': '$gridScanCMD'," 
   cisJctCMD="awk '{if(\$1 == \$4 && \$5 - \$2>$cisSize && \$5 - \$2<=$distSize) print}' $datDir/$caseBam.jct.bedpe >$cis"
+  echo "    'cisJctCMD':'$cisJctCMD'," 
   if [[ -z $dryMode ]]; then echo $cisJctCMD | bash; fi
   if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
-  echo "    'cisJctCMD':'$cisJctCMD'," 
   distJctCMD="awk '{if(\$1 == \$4 && \$5 - \$2>$distSize) print}' $datDir/$caseBam.jct.bedpe >$distal"
+  echo "    'distJctCMD': '$distJctCMD',"
   if [[ -z $dryMode ]]; then echo $distJctCMD | bash; fi
   if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
-  echo "    'distJctCMD': '$distJctCMD',"
   transJctCMD="awk '{if(\$1 != \$4 && \$1 < \$4) print}' $datDir/$caseBam.jct.bedpe >$trans"
+  echo "    'transJctCMD': '$transJctCMD',"
   if [[ -z $dryMode ]]; then echo $transJctCMD | bash; fi
   if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
-  echo "    'transJctCMD': '$transJctCMD',"
   FRrdpCMD="awk '{if( \$4 != \$1 || (\$5-\$2)>$cisSize || (\$5-\$2)<-$cisSize) print}' $datDir/$caseBam.FR.bedpe >$datDir/$caseBam.geq$cisSize.FR.bedpe"
+  echo "    'FRrdpCMD':'$FRrdpCMD',"
   if [[ -z $dryMode ]]; then echo $FRrdpCMD | bash; fi
   if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
-  echo "    'FRrdpCMD':'$FRrdpCMD',"
   RFrdpCMD="awk '{if( \$4 != \$1 || (\$5-\$2)>$cisSize || (\$5-\$2)<-$cisSize) print}' $datDir/$caseBam.RF.bedpe >$datDir/$caseBam.geq$cisSize.RF.bedpe"
+  echo "    'RFrdpCMD':'$RFrdpCMD',"
   if [[ -z $dryMode ]]; then echo $RFrdpCMD | bash; fi
   if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
-  echo "    'RFrdpCMD':'$RFrdpCMD',"
   FFrdpCMD="awk '{if( \$4 != \$1 || (\$5-\$2)>$cisSize || (\$5-\$2)<-$cisSize) print}' $datDir/$caseBam.FF.bedpe >$datDir/$caseBam.geq$cisSize.FF.bedpe"
+  echo "    'FFrdpCMD':'$FFrdpCMD',"
   if [[ -z $dryMode ]]; then echo $FFrdpCMD | bash; fi
   if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
-  echo "    'FFrdpCMD':'$FFrdpCMD',"
   RRrdpCMD="awk '{if( \$4 != \$1 || (\$5-\$2)>$cisSize || (\$5-\$2)<-$cisSize) print}' $datDir/$caseBam.RR.bedpe >$datDir/$caseBam.geq$cisSize.RR.bedpe"
-  if [[ -z $dryMode ]]; then echo $RRrdpCMD | bash; fi
-  if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
   echo "    'RRrdpCMD':'$RRrdpCMD',"
+  if [[ -z $dryMode ]]; then echo $RRrdpCMD | bash; fi
+  echo "ZXR-SCAN-DONE" >>"$logPf.$ZoomXRunOp.$mydate.log"
+  if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
 fi
   
 if [[ ! -z $( testSubstring "caseCisRef" $ZoomXRunOp ) ]]; then
-  cisRefCMD="PYTHONPATH=$ZOOMXPATH  python -m refineBreak $mergeOnly -g $gapFile -n 10 -e $caseExp -o $resDir/$caseBam.cis.E$caseExp -i $datDir/$caseBam.geq$cisSize.FR.bedpe -j $datDir/$caseBam.geq$cisSize.FF.bedpe -k $datDir/$caseBam.geq$cisSize.RR.bedpe -l $datDir/$caseBam.geq$cisSize.RF.bedpe -x $bed $casePf/$caseBam $cis $cfg >$logPf.$ZoomXRunOp.$mydate.log 2>&1"
-  if [[ -z $dryMode ]]; then echo $cisRefCMD | bash; fi
-  if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
+  cisRefCMD="PYTHONPATH=$ZOOMXPATH  python -m refineBreak $mergeOnly -d $tempDir -g $gapFile -n 10 -e $caseExp -o $resDir/$caseBam.cis.E$caseExp -i $datDir/$caseBam.geq$cisSize.FR.bedpe -j $datDir/$caseBam.geq$cisSize.FF.bedpe -k $datDir/$caseBam.geq$cisSize.RR.bedpe -l $datDir/$caseBam.geq$cisSize.RF.bedpe -x $bed $casePf/$caseBam $cis $cfg >$logPf.$ZoomXRunOp.$mydate.log 2>&1"
   echo "    'cisRefCMD':'$cisRefCMD',"
+  if [[ -z $dryMode ]]; then echo $cisRefCMD | bash; fi
+  echo "ZXR-CISREF-DONE" >>"$logPf.$ZoomXRunOp.$mydate.log"
+  if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
 fi
  
 if [[ ! -z $( testSubstring "caseDistRef" $ZoomXRunOp ) ]]; then
-  distRefCMD="PYTHONPATH=$ZOOMXPATH  python -m refineBreak $mergeOnly -g $gapFile -n 10 -e $caseExp -o $resDir/$caseBam.dist.E$caseExp -i $datDir/$caseBam.geq$cisSize.FR.bedpe -j $datDir/$caseBam.geq$cisSize.FF.bedpe -k $datDir/$caseBam.geq$cisSize.RR.bedpe -l $datDir/$caseBam.geq$cisSize.RF.bedpe -x $bed $casePf/$caseBam $distal $cfg >$logPf.$ZoomXRunOp.$mydate.log 2>&1"
-  if [[ -z $dryMode ]]; then echo $distRefCMD | bash; fi
-  if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
+  distRefCMD="PYTHONPATH=$ZOOMXPATH  python -m refineBreak $mergeOnly -d $tempDir -g $gapFile -n 10 -e $caseExp -o $resDir/$caseBam.dist.E$caseExp -i $datDir/$caseBam.geq$cisSize.FR.bedpe -j $datDir/$caseBam.geq$cisSize.FF.bedpe -k $datDir/$caseBam.geq$cisSize.RR.bedpe -l $datDir/$caseBam.geq$cisSize.RF.bedpe -x $bed $casePf/$caseBam $distal $cfg >$logPf.$ZoomXRunOp.$mydate.log 2>&1"
   echo "    'distRefCMD':'$distRefCMD',"
+  if [[ -z $dryMode ]]; then echo $distRefCMD | bash; fi
+  echo "ZXR-DISREF-DONE" >>"$logPf.$ZoomXRunOp.$mydate.log"
+  if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
 fi
   
 if [[ ! -z $( testSubstring "caseTransRef" $ZoomXRunOp ) ]]; then
-  transRefCMD="PYTHONPATH=$ZOOMXPATH  python -m refineBreak $mergeOnly -g $gapFile -n 10 -e $caseExp -o $resDir/$caseBam.tra.E$caseExp -i $datDir/$caseBam.geq$cisSize.FR.bedpe -j $datDir/$caseBam.geq$cisSize.FF.bedpe -k $datDir/$caseBam.geq$cisSize.RR.bedpe -l $datDir/$caseBam.geq$cisSize.RF.bedpe -x $bed $casePf/$caseBam $trans $cfg >$logPf.$ZoomXRunOp.$mydate.log 2>&1"
-  if [[ -z $dryMode ]]; then echo $transRefCMD | bash; fi
-  if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
+  transRefCMD="PYTHONPATH=$ZOOMXPATH  python -m refineBreak $mergeOnly -d $tempDir -g $gapFile -n 10 -e $caseExp -o $resDir/$caseBam.tra.E$caseExp -i $datDir/$caseBam.geq$cisSize.FR.bedpe -j $datDir/$caseBam.geq$cisSize.FF.bedpe -k $datDir/$caseBam.geq$cisSize.RR.bedpe -l $datDir/$caseBam.geq$cisSize.RF.bedpe -x $bed $casePf/$caseBam $trans $cfg >$logPf.$ZoomXRunOp.$mydate.log 2>&1"
   echo "    'transRefCMD':'$transRefCMD',"
+  if [[ -z $dryMode ]]; then echo $transRefCMD | bash; fi
+  echo "ZXR-TRAREF-DONE" >>"$logPf.$ZoomXRunOp.$mydate.log"
+  if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
 fi
 
 #plotting refined Molecules, moleFile is predefined in previous *Ref stages
@@ -327,22 +333,27 @@ if [[ ! -z $(testSubstring "Plot" $ZoomXRunOp) ]]; then
     maxSize=$(expr $(($maxPlot>$maxSize?$maxSize:$maxPlot)) - 1)
     if [[ $maxSize -ge 1 ]]; then
       for i in `seq 1 $maxSize`; do
+	echo "   ["
         getMolCMD="$ZOOMXPATH/../scripts/getMolecule.sh $resDir/$moleFile $datDir/$caseBam $i $plotDir/$moleFile.Plot $cisSize  case >>$logFile 2>&1"
+        echo "   '$getMolCMD', "
         if [[ -z $dryMode ]]; then echo $getMolCMD | bash; fi
         if [[ $mode -eq "somatic" && ! -z $(testSubstring "control" $ZoomXRunOp) ]]; then #output corresponding control region
           bgMolCMD="$ZOOMXPATH/../scripts/getMolecule.sh $resDir/$moleFile $datDir/$controlBam $i $plotDir/$moleFile.Plot $cisSize control >>$logFile 2>&1"
           withControl="--withControl"
+        echo "   '$bgMolCMD', "
           if [[ -z $dryMode ]]; then echo $bgMolCMD | bash; fi
         fi
         if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
         plotMolCMD="$ZOOMXPATH/../scripts/plotMolecule.R $isUCSC $withControl $plotDir/$moleFile.Plot_$i $datDir/$caseBam.gridScan.cfg.json  >>$logFile 2>&1" 
+        echo "   '$plotMolCMD', "
         if [[ -z $dryMode ]]; then echo $plotMolCMD | bash; fi
         if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
-        echo "    [ '$getMolCMD', '$bgMolCMD', '$plotMolCMD' ],"
+        echo "   ],"
       done
     fi
   fi
   echo "  ]"
+  echo "ZXR-PLOT-DONE" >>"$logPf.$ZoomXRunOp.$mydate.log"
 fi
 
 if [[ ! -z $( testSubstring "case" $ZoomXRunOp ) || ! -z $( testSubstring "control" $ZoomXRunOp ) ]]; then
@@ -355,9 +366,10 @@ if [[ ! -z $( testSubstring "cisDiffMix" $ZoomXRunOp ) ]]; then
   echo "    'moleFile':'$moleFile',"
   logFile="$logDir/$moleFile.$ZoomXRunOp.$mydate.log"
   cisDiffCMD="bedtools pairtopair -is -type notboth -a $resDir/$caseBam.cis.E$caseExp.refined -b $resDir/$controlBam.cis.E$controlExp.refined >$resDir/$caseBam.cis.E$caseExp\_$controlBam.cis.E$controlExp.somatic"
-  if [[ -z $dryMode ]]; then echo $cisDiffCMD | bash; fi
-  if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
   echo "  'cisDiffCMD':'$cisDiffCMD',"
+  if [[ -z $dryMode ]]; then echo $cisDiffCMD | bash; fi
+  echo "ZXR-CISDIF-DONE" >>"$logPf.$ZoomXRunOp.$mydate.log"
+  if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
 fi
 
 if [[ ! -z $( testSubstring "distDiffMix" $ZoomXRunOp ) ]]; then
@@ -365,9 +377,10 @@ if [[ ! -z $( testSubstring "distDiffMix" $ZoomXRunOp ) ]]; then
   echo "  'moleFile':'$moleFile',"
   logFile="$logDir/$moleFile.$ZoomXRunOp.$mydate.log"
   distDiffCMD="bedtools pairtopair -is -type notboth -a $resDir/$caseBam.dist.E$caseExp.refined -b $resDir/$controlBam.dist.E$controlExp.refined >$resDir/$caseBam.dist.E$caseExp\_$controlBam.dist.E$controlExp.somatic"
-  if [[ -z $dryMode ]]; then echo $distDiffCMD | bash; fi
-  if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
   echo "  'distDiffCMD':'$distDiffCMD',"
+  if [[ -z $dryMode ]]; then echo $distDiffCMD | bash; fi
+  echo "ZXR-DISDIF-DONE" >>"$logPf.$ZoomXRunOp.$mydate.log"
+  if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
 fi
 
 if [[ ! -z $( testSubstring "transDiffMix" $ZoomXRunOp ) ]]; then
@@ -375,9 +388,10 @@ if [[ ! -z $( testSubstring "transDiffMix" $ZoomXRunOp ) ]]; then
   echo "  'moleFile':'$moleFile',"
   logFile="$logDir/$moleFile.$ZoomXRunOp.$mydate.log"
   transDiffCMD="bedtools pairtopair -is -type notboth -a $resDir/$caseBam.tra.E$caseExp.refined -b $resDir/$controlBam.tra.E$controlExp.refined >$resDir/$caseBam.tra.E$caseExp\_$controlBam.tra.E$controlExp.somatic"
-  if [[ -z $dryMode ]]; then echo $transDiffCMD | bash; fi
-  if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
   echo "  'transDiffCMD':'$transDiffCMD',"
+  if [[ -z $dryMode ]]; then echo $transDiffCMD | bash; fi
+  echo "ZXR-TRADIF-DONE" >>"$logPf.$ZoomXRunOp.$mydate.log"
+  if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
 fi
 
 #do somatic differentiation, pure mode, assuming normal tissus is a pure germline
@@ -386,9 +400,10 @@ if [[ ! -z $( testSubstring "cisDiffPure" $ZoomXRunOp ) ]]; then
   echo "    'moleFile':'$moleFile',"
   logFile="$logDir/$moleFile.$ZoomXRunOp.$mydate.log"
   cisDiffCMD="bedtools pairtopair -is -type notboth -a $resDir/$caseBam.cis.E$caseExp.refined -b $resDir/$controlBam.jct.bedpe.cis >$resDir/$caseBam.cis.E$caseExp\_$controlBam.cis.E0.somatic"
-  if [[ -z $dryMode ]]; then echo $cisDiffCMD | bash; fi
-  if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
   echo "  'cisDiffCMD':'$cisDiffCMD',"
+  if [[ -z $dryMode ]]; then echo $cisDiffCMD | bash; fi
+  echo "ZXR-CISDIF-DONE" >>"$logPf.$ZoomXRunOp.$mydate.log"
+  if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
 fi
 
 if [[ ! -z $( testSubstring "distDiffPure" $ZoomXRunOp ) ]]; then
@@ -396,9 +411,10 @@ if [[ ! -z $( testSubstring "distDiffPure" $ZoomXRunOp ) ]]; then
   echo "  'moleFile':'$moleFile',"
   logFile="$logDir/$moleFile.$ZoomXRunOp.$mydate.log"
   distDiffCMD="bedtools pairtopair -is -type notboth -a $resDir/$caseBam.dist.E$caseExp.refined -b $resDir/$controlBam.jct.bedpe.dis >$resDir/$caseBam.dist.E$caseExp\_$controlBam.dist.E0.somatic"
-  if [[ -z $dryMode ]]; then echo $distDiffCMD | bash; fi
-  if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
   echo "  'distDiffCMD':'$distDiffCMD',"
+  if [[ -z $dryMode ]]; then echo $distDiffCMD | bash; fi
+  echo "ZXR-DISDIF-DONE" >>"$logPf.$ZoomXRunOp.$mydate.log"
+  if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
 fi
 
 if [[ ! -z $( testSubstring "transDiffPure" $ZoomXRunOp ) ]]; then
@@ -406,9 +422,10 @@ if [[ ! -z $( testSubstring "transDiffPure" $ZoomXRunOp ) ]]; then
   echo "  'moleFile':'$moleFile',"
   logFile="$logDir/$moleFile.$ZoomXRunOp.$mydate.log"
   transDiffCMD="bedtools pairtopair -is -type notboth -a $resDir/$caseBam.tra.E$caseExp.refined -b $resDir/$controlBam.jct.bedpe.tra >$resDir/$caseBam.tra.E$caseExp\_$controlBam.tra.E0.somatic"
-  if [[ -z $dryMode ]]; then echo $transDiffCMD | bash; fi
-  if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
   echo "  'transDiffCMD':'$transDiffCMD',"
+  if [[ -z $dryMode ]]; then echo $transDiffCMD | bash; fi
+  echo "ZXR-TRADIF-DONE" >>"$logPf.$ZoomXRunOp.$mydate.log"
+  if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
 fi
 
 #do germline sharing
@@ -417,9 +434,10 @@ if [[ ! -z $( testSubstring "cisShare" $ZoomXRunOp ) ]]; then
   echo "  'moleFile':'$moleFile',"
   logFile="$logDir/$moleFile.$ZoomXRunOp.$mydate.log"
   cisShareCMD="bedtools pairtopair -is -type both -a $resDir/$caseBam.cis.E$caseExp.refined -b $resDir/$controlBam.cis.E$controlExp.refined | cut -f1,2,3,4,5,6,7,8,9,10 | $addHeader >$resDir/$caseBam.cis.E$caseExp\_$controlBam.cis.E$controlExp.germline"
-  if [[ -z $dryMode ]]; then echo $cisShareCMD | bash; fi
-  if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
   echo "  'cisShareCMD':'$cisShareCMD',"
+  if [[ -z $dryMode ]]; then echo $cisShareCMD | bash; fi
+  echo "ZXR-CISSHR-DONE" >>"$logPf.$ZoomXRunOp.$mydate.log"
+  if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
 fi
 
 if [[ ! -z $( testSubstring "distShare" $ZoomXRunOp ) ]]; then
@@ -427,9 +445,10 @@ if [[ ! -z $( testSubstring "distShare" $ZoomXRunOp ) ]]; then
   echo "  'moleFile':'$moleFile',"
   logFile="$logDir/$moleFile.$ZoomXRunOp.$mydate.log"
   distShareCMD="bedtools pairtopair -is -type both -a $resDir/$caseBam.dist.E$caseExp.refined -b $resDir/$controlBam.dist.E$controlExp.refined | cut -f1,2,3,4,5,6,7,8,9,10 | $addHeader >$resDir/$caseBam.dist.E$caseExp\_$controlBam.dist.E$controlExp.germline"
-  if [[ -z $dryMode ]]; then echo $distShareCMD | bash; fi
-  if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
   echo "  'distShareCMD':'$distShareCMD',"
+  if [[ -z $dryMode ]]; then echo $distShareCMD | bash; fi
+  echo "ZXR-DISSHR-DONE" >>"$logPf.$ZoomXRunOp.$mydate.log"
+  if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
 fi
 
 if [[ ! -z $( testSubstring "transShare" $ZoomXRunOp ) ]]; then
@@ -437,9 +456,10 @@ if [[ ! -z $( testSubstring "transShare" $ZoomXRunOp ) ]]; then
   echo "  'moleFile':'$moleFile',"
   logFile="$logDir/$moleFile.$ZoomXRunOp.$mydate.log"
   transShareCMD="bedtools pairtopair -is -type both -a $resDir/$caseBam.tra.E$caseExp.refined -b $resDir/$controlBam.tra.E$controlExp.refined | cut -f1,2,3,4,5,6,7,8,9,10 | $addHeader >$resDir/$caseBam.tra.E$caseExp\_$controlBam.tra.E$controlExp.germline"
-  if [[ -z $dryMode ]]; then echo $transShareCMD | bash; fi
-  if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
   echo "  'transShareCMD':'$transShareCMD',"
+  if [[ -z $dryMode ]]; then echo $transShareCMD | bash; fi
+  echo "ZXR-TRASHR-DONE" >>"$logPf.$ZoomXRunOp.$mydate.log"
+  if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
 fi
 
 #plotting of Diff or Share Molecules, moleFile is predefined in previous Diff and Share stages
@@ -452,22 +472,27 @@ if [[ ! -z $(testSubstring "Diff" $ZoomXRunOp) || ! -z $(testSubstring "Share" $
     maxSize=$(expr $(($maxPlot>$maxSize?$maxSize:$maxPlot)) - 1)
     if [[ $maxSize -ge 1 ]]; then
       for i in `seq 1 $maxSize`; do
+        echo "  ["
         getMolCMD="$ZOOMXPATH/../scripts/getMolecule.sh $resDir/$moleFile $datDir/$caseBam $i $plotDir/$moleFile.Plot $cisSize case >>$logFile 2>&1"
+        echo "    '$getMolCMD',"
         if [[ -z $dryMode ]]; then echo $getMolCMD | bash; fi
         if [[ $mode -eq "somatic" ]]; then #output corresponding control region
           bgMolCMD="$ZOOMXPATH/../scripts/getMolecule.sh $resDir/$moleFile $datDir/$controlBam $i $plotDir/$moleFile.Plot $cisSize control >>$logFile 2>&1"
           withControl="--withControl"
+        echo "    '$bigMolCMD',"
           if [[ -z $dryMode ]]; then echo $bgMolCMD | bash; fi
         fi
         if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
         plotMolCMD="$ZOOMXPATH/../scripts/plotMolecule.R $isUCSC $withControl $plotDir/$moleFile.Plot_$i $datDir/$caseBam.gridScan.cfg.json >>$logFile 2>&1" 
+        echo "    '$plotMolCMD',"
         if [[ -z $dryMode ]]; then echo $plotMolCMD | bash; fi
         if [[ ! $? -eq 0 ]]; then exit 1; fi #report somthing is wrong in process 
-        echo "    [ '$getMolCMD', '$bgMolCMD', '$plotMolCMD' ],"
+        echo "  ],"
       done
     fi
   fi
   echo "  ]"
+  echo "ZXR-PLOT-DONE" >>"$logPf.$ZoomXRunOp.$mydate.log"
 fi
 
  #here we iterate through following steps for each junction file, handling max maxPlot events

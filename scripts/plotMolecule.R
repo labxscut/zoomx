@@ -139,6 +139,7 @@ regCols=c("chr1","start1","end1","chr2","start2","end2","name","barcnt","FR","RF
 bedpeCols=c("chr1","st1","ed1","chr2","st2","ed2","hp")
 bedpeClass=c("character","numeric","numeric","character","numeric","numeric","numeric")
 molCols=c("chr1","st1","ed1","barID","molSize","molLen","barMolNum","molID","molHP","molPS","molBX")
+# correct fields in BAM file { "molID" : "MI:i:", "molPS" : "PS:Z:", "molHP" : "HP:i:", "molBX" : "BX:Z:" }
 molColsOld=c("chr1","st1","ed1","barID","molSize","molLen","barMolNum","molID","molHP","molPS")  #for backward compatibility
 
 #read outs
@@ -190,6 +191,8 @@ dataReadIn = function(i, suffixes) {
     mdat$mi2=refinedReg2[sel2[1],c("molID")]
     mdat$hp1=refinedReg1[sel1[1],c("molHP")]
     mdat$hp2=refinedReg1[sel2[1],c("molHP")]
+    mdat$ps1=refinedReg1[sel1[1],c("molPS")]
+    mdat$ps2=refinedReg1[sel2[1],c("molPS")]
     mdat
   })
   mergedMol = do.call("rbind", mergedMolList)                         #all molecules, i.e. BX
@@ -291,12 +294,14 @@ dataReadIn = function(i, suffixes) {
     mergedAll$strand1=strand1Info[match(mergedAll$type, supportType)]
     mergedAll$strand2=strand2Info[match(mergedAll$type, supportType)]
     mergedAll$supportType=mergedAll$type
-    GRcols=c("chrom1",      "start1", "end1",   "chrom2",   "start2", "end2",   "name",     "score",    "barcode",  "mi1",      "mi2",      "hp1",      "hp2",      "strand1",  "strand2",  "supportType")
-    GRclasses=c("character","numeric","numeric","character","numeric","numeric","character","character","character","character","character","character","character","character","character","character")
+    GRcols=c("chrom1",      "start1", "end1",   "chrom2",   "start2", "end2",   "name",     "score",    "barcode",  "mi1",      "mi2",      "hp1",      "hp2",      "ps1", "ps2", "strand1",  "strand2",  "supportType")
+    GRclasses=c("character","numeric","numeric","character","numeric","numeric","character","character","character","character","character","character","character","character", "character", "character","character","character")
     colnames(mergedAll) = GRcols
     mergedAll$score = 1
     mergedAll = set_colClass(mergedAll, GRclasses)
   }
+
+  print(mergedAll)
 
   if(!includeDupMolecule) {  
     sel = (mergedAll$supportType != "molSOV") #ecluding self-overlapping molecules
@@ -326,15 +331,37 @@ dataReadIn = function(i, suffixes) {
   breakReg1CIHigh = NA
   breakReg2CILow = NA
   breakReg2CIHigh = NA
-  hapTab = table(mergedAll$hp1,mergedAll$hp2) #only hp=1 and hp=2 matters
-  cat("-Info:"); print(hapTab)
-  breakHapTab = rjson::toJSON(hapTab)
-  breakHapCols = rjson::toJSON(as.integer(colnames(hapTab)))
-  breakHapRows = rjson::toJSON(as.integer(rownames(hapTab)))
-  Idx1 = which(rownames(hapTab)=="1"); Jdx1 = which(colnames(hapTab)=="1") 
-  Idx2 = which(rownames(hapTab)=="2"); Jdx2 = which(colnames(hapTab)=="2")
-  hapMaxIdx = which.max( c(ifelse(length(Idx1)>0 && length(Jdx1)>0, hapTab[Idx1,Jdx1], -1), ifelse(length(Idx2)>0 && length(Jdx2)>0, hapTab[Idx2,Jdx2], -1), 0) )
-  breakHapMax = c("1","2","0")[hapMaxIdx]
+  ### The LOGIC here is temporary cause obvisouly even if the junction is the same hap
+  ### the hap doesn't expect to be correctly identified  by long-ranger correclty
+  ### let's break it down to haplotypes and phased segemnts at each breakpoint
+  hapTab1 = table(mergedAll$hp1[mergedAll$hp1!=-1])
+  hapTab2 = table(mergedAll$hp2[mergedAll$hp2!=-1]) #only hp=1 and hp=2 matters
+  cat("-Info: haplotype (hp) table of breakpoint1"); print(hapTab1)
+  cat("-Info: haplotype (hp) table of breakpoint2"); print(hapTab2)
+  breakHapTab1 = rjson::toJSON(hapTab1)
+  breakHapTab2 = rjson::toJSON(hapTab2)
+  breakHapMax =  rep(0, 2)
+  for(i in 1:2) {
+    hapTab = list(hapTab1, hapTab2)[[i]]
+    if(!is.null(hapTab)) 
+      breakHapMax[i]=names(sort(hapTab, decreasing=TRUE))[1]
+    cat("-Info: breakpoint", i, " haplotype"); print(breakHapMax[i])
+  }
+
+  breakPsMax =  rep(0, 2)
+  psTab1 = table(mergedAll$ps1[mergedAll$ps1!=-1])
+  psTab2 = table(mergedAll$ps2[mergedAll$ps2!=-1])
+  cat("-Info: phased segment (ps) of breakpoint1"); print(psTab1)
+  cat("-Info: phased segment (ps) of breakpoint2"); print(psTab2)
+  breakPsTab1 = rjson::toJSON(psTab1)
+  breakPsTab2 = rjson::toJSON(psTab2)
+  breakPsMax =  rep(0, 2)
+  for(i in 1:2) {
+    psTab = c(psTab1, psTab2)[i]
+    if(!is.null(psTab)) 
+      breakPsMax[i]=names(sort(psTab, decreasing=TRUE))[1]
+    cat("-Info: breakpoint ", i, " phased segment"); print(breakPsMax[i])
+  }
 
   if(nrow(mergedAll)>0) {
     convertedAll = mergedAll  #molecule only
@@ -347,9 +374,9 @@ dataReadIn = function(i, suffixes) {
     convertedAll$supportType = supportType[match(convertedAll$supportType,supportType)]
     convertedAll$strand1 = strandGR[match(convertedAll$strand1,strandDf)]
     convertedAll$strand2 = strandGR[match(convertedAll$strand2,strandDf)]
-    flushSDReg1 = c(sd(convertedAll$start1),sd(convertedAll$end1))
-    flushSDReg2 = c(sd(convertedAll$start2),sd(convertedAll$end2))
-    leftBreakReg1 = if(min(flushSDReg1)<flushSD) TRUE else NA
+    flushSDReg1 = c(sd(convertedAll$start1), sd(convertedAll$end1), flushSD+1) #avoid NA in min
+    flushSDReg2 = c(sd(convertedAll$start2), sd(convertedAll$end2), flushSD+1) #avoid NA in min
+    leftBreakReg1 = if(min(flushSDReg1)<flushSD) TRUE else NA  #determine the orientation of breakpoint
     leftBreakReg2 = if(min(flushSDReg2)<flushSD) TRUE else NA
     if(!is.na(leftBreakReg1)) leftBreakReg1 = flushSDReg1[1] < flushSDReg1[2]
     if(!is.na(leftBreakReg2)) leftBreakReg2 = flushSDReg2[1] < flushSDReg2[2]
@@ -397,8 +424,11 @@ dataReadIn = function(i, suffixes) {
     message("-Info: plotting...")
     message("-Info: plotFile=",paste(workDir, paste(plotPrefix,"break",s,"pdf",sep="."),sep="/"))
     pdf(file=paste(plotPrefix,"break",s,"pdf",sep="."), width=16, height=12)
-    p = ggplot2::ggplot()+ggbio::geom_arrowrect(gr, ggplot2::aes(color=supportType, fill=strand, group=pair))
-    p = p + ggbio::geom_segment(grComp, ggplot2::aes(color=supportType, group=pair))
+    #print(gr)
+    #save(gr, file='/home/xlib/setup/gr.debug.rdata')
+    p = ggplot2::ggplot()+ggbio::geom_arrowrect(gr, ggplot2::aes(color=supportType, fill=strand, group="pair"))
+    #print(grComp)
+    p = p + ggbio::geom_segment(grComp, ggplot2::aes(color=supportType, group="pair"))
     p = p + ggplot2::scale_color_manual(values=supportColors, na.value="black")
     p = p + ggplot2::scale_fill_manual(values=strandColors, na.value="black")
     p = p + ggplot2::scale_x_continuous("Genomic Region Pair", breaks=tickReg1, labels=tickLab1,
@@ -432,7 +462,8 @@ dataReadIn = function(i, suffixes) {
                                                             breakpoint2=breakpoint2,
                                                             isLeftBreak1=leftBreakReg1,
                                                             isLeftBreak2=leftBreakReg2,
-                                                            SVHap=ifelse(chr1==chr2,breakHapMax,"0"),
+                                                            SVHap=paste(breakHapMax,sep="<>"),
+                                                            SVPs=paste(breakPsMax,sep="<>"),,
                                                             SVType=tmpSVType,
                                                             AlleleFraction=sum(mergedAll$supportType=="molNSOV")/statsTab$Cem,
                                                             ReadPair=supportRDP,
@@ -458,9 +489,10 @@ dataReadIn = function(i, suffixes) {
                                 sharedBarcode=mergedMol$barcode,
                                 MolCnt=sum(mergedAll$supportType=="molNSOV"),
                                 SVType=tmpSVType,
-                                SVHap=ifelse(chr1==chr2,breakHapMax,"0"),
-                                SVHapTab=breakHapTab,
-                                SVHapCols=breakHapCols,
+                                SVHap=paste(breakHapMax,sep="<>"),
+				SVHapTab=list(hapTab1=hapTab1,hapTab2=hapTab2),
+                                SVPs=paste(breakPsMax,sep="<>"),,
+                                SVPsTab=list(hapTab1=hapTab1,hapTab2=hapTab2),
                                 AlleleFraction=sum(mergedAll$supportType=="molNSOV")/statsTab$Cem,
                                 ReadPair=supportRDP,
                                 Sample=s
@@ -544,13 +576,13 @@ if(length(rd1GR)==0 | length(rd2GR)==0) {
 
 message("-Info: plotting rdps...")
 g1 = ggplot2::ggplot() + 
-  ggbio::geom_arrowrect(data=rd1GR,ggplot2::aes(y=name,group=name,fill=type,group.selfish=TRUE),xlab=as.character(GenomicRanges::seqnames(rd1GR)[1])) + 
+  ggbio::geom_arrowrect(data=rd1GR,ggplot2::aes(y=name,group="name",fill=type,group.selfish=TRUE),xlab=as.character(GenomicRanges::seqnames(rd1GR)[1])) + 
   ggplot2::theme(legend.position="bottom", legend.box="vertical", legend.direction = "horizontal") + #box-v, item-h
   ggplot2::geom_vline(xintercept=infoTab$breakpoint1,linetype="dotted") +
   ggplot2::geom_text(ggplot2::aes(x=infoTab$breakpoint1, label=paste(infoTab$breakpoint1), y=1), colour="blue", angle=90)
   
 g2 = ggplot2::ggplot() + 
-  ggbio::geom_arrowrect(data=rd2GR,ggplot2::aes(y=name,group=name,fill=type,group.selfish=TRUE),xlab=as.character(GenomicRanges::seqnames(rd2GR)[1])) +
+  ggbio::geom_arrowrect(data=rd2GR,ggplot2::aes(y=name,group="name",fill=type,group.selfish=TRUE),xlab=as.character(GenomicRanges::seqnames(rd2GR)[1])) +
   ggplot2::geom_vline(xintercept=infoTab$breakpoint2,linetype="dotted") +
   ggplot2::geom_text(ggplot2::aes(x=infoTab$breakpoint2, label=paste(infoTab$breakpoint2), y=1), colour="blue", angle=90)
 
