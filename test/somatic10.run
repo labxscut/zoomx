@@ -1,3 +1,5 @@
 #!/bin/bash
 export PATH=$PWD/../scripts:$PATH
 zoomxStage somatic10.cfg
+zoomxTab plots MetB7175 dist refined results/MetB7175.dist.refined
+zoomxTab plots MetB7175 dist somatic results/MetB7175_Norm7176.dist.somatic

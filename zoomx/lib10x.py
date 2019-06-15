@@ -260,7 +260,7 @@ def getTemporaryFile(prefix): #this provides a unique temporary file name only
 def setTemporaryDir(tempdir):
   tempfile.tempdir = tempdir
   try:
-    os.mkdir(tempfile.tempdir)
+    os.makedirs(tempfile.tempdir)
   except Exception:
     sys.stderr.write("tempdir="+str(tempfile.tempdir)+" error!, either it exists or cann't be created! please change it\n")
     quit()

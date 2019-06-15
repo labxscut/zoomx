@@ -199,11 +199,11 @@ dataReadIn = function(i, suffixes) {
   mergedMI = mergedMol[mergedMol$mi1 != mergedMol$mi2, ]              #keep non-self-overlapping molecules
   mergedMI = as.data.frame(mergedMI)
   if(nrow(mergedMI)>0) mergedMI$type = "molNSOV" 
-  message("-Info: mergedMI:", nrow(mergedMI))
+  message("-Info: mergedMI:", dim(mergedMI))
   mergedBI = mergedMol[mergedMol$mi1 == mergedMol$mi2, ]              #keep self-overlapping molecules
   mergedBI = as.data.frame(mergedBI)
   if(nrow(mergedBI)>0) mergedBI$type = "molSOV"
-  message("-Info: mergedBI:", nrow(mergedBI))
+  message("-Info: mergedBI:", dim(mergedBI))
   
   # add "chr" for non UCSC format, required step to use BSgenome
   message("-Info: refined:", paste(refined))
@@ -238,7 +238,7 @@ dataReadIn = function(i, suffixes) {
     mergedFR = as.data.frame(mergedFR)
     if(nrow(mergedFR)>0) { #set_colClass(mergedFR, c("character","integer","integer","character","integer","integer"));
       mergedFR$id = paste("rdpFR",refinedFRid,sep=":"); mergedFR$type="rdpFR"; mergedFR$barcode=refinedFR$hp;
-      mergedFR$mi1 = 0; mergedFR$mi2 = 0; mergedFR$hp1 = 0; mergedFR$hp2 = 0;}
+      mergedFR$mi1 = 0; mergedFR$mi2 = 0; mergedFR$hp1 = 0; mergedFR$hp2 = 0; mergedFR$ps1 = 0; mergedFR$ps2 = 0;}
     message("-Info: mergedFR:", nrow(mergedFR))
     
     mergedRF = do.call("rbind", 
@@ -250,7 +250,7 @@ dataReadIn = function(i, suffixes) {
     mergedRF = as.data.frame(mergedRF)
     if(nrow(mergedRF)>0) { #set_colClass(mergedFR, c("character","integer","integer","character","integer","integer"));
       mergedRF$id = paste("rdpRF",refinedRFid,sep=":"); mergedRF$type="rdpRF"; mergedRF$barcode=refinedRF$hp;
-      mergedRF$mi1 = 0; mergedRF$mi2 = 0; mergedRF$hp1 = 0; mergedRF$hp2 = 0;}
+      mergedRF$mi1 = 0; mergedRF$mi2 = 0; mergedRF$hp1 = 0; mergedRF$hp2 = 0; mergedRF$ps1 = 0; mergedRF$ps2 = 0;}
     message("-Info: mergedRF:", nrow(mergedRF))
     
     mergedFF = do.call("rbind", 
@@ -259,8 +259,8 @@ dataReadIn = function(i, suffixes) {
                                                                                       as.data.frame(t(r)) }, chr1))
     mergedFF = as.data.frame(mergedFF)
     if(nrow(mergedFF)>0) { #set_colClass(mergedFF, c("character","integer","integer","character","integer","integer")); 
-                             mergedFF$id = paste("rdpFF",refinedFFid,sep=":"); mergedFF$type="rdpFF"; mergedFF$barcode=refinedFF$hp;
-                             mergedFF$mi1 = 0; mergedFF$mi2 = 0; mergedFF$hp1 = 0; mergedFF$hp2 = 0;} 
+      mergedFF$id = paste("rdpFF",refinedFFid,sep=":"); mergedFF$type="rdpFF"; mergedFF$barcode=refinedFF$hp;
+      mergedFF$mi1 = 0; mergedFF$mi2 = 0; mergedFF$hp1 = 0; mergedFF$hp2 = 0; mergedFF$ps1 = 0; mergedFF$ps2 = 0;} 
     message("-Info: mergedFF:", nrow(mergedFF))
     
     mergedRR = do.call("rbind", 
@@ -269,8 +269,8 @@ dataReadIn = function(i, suffixes) {
                        as.data.frame(t(r)) }, chr1))
     mergedRR = as.data.frame(mergedRR)
     if(nrow(mergedRR)>0) { #set_colClass(mergedRR, c("character","integer","integer","character","integer","integer")); 
-                             mergedRR$id = paste("rdpRR",refinedRRid,sep=":"); mergedRR$type="rdpRR"; mergedRR$barcode=refinedRR$hp;
-                             mergedRR$mi1 = 0; mergedRR$mi2 = 0; mergedRR$hp1 = 0; mergedRR$hp2 = 0;}
+      mergedRR$id = paste("rdpRR",refinedRRid,sep=":"); mergedRR$type="rdpRR"; mergedRR$barcode=refinedRR$hp;
+      mergedRR$mi1 = 0; mergedRR$mi2 = 0; mergedRR$hp1 = 0; mergedRR$hp2 = 0; mergedRR$ps1 = 0; mergedRR$ps2 = 0;}
     message("-Info: mergedRR:", nrow(mergedRR))
   
     if(!isUCSC & nrow(mergedFR)>0) {mergedFR$chr1=paste("chr",mergedFR$chr1,sep="")
@@ -287,6 +287,13 @@ dataReadIn = function(i, suffixes) {
                                       mergedBI$chr2=paste("chr",mergedBI$chr2,sep="")}
 
   } #end of getting all rdps
+
+  print(dim(mergedFR))
+  print(dim(mergedRF))
+  print(dim(mergedFF))
+  print(dim(mergedRR))
+  print(dim(mergedBI))
+  print(dim(mergedMI))
    
   mergedAll=rbind(mergedFR,mergedRF,mergedFF,mergedRR,mergedBI,mergedMI)
   
@@ -331,11 +338,12 @@ dataReadIn = function(i, suffixes) {
   breakReg1CIHigh = NA
   breakReg2CILow = NA
   breakReg2CIHigh = NA
-  ### The LOGIC here is temporary cause obvisouly even if the junction is the same hap
-  ### the hap doesn't expect to be correctly identified  by long-ranger correclty
+
+  ### The LOGIC here is temporary cause obvisouly even if the junction is the same haplotype
+  ### the haplotype should not be expected to be correctly identified by long-ranger
   ### let's break it down to haplotypes and phased segemnts at each breakpoint
   hapTab1 = table(mergedAll$hp1[mergedAll$hp1!=-1])
-  hapTab2 = table(mergedAll$hp2[mergedAll$hp2!=-1]) #only hp=1 and hp=2 matters
+  hapTab2 = table(mergedAll$hp2[mergedAll$hp2!=-1]) #only hp=1 and hp=2 matters, cause long-ranges only assumes two
   cat("-Info: haplotype (hp) table of breakpoint1"); print(hapTab1)
   cat("-Info: haplotype (hp) table of breakpoint2"); print(hapTab2)
   breakHapTab1 = rjson::toJSON(hapTab1)
@@ -343,12 +351,13 @@ dataReadIn = function(i, suffixes) {
   breakHapMax =  rep(0, 2)
   for(i in 1:2) {
     hapTab = list(hapTab1, hapTab2)[[i]]
-    if(!is.null(hapTab)) 
-      breakHapMax[i]=names(sort(hapTab, decreasing=TRUE))[1]
+    if(!is.null(hapTab)) #hapTab not null
+       if( (!is.null(nrow(hapTab)) && nrow(hapTab)!=0) || is.null(nrow(hapTab)) ) #hapTab has a row
+          breakHapMax[i]=names(sort(hapTab, decreasing=TRUE))[1]
     cat("-Info: breakpoint", i, " haplotype"); print(breakHapMax[i])
   }
 
-  breakPsMax =  rep(0, 2)
+  breakPsMax = rep(0, 2)
   psTab1 = table(mergedAll$ps1[mergedAll$ps1!=-1])
   psTab2 = table(mergedAll$ps2[mergedAll$ps2!=-1])
   cat("-Info: phased segment (ps) of breakpoint1"); print(psTab1)
@@ -357,9 +366,10 @@ dataReadIn = function(i, suffixes) {
   breakPsTab2 = rjson::toJSON(psTab2)
   breakPsMax =  rep(0, 2)
   for(i in 1:2) {
-    psTab = c(psTab1, psTab2)[i]
-    if(!is.null(psTab)) 
-      breakPsMax[i]=names(sort(psTab, decreasing=TRUE))[1]
+    psTab = list(psTab1, psTab2)[[i]]
+    if(!is.null(psTab))
+       if( (!is.null(nrow(psTab)) && nrow(psTab)!=0) || is.null(nrow(psTab)) )
+          breakPsMax[i]=names(sort(psTab, decreasing=TRUE))[1]
     cat("-Info: breakpoint ", i, " phased segment"); print(breakPsMax[i])
   }
 
@@ -458,20 +468,24 @@ dataReadIn = function(i, suffixes) {
     tmpSVType = "UNK"
   }
   
-  infoTabNew = cbind(infoTab[,seq(7)], as.data.frame( list( breakpoint1=breakpoint1,
-                                                            breakpoint2=breakpoint2,
-                                                            isLeftBreak1=leftBreakReg1,
-                                                            isLeftBreak2=leftBreakReg2,
-                                                            SVHap=paste(breakHapMax,sep="<>"),
-                                                            SVPs=paste(breakPsMax,sep="<>"),,
-                                                            SVType=tmpSVType,
-                                                            AlleleFraction=sum(mergedAll$supportType=="molNSOV")/statsTab$Cem,
-                                                            ReadPair=supportRDP,
-                                                            MolCnt=sum(mergedAll$supportType=="molNSOV"),
-                                                            totalMol=totalMol,
-                                                            featureMol=featureMol,
-                                                            Sample=s)) )
-
+  #cat("AlleleFraction\n")
+  #print(sum(mergedAll$supportType=="molNSOV")/statsTab$Cem)
+  #cat("SVPs\n")
+  #print(breakPsMax)
+  infoList = list( breakpoint1=breakpoint1,
+                   breakpoint2=breakpoint2,
+                   isLeftBreak1=leftBreakReg1,
+                   isLeftBreak2=leftBreakReg2,
+                   SVHap=paste(breakHapMax,collapse="<->"),
+                   SVPs=paste(breakPsMax,collapse="<->"),
+                   SVType=tmpSVType,
+                   AlleleFraction=sum(mergedAll$supportType=="molNSOV")/statsTab$Cem,
+                   ReadPair=supportRDP,
+                   MolCnt=sum(mergedAll$supportType=="molNSOV"),
+                   totalMol=totalMol,
+                   featureMol=featureMol,
+                   Sample=s)
+  infoTabNew = cbind(infoTab[,seq(7)], as.data.frame( infoList ))
   mergedAllFile = paste(plotPrefix,"support",s,"txt",sep=".")
   write.table(mergedAll,file=mergedAllFile,col.names=TRUE,row.names=FALSE,sep="\t",quote=FALSE) #mergeAll
   
@@ -491,13 +505,17 @@ dataReadIn = function(i, suffixes) {
                                 SVType=tmpSVType,
                                 SVHap=paste(breakHapMax,sep="<>"),
 				SVHapTab=list(hapTab1=hapTab1,hapTab2=hapTab2),
-                                SVPs=paste(breakPsMax,sep="<>"),,
+                                SVPs=paste(breakPsMax,sep="<>"),
                                 SVPsTab=list(hapTab1=hapTab1,hapTab2=hapTab2),
                                 AlleleFraction=sum(mergedAll$supportType=="molNSOV")/statsTab$Cem,
                                 ReadPair=supportRDP,
                                 Sample=s
   )), con=jsonFile)
   close(jsonFile)
+
+  message("-Info: processed:", suffixes[i])
+  #cat("infoTabNew\n")
+  #print(infoTabNew)
  
   return(list(mergedAll=mergedAll, infoTab=infoTabNew)) 
 }
@@ -506,15 +524,17 @@ allData = lapply(seq_along(suffixes), dataReadIn, suffixes)
 names(allData)=suffixes
 
 #chr1  start1	end1	chr2	start2	end2	molcnt	breakpoint1	breakpoint2	SVType	AlleleFraction	ReadPair Sample
-infoTabNew = Reduce(rbind, lapply(allData,'[[',"infoTab"))
+infoTabAll = Reduce(rbind, lapply(allData,'[[',"infoTab"))
 infoFile = paste(plotPrefix,"info","txt",sep=".")
-infoTabOutput=infoTabNew
+message("-Info: infoTabAll:")
+print(infoTabAll)
+infoTabOutput=infoTabAll
 if(length(suffixes)==2) { 
   #do the fisher exact test here, second row is control
-  zC=infoTabNew[2,]$featureMol
-  kC=infoTabNew[2,]$totalMol-2*infoTabNew[2,]$featureMol #nC-zC
-  zT=infoTabNew[1,]$featureMol
-  kT=infoTabNew[1,]$totalMol-1*infoTabNew[1,]$featureMol #nC-zC
+  zC=infoTabAll[2,]$featureMol
+  kC=infoTabAll[2,]$totalMol-2*infoTabAll[2,]$featureMol #nC-zC
+  zT=infoTabAll[1,]$featureMol
+  kT=infoTabAll[1,]$totalMol-1*infoTabAll[1,]$featureMol #nC-zC
   t=fisher.test(rbind(c(zC,zT),c(kC,kT)), alternative="less")
   infoTabOutput$fisherP=t$p.value
   #cleaning up for case/control output

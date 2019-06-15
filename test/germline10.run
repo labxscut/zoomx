@@ -1,3 +1,4 @@
 #!/bin/bash
 export PATH=$PWD/../scripts:$PATH
 zoomxStage germline10.cfg
+zoomxTab plots NA12878 dist refined results/NA12878.dist.refined

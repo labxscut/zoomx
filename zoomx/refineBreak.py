@@ -55,7 +55,7 @@ def main(args):
     moleBedFile = args.moleBedFile 
     debug = args.debug
     mergeOnly = args.mergeOnly
-    tempdir = args.tempdir
+    tempdir = args.tempdir+'/zoomx_'+lib10x.randascii(4)
     numprocs = args.numprocs
     altExpect = args.altExpect
     forcedExpect = args.forcedExpect
