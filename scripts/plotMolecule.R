@@ -476,8 +476,8 @@ dataReadIn = function(i, suffixes) {
                    breakpoint2=breakpoint2,
                    isLeftBreak1=leftBreakReg1,
                    isLeftBreak2=leftBreakReg2,
-                   SVHap=paste(breakHapMax,sep="<>"),
-                   SVPs=paste(breakPsMax,sep="<>"),
+                   SVHap=paste(breakHapMax,collapse="<->"),
+                   SVPs=paste(breakPsMax,collapse="<->"),
                    SVType=tmpSVType,
                    AlleleFraction=sum(mergedAll$supportType=="molNSOV")/statsTab$Cem,
                    ReadPair=supportRDP,
@@ -485,8 +485,6 @@ dataReadIn = function(i, suffixes) {
                    totalMol=totalMol,
                    featureMol=featureMol,
                    Sample=s)
-  cat("infoList\n")
-  print(infoList)
   infoTabNew = cbind(infoTab[,seq(7)], as.data.frame( infoList ))
   mergedAllFile = paste(plotPrefix,"support",s,"txt",sep=".")
   write.table(mergedAll,file=mergedAllFile,col.names=TRUE,row.names=FALSE,sep="\t",quote=FALSE) #mergeAll
@@ -514,6 +512,10 @@ dataReadIn = function(i, suffixes) {
                                 Sample=s
   )), con=jsonFile)
   close(jsonFile)
+
+  message("-Info: processed:", suffixes[i])
+  #cat("infoTabNew\n")
+  #print(infoTabNew)
  
   return(list(mergedAll=mergedAll, infoTab=infoTabNew)) 
 }
@@ -522,15 +524,17 @@ allData = lapply(seq_along(suffixes), dataReadIn, suffixes)
 names(allData)=suffixes
 
 #chr1  start1	end1	chr2	start2	end2	molcnt	breakpoint1	breakpoint2	SVType	AlleleFraction	ReadPair Sample
-infoTabNew = Reduce(rbind, lapply(allData,'[[',"infoTab"))
+infoTabAll = Reduce(rbind, lapply(allData,'[[',"infoTab"))
 infoFile = paste(plotPrefix,"info","txt",sep=".")
-infoTabOutput=infoTabNew
+message("-Info: infoTabAll:")
+print(infoTabAll)
+infoTabOutput=infoTabAll
 if(length(suffixes)==2) { 
   #do the fisher exact test here, second row is control
-  zC=infoTabNew[2,]$featureMol
-  kC=infoTabNew[2,]$totalMol-2*infoTabNew[2,]$featureMol #nC-zC
-  zT=infoTabNew[1,]$featureMol
-  kT=infoTabNew[1,]$totalMol-1*infoTabNew[1,]$featureMol #nC-zC
+  zC=infoTabAll[2,]$featureMol
+  kC=infoTabAll[2,]$totalMol-2*infoTabAll[2,]$featureMol #nC-zC
+  zT=infoTabAll[1,]$featureMol
+  kT=infoTabAll[1,]$totalMol-1*infoTabAll[1,]$featureMol #nC-zC
   t=fisher.test(rbind(c(zC,zT),c(kC,kT)), alternative="less")
   infoTabOutput$fisherP=t$p.value
   #cleaning up for case/control output
