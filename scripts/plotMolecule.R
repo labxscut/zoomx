@@ -199,11 +199,11 @@ dataReadIn = function(i, suffixes) {
   mergedMI = mergedMol[mergedMol$mi1 != mergedMol$mi2, ]              #keep non-self-overlapping molecules
   mergedMI = as.data.frame(mergedMI)
   if(nrow(mergedMI)>0) mergedMI$type = "molNSOV" 
-  message("-Info: mergedMI:", nrow(mergedMI))
+  message("-Info: mergedMI:", dim(mergedMI))
   mergedBI = mergedMol[mergedMol$mi1 == mergedMol$mi2, ]              #keep self-overlapping molecules
   mergedBI = as.data.frame(mergedBI)
   if(nrow(mergedBI)>0) mergedBI$type = "molSOV"
-  message("-Info: mergedBI:", nrow(mergedBI))
+  message("-Info: mergedBI:", dim(mergedBI))
   
   # add "chr" for non UCSC format, required step to use BSgenome
   message("-Info: refined:", paste(refined))
@@ -238,7 +238,7 @@ dataReadIn = function(i, suffixes) {
     mergedFR = as.data.frame(mergedFR)
     if(nrow(mergedFR)>0) { #set_colClass(mergedFR, c("character","integer","integer","character","integer","integer"));
       mergedFR$id = paste("rdpFR",refinedFRid,sep=":"); mergedFR$type="rdpFR"; mergedFR$barcode=refinedFR$hp;
-      mergedFR$mi1 = 0; mergedFR$mi2 = 0; mergedFR$hp1 = 0; mergedFR$hp2 = 0;}
+      mergedFR$mi1 = 0; mergedFR$mi2 = 0; mergedFR$hp1 = 0; mergedFR$hp2 = 0; mergedFR$ps1 = 0; mergedFR$ps2 = 0;}
     message("-Info: mergedFR:", nrow(mergedFR))
     
     mergedRF = do.call("rbind", 
@@ -250,7 +250,7 @@ dataReadIn = function(i, suffixes) {
     mergedRF = as.data.frame(mergedRF)
     if(nrow(mergedRF)>0) { #set_colClass(mergedFR, c("character","integer","integer","character","integer","integer"));
       mergedRF$id = paste("rdpRF",refinedRFid,sep=":"); mergedRF$type="rdpRF"; mergedRF$barcode=refinedRF$hp;
-      mergedRF$mi1 = 0; mergedRF$mi2 = 0; mergedRF$hp1 = 0; mergedRF$hp2 = 0;}
+      mergedRF$mi1 = 0; mergedRF$mi2 = 0; mergedRF$hp1 = 0; mergedRF$hp2 = 0; mergedRF$ps1 = 0; mergedRF$ps2 = 0;}
     message("-Info: mergedRF:", nrow(mergedRF))
     
     mergedFF = do.call("rbind", 
@@ -259,8 +259,8 @@ dataReadIn = function(i, suffixes) {
                                                                                       as.data.frame(t(r)) }, chr1))
     mergedFF = as.data.frame(mergedFF)
     if(nrow(mergedFF)>0) { #set_colClass(mergedFF, c("character","integer","integer","character","integer","integer")); 
-                             mergedFF$id = paste("rdpFF",refinedFFid,sep=":"); mergedFF$type="rdpFF"; mergedFF$barcode=refinedFF$hp;
-                             mergedFF$mi1 = 0; mergedFF$mi2 = 0; mergedFF$hp1 = 0; mergedFF$hp2 = 0;} 
+      mergedFF$id = paste("rdpFF",refinedFFid,sep=":"); mergedFF$type="rdpFF"; mergedFF$barcode=refinedFF$hp;
+      mergedFF$mi1 = 0; mergedFF$mi2 = 0; mergedFF$hp1 = 0; mergedFF$hp2 = 0; mergedFF$ps1 = 0; mergedFF$ps2 = 0;} 
     message("-Info: mergedFF:", nrow(mergedFF))
     
     mergedRR = do.call("rbind", 
@@ -269,8 +269,8 @@ dataReadIn = function(i, suffixes) {
                        as.data.frame(t(r)) }, chr1))
     mergedRR = as.data.frame(mergedRR)
     if(nrow(mergedRR)>0) { #set_colClass(mergedRR, c("character","integer","integer","character","integer","integer")); 
-                             mergedRR$id = paste("rdpRR",refinedRRid,sep=":"); mergedRR$type="rdpRR"; mergedRR$barcode=refinedRR$hp;
-                             mergedRR$mi1 = 0; mergedRR$mi2 = 0; mergedRR$hp1 = 0; mergedRR$hp2 = 0;}
+      mergedRR$id = paste("rdpRR",refinedRRid,sep=":"); mergedRR$type="rdpRR"; mergedRR$barcode=refinedRR$hp;
+      mergedRR$mi1 = 0; mergedRR$mi2 = 0; mergedRR$hp1 = 0; mergedRR$hp2 = 0; mergedRR$ps1 = 0; mergedRR$ps2 = 0;}
     message("-Info: mergedRR:", nrow(mergedRR))
   
     if(!isUCSC & nrow(mergedFR)>0) {mergedFR$chr1=paste("chr",mergedFR$chr1,sep="")
@@ -287,6 +287,13 @@ dataReadIn = function(i, suffixes) {
                                       mergedBI$chr2=paste("chr",mergedBI$chr2,sep="")}
 
   } #end of getting all rdps
+
+  print(dim(mergedFR))
+  print(dim(mergedRF))
+  print(dim(mergedFF))
+  print(dim(mergedRR))
+  print(dim(mergedBI))
+  print(dim(mergedMI))
    
   mergedAll=rbind(mergedFR,mergedRF,mergedFF,mergedRR,mergedBI,mergedMI)
   
@@ -344,8 +351,9 @@ dataReadIn = function(i, suffixes) {
   breakHapMax =  rep(0, 2)
   for(i in 1:2) {
     hapTab = list(hapTab1, hapTab2)[[i]]
-    if(!is.null(hapTab)) 
-      breakHapMax[i]=names(sort(hapTab, decreasing=TRUE))[1]
+    if(!is.null(hapTab)) #hapTab not null
+       if( (!is.null(nrow(hapTab)) && nrow(hapTab)!=0) || is.null(nrow(hapTab)) ) #hapTab has a row
+          breakHapMax[i]=names(sort(hapTab, decreasing=TRUE))[1]
     cat("-Info: breakpoint", i, " haplotype"); print(breakHapMax[i])
   }
 
@@ -358,9 +366,10 @@ dataReadIn = function(i, suffixes) {
   breakPsTab2 = rjson::toJSON(psTab2)
   breakPsMax =  rep(0, 2)
   for(i in 1:2) {
-    psTab = c(psTab1, psTab2)[i]
-    if(!is.null(psTab)) 
-      breakPsMax[i]=names(sort(psTab, decreasing=TRUE))[1]
+    psTab = list(psTab1, psTab2)[[i]]
+    if(!is.null(psTab))
+       if( (!is.null(nrow(psTab)) && nrow(psTab)!=0) || is.null(nrow(psTab)) )
+          breakPsMax[i]=names(sort(psTab, decreasing=TRUE))[1]
     cat("-Info: breakpoint ", i, " phased segment"); print(breakPsMax[i])
   }
 
