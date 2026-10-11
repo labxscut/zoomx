@@ -1,14 +1,14 @@
-.. |Logo| image:: https://bitbucket.org/charade/zoomx/raw/master/doc/images/logo.png
+.. |Logo| image:: doc/images/logo.png
    :alt: logo.png
    :height: 50px
    :width: 50px
 
-.. |Rationale| image:: https://bitbucket.org/charade/zoomx/raw/master/doc/images/rationale.png
+.. |Rationale| image:: doc/images/rationale.png
    :alt: rationale.png
    :height: 450px
    :width: 540px
 
-.. |Pipeline| image:: https://bitbucket.org/charade/zoomx/raw/master/doc/images/pipeline.png
+.. |Pipeline| image:: doc/images/pipeline.png
    :alt: pipeline.png
    :height: 320px
    :width: 520px
@@ -19,11 +19,11 @@
 QUICK LINKS
 -----------
 
-`Examples <https://bitbucket.org/charade/zoomx/wiki/Example>`__
+`Examples <doc/Example.master.rst>`__
 
-`Manuals <https://bitbucket.org/charade/zoomx/wiki/Manual>`__
+`Manuals <doc/Manual.master.rst>`__
 
-`FAQ <https://bitbucket.org/charade/zoomx/wiki/FAQ>`__
+`FAQ <doc/FAQ.rst>`__
 
 INTRODUCTION
 ------------
@@ -48,8 +48,8 @@ INTRODUCTION
     
   Currently the package works for Linux (tested with Ubuntu). 
   It might also work for Mac with Brew/Ports or Windows with Cygwin (not tested).
-  ZoomX documentation is on wiki and it is available:
-  http://bitbucket.org/charade/zoomx/wiki
+  ZoomX documentation is available in the ``doc/`` folder of this repository
+  (doc/Home.rst, doc/Example.master.rst, doc/Manual.master.rst and doc/FAQ.rst).
 
 TRYOUT
 ------------
@@ -61,7 +61,7 @@ TRYOUT
     The Amazon Machine Image (ami) of the above EC2 instance is downloadable from Amazon S3 bucket.
     https://s3-us-west-2.amazonaws.com/lixiabucket/zoomxDemo.ova . The usage is the same as above.
 
-    Testing data and scripts are available in ~/setup/zoomx/test . Run ./clean to clean up the directory first. Examples are offered and explained in `Examples <https://bitbucket.org/charade/zoomx/wiki/Example>`__ .
+    Testing data and scripts are available in ~/setup/zoomx/test . Run ./clean to clean up the directory first. Examples are offered and explained in `Examples <doc/Example.master.rst>`__ .
 
     .. code::
    
@@ -88,8 +88,8 @@ DOCKER (Platform Independent and Preferred)
   If you are not familiar with Docker, it is a container platform widely used in industry/academia.
   Here is the link to learn Docker and its community: https://www.docker.com 
 
-  If you have a docker server up and running, just need to download the Dockerfile from:
-  https://bitbucket.org/charade/zoomx/raw/master/Dockerfile to . and run:
+  If you have a docker server up and running, just use the Dockerfile from the repository root
+  (`Dockerfile <Dockerfile>`__), copy it to . and run:
 
   ::
 
@@ -98,7 +98,7 @@ DOCKER (Platform Independent and Preferred)
 INSTALL (Linux/Ubuntu)
 -----------------------------
   
-  ZoomX is available on bitbucket: bitbucket.org:charade/zoomx.git
+  ZoomX is available on GitHub: https://github.com/labxscut/zoomx.git
 
   *Dependencies*:
 
@@ -123,12 +123,12 @@ INSTALL (Linux/Ubuntu)
    
     A script to confirm all dependencies are met is here:
 
-      https://bitbucket.org/charade/zoomx/raw/master/test/test_dep.sh   
+      `test/test_dep.sh <test/test_dep.sh>`__
     
   *Installation Free*:
 
     ZoomX can be used without installation as long as required commands in proper versions are all in $PATH.
-    see `Examples <https://bitbucket.org/charade/zoomx/wiki/Example>`__ and `Manuals <https://bitbucket.org/charade/zoomx/wiki/Manual>`__ for more informations
+    see `Examples <doc/Example.master.rst>`__ and `Manuals <doc/Manual.master.rst>`__ for more informations
 
   *Installation Python / Virtual Python*
     
@@ -167,7 +167,7 @@ INSTALL (Linux/Ubuntu)
     .. code::
 
       # in zoomx_vpy>
-      git clone git@bitbucket.org:charade/zoomx.git
+      git clone https://github.com/labxscut/zoomx.git
       cd zoomx
       git submodule update --init --recursive 
       python setup.py install 
@@ -181,7 +181,7 @@ EXECUTABLES
 
   zoomxStage    --  a meta script to run zoomxRun with multiple specified stages.
 
-  zoomxRun      --  an interface script runs ZoomX's stage scripts given a configure file. see `Examples <https://bitbucket.org/charade/zoomx/wiki/Example>`__ .   
+  zoomxRun      --  an interface script runs ZoomX's stage scripts given a configure file. see `Examples <doc/Example.master.rst>`__ .   
 
   parse10x      --  parsing 10X genomics (Chromium) bam. X.bam.bai has to be in place for X.bam.
     
@@ -202,22 +202,22 @@ USAGE
     
   By default all above executables will be available from $ZOOMX_BIN/ .
   Use '-h' to read script-wise usage.
-  See Wiki pages for more details.
+  See the manuals and examples under doc/ for more details.
 
 WIKI
 -------------
 
-  ZoomX's https://bitbucket.org/charade/zoomx/wiki page is a growing resource for manuals, FAQs and other information. This is a MUST read place before you actually using the ZoomX tool. These documentations are also openly editable in reSructuredText format. You are more than welcome to contribute to this ongoing documentation.
+  ZoomX's manuals, FAQs and other documentation are maintained in the ``doc/`` folder of this repository (see `doc/Manual.master.rst <doc/Manual.master.rst>`__, `doc/Example.master.rst <doc/Example.master.rst>`__ and `doc/FAQ.rst <doc/FAQ.rst>`__). This is a MUST read before you actually use the ZoomX tool. Contributions to this documentation are welcome.
     
 FAQ
 -------------
 
-  http://bitbucket.org/charade/zoomx/wiki/FAQ
+  `doc/FAQ.rst <doc/FAQ.rst>`__
     
 BUG
 -------------
 
-  https://bitbucket.org/charade/zoomx/issues
+  https://github.com/labxscut/zoomx/issues
 
 CONTACTS
 -------------
